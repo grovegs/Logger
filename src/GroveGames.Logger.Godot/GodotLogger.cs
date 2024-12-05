@@ -16,7 +16,6 @@ public class GodotLogger : ILogger
     public void Info(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         _logger.Info(tag, message);
-        GD.Print(message.ToString());
     }
 
     public void Warning(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
