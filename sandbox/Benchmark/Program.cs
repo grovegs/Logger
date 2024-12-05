@@ -9,7 +9,7 @@ using ZLogger;
 using ZLogger.Providers;
 
 [MemoryDiagnoser]
-[SimpleJob(launchCount: 1, warmupCount: 10, invocationCount: 1000, iterationCount: 1000)]
+[SimpleJob(launchCount: 1, warmupCount: 100, invocationCount: 1000, iterationCount: 1000)]
 public class Benchmark
 {
     private FileLogger _fileLogger;
@@ -41,13 +41,13 @@ public class Benchmark
     }
 
     [Benchmark]
-    public void Log()
+    public void FileLogger()
     {
         _fileLogger.Info("Test Tag", "This is a test message");
     }
 
     [Benchmark]
-    public void Zlog()
+    public void Zloger()
     {
         _zlogger.LogInformation("This is a test message");
     }
