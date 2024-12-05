@@ -1,10 +1,12 @@
+using System.Collections.Concurrent;
+
 namespace Berserk.Scripts.Infra.Logging
 {
     public class FileWriter : IDisposable
     {
         private const int WriteInterval = 2000;
 
-        private readonly Queue<char> _messageQueue;
+        private readonly ConcurrentQueue<char> _messageQueue;
 
         private Thread _writeThread;
         private StreamWriter _writer;
@@ -13,7 +15,7 @@ namespace Berserk.Scripts.Infra.Logging
 
         public FileWriter(StreamWriter streamWriter)
         {
-            _messageQueue = new Queue<char>(1000);
+            _messageQueue = new ConcurrentQueue<char>());
 
             _writer = streamWriter;
 
@@ -36,12 +38,11 @@ namespace Berserk.Scripts.Infra.Logging
         {
             while (_isRunning)
             {
-                while (_messageQueue.Count > 0)
+                while (_messageQueue.TryDequeue(out var result))
                 {
                     try
                     {
-                        var current = _messageQueue.Dequeue();
-                        await _writer.WriteAsync(current);
+                        await _writer.WriteAsync(result);
                     }
                     catch (Exception e)
                     {
@@ -53,7 +54,7 @@ namespace Berserk.Scripts.Infra.Logging
 
                 await _writer.FlushAsync();
 
-                Thread.Sleep(WriteInterval);
+                await Task.Delay(WriteInterval);
             }
         }
 
