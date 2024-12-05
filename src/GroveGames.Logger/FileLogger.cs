@@ -1,10 +1,8 @@
-using Berserk.Scripts.Infra.Logging;
-
 namespace GroveGames.Logger;
 
 public class FileLogger : ILogger
 {
-    private FileWriter _fileWriter;
+    private readonly FileWriter _fileWriter;
 
     private static ReadOnlySpan<char> ErrorLevel => "ERROR";
     private static ReadOnlySpan<char> WarningLevel => "WARNING";

@@ -1,70 +1,66 @@
 using System.Collections.Concurrent;
 
-namespace Berserk.Scripts.Infra.Logging
+namespace GroveGames.Logger;
+
+public class FileWriter : IDisposable
 {
-    public class FileWriter : IDisposable
+    private const int WriteInterval = 2000;
+
+    private readonly ConcurrentQueue<char> _messageQueue;
+
+    private readonly Thread _writeThread;
+    private readonly StreamWriter _writer;
+
+    private bool _isRunning;
+
+    public FileWriter(StreamWriter streamWriter)
     {
-        private const int WriteInterval = 2000;
+        _messageQueue = new ConcurrentQueue<char>();
 
-        private readonly ConcurrentQueue<char> _messageQueue;
+        _writer = streamWriter;
 
-        private readonly Thread _writeThread;
-        private readonly StreamWriter _writer;
+        _writeThread = new Thread(Write) { Name = "LogWriteThread" };
 
-        private bool _isRunning;
+        _isRunning = true;
+        _writeThread.Start();
+    }
 
-        public FileWriter(StreamWriter streamWriter)
+    public void AddToQueue(ReadOnlySpan<char> message)
+    {
+        foreach (var ch in message)
         {
-            _messageQueue = new ConcurrentQueue<char>();
-
-            _writer = streamWriter;
-
-            _writeThread = new Thread(Write) { Name = "LogWriteThread" };
-
-            _isRunning = true;
-            _writeThread.Start();
+            _messageQueue.Enqueue(ch);
         }
+        _messageQueue.Enqueue('\n');
+    }
 
-        public void AddToQueue(ReadOnlySpan<char> message)
+    private async void Write()
+    {
+        while (_isRunning)
         {
-            foreach (var ch in message)
+            while (_messageQueue.TryDequeue(out var result))
             {
-                _messageQueue.Enqueue(ch);
-            }
-            _messageQueue.Enqueue('\n');
-        }
-
-        private async void Write()
-        {
-            while (_isRunning)
-            {
-                while (_messageQueue.TryDequeue(out var result))
+                try
                 {
-                    try
-                    {
-                        await _writer.WriteAsync(result);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Error occured while buffering logs with exception: {e}");
-                        Dispose();
-                    }
-
+                    await _writer.WriteAsync(result);
                 }
-
-                await _writer.FlushAsync();
-
-                await Task.Delay(WriteInterval);
+                catch
+                {
+                    Dispose();
+                }
             }
-        }
 
-        public void Dispose()
-        {
-            _isRunning = false;
-            _writeThread?.Join();
-            _writer?.Close();
-            _writer?.Dispose();
+            await _writer.FlushAsync();
+
+            await Task.Delay(WriteInterval);
         }
     }
 
+    public void Dispose()
+    {
+        _isRunning = false;
+        _writeThread?.Join();
+        _writer?.Close();
+        _writer?.Dispose();
+    }
 }
