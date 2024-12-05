@@ -8,14 +8,14 @@ namespace Berserk.Scripts.Infra.Logging
 
         private readonly ConcurrentQueue<char> _messageQueue;
 
-        private Thread _writeThread;
-        private StreamWriter _writer;
+        private readonly Thread _writeThread;
+        private readonly StreamWriter _writer;
 
         private bool _isRunning;
 
         public FileWriter(StreamWriter streamWriter)
         {
-            _messageQueue = new ConcurrentQueue<char>());
+            _messageQueue = new ConcurrentQueue<char>();
 
             _writer = streamWriter;
 
