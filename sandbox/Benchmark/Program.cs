@@ -47,7 +47,7 @@ public class Benchmark
     }
 
     [Benchmark]
-    public void Zloger()
+    public void ZLogger()
     {
         _zlogger.LogInformation("This is a test message");
     }
