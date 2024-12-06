@@ -6,16 +6,18 @@ public class FileWriter : IDisposable
 {
     private const int WriteInterval = 2000;
 
-    private readonly ConcurrentQueue<char> _messageQueue;
+    private readonly Queue<char> _messageQueue;
 
     private readonly Thread _writeThread;
     private readonly StreamWriter _writer;
+    private readonly SemaphoreSlim _semaphore;
 
     private bool _isRunning;
 
     public FileWriter(StreamWriter streamWriter)
     {
-        _messageQueue = new ConcurrentQueue<char>();
+        _semaphore = new SemaphoreSlim(1, 1);
+        _messageQueue = new Queue<char>();
 
         _writer = streamWriter;
 
@@ -38,6 +40,7 @@ public class FileWriter : IDisposable
     {
         while (_isRunning)
         {
+            await _semaphore.WaitAsync();
             while (_messageQueue.TryDequeue(out var result))
             {
                 try
@@ -51,6 +54,7 @@ public class FileWriter : IDisposable
             }
 
             await _writer.FlushAsync();
+            _semaphore.Release();
 
             await Task.Delay(WriteInterval);
         }
