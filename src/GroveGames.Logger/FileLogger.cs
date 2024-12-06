@@ -34,7 +34,7 @@ public class FileLogger : ILogger
     private void Log(ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         Span<char> buffer = stackalloc char[level.Length + tag.Length + message.Length + DateTimeSize + SeperatorSize];
-        Format(buffer, InfoLevel, tag, message);
+        Format(buffer, level, tag, message);
         _fileWriter.AddToQueue(buffer);
     }
 

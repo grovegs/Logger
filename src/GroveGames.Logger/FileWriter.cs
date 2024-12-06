@@ -1,5 +1,3 @@
-using System.Collections.Concurrent;
-
 namespace GroveGames.Logger;
 
 public class FileWriter : IDisposable
