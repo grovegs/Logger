@@ -2,33 +2,47 @@ using GroveGames.Logger;
 
 public class FileWriterTests
 {
-    [Fact]
-    public void AddToQueue_ShouldEnqueueMessages()
+    private const string LogFilePath = "test_log.txt";
+
+    public FileWriterTests()
     {
-        // Arrange
-        var mockStreamWriter = new Mock<StreamWriter>(Stream.Null);
-        var writer = new FileWriter(mockStreamWriter.Object);
-        string testMessage = "Hello, World!";
-
-        // Act
-        writer.AddToQueue(testMessage.AsSpan());
-
-        // Assert
-        // Unfortunately, internal queues are hard to test directly. Focus on behavior:
-        mockStreamWriter.Verify(w => w.WriteAsync(It.IsAny<char>()), Times.AtLeastOnce);
+        if (File.Exists(LogFilePath))
+        {
+            File.Delete(LogFilePath);
+        }
     }
 
     [Fact]
-    public void Dispose_ShouldStopWritingThread()
+    public async Task AddToQueue_ShouldEnqueueMessage()
     {
         // Arrange
-        var mockStreamWriter = new Mock<StreamWriter>(Stream.Null);
-        var writer = new FileWriter(mockStreamWriter.Object);
+        using var streamWriter = new StreamWriter(LogFilePath, append: false);
+        var fileWriter = new FileWriter(streamWriter);
 
         // Act
-        writer.Dispose();
+        fileWriter.AddToQueue("Hello, World!".AsSpan());
+        await Task.Delay(1500); // Yazma döngüsünün tamamlanmasını bekle
 
         // Assert
-        mockStreamWriter.Verify(w => w.Close(), Times.Once);
+        fileWriter.Dispose();
+        var logContents = File.ReadAllText(LogFilePath);
+        Assert.Contains("Hello, World!", logContents);
+    }
+
+    [Fact]
+    public async Task Dispose_ShouldStopWritingThread()
+    {
+        // Arrange
+        using var streamWriter = new StreamWriter(LogFilePath, append: false);
+        var fileWriter = new FileWriter(streamWriter);
+
+        // Act
+        fileWriter.AddToQueue("This will not be written.".AsSpan());
+        fileWriter.Dispose();
+        await Task.Delay(1500); // Yazma döngüsü durmuş olmalı
+
+        // Assert
+        var logContents = File.ReadAllText(LogFilePath);
+        Assert.DoesNotContain("This will not be written.", logContents);
     }
 }

@@ -1,62 +1,60 @@
 using GroveGames.Logger;
 
-using System;
-using System.IO;
-using System.Threading.Tasks;
-
 using Xunit;
 
 public class FileLoggerTests
 {
-
     [Fact]
-    public async Task Info_ShouldWriteMessageToLogFile()
+    public void Info_ShouldAddFormattedMessageToQueue()
     {
         // Arrange
-        using var streamWriter = new StreamWriter("test_info.txt", append: false);
-        var logger = new FileLogger(streamWriter);
+        var testFileWriter = new TestFileWriter();
+        var logger = new FileLogger(testFileWriter);
+
+        var tag = "TestTag".AsSpan();
+        var message = "Test message".AsSpan();
 
         // Act
-        logger.Info("TestTag".AsSpan(), "Test message".AsSpan());
-        await Task.Delay(2500); // Yazma döngüsünü tamamlaması için bekle
+        logger.Info(tag, message);
 
         // Assert
-        logger.Dispose();
-        var logContents = File.ReadAllText("test_info.txt");
-        Assert.Contains("INFO | TestTag | Test message", logContents);
+        Assert.Single(testFileWriter.Messages);
+        Assert.Contains("INFO | TestTag | Test message", testFileWriter.Messages[0]);
     }
 
     [Fact]
-    public async Task Warning_ShouldWriteMessageToLogFile()
+    public void Warning_ShouldAddFormattedMessageToQueue()
     {
         // Arrange
-        using var streamWriter = new StreamWriter("test_warning.txt", append: false);
-        var logger = new FileLogger(streamWriter);
+        var testFileWriter = new TestFileWriter();
+        var logger = new FileLogger(testFileWriter);
+
+        var tag = "WarningTag".AsSpan();
+        var message = "Warning message".AsSpan();
 
         // Act
-        logger.Warning("TestTag".AsSpan(), "Test warning".AsSpan());
-        await Task.Delay(2500); // Yazma döngüsünü tamamlaması için bekle
+        logger.Warning(tag, message);
 
         // Assert
-        logger.Dispose();
-        var logContents = File.ReadAllText("test_warning.txt");
-        Assert.Contains("WARNING | TestTag | Test warning", logContents);
+        Assert.Single(testFileWriter.Messages);
+        Assert.Contains("WARNING | WarningTag | Warning message", testFileWriter.Messages[0]);
     }
 
     [Fact]
-    public async Task Error_ShouldWriteMessageToLogFile()
+    public void Error_ShouldAddFormattedMessageToQueue()
     {
         // Arrange
-        using var streamWriter = new StreamWriter("test_error.txt", append: false);
-        var logger = new FileLogger(streamWriter);
+        var testFileWriter = new TestFileWriter();
+        var logger = new FileLogger(testFileWriter);
+
+        var tag = "ErrorTag".AsSpan();
+        var message = "Error message".AsSpan();
 
         // Act
-        logger.Error("TestTag".AsSpan(), "Test error".AsSpan());
-        await Task.Delay(2500); // Yazma döngüsünü tamamlaması için bekle
+        logger.Error(tag, message);
 
         // Assert
-        logger.Dispose();
-        var logContents = File.ReadAllText("test_error.txt");
-        Assert.Contains("ERROR | TestTag | Test error", logContents);
+        Assert.Single(testFileWriter.Messages);
+        Assert.Contains("ERROR | ErrorTag | Error message", testFileWriter.Messages[0]);
     }
 }
