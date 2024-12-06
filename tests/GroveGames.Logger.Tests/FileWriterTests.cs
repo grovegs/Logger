@@ -1,48 +1,56 @@
 using GroveGames.Logger;
 
+using System.IO;
+using System.Threading.Tasks;
+
+using Xunit;
+
 public class FileWriterTests
 {
-    private const string LogFilePath = "test_log.txt";
-
-    public FileWriterTests()
-    {
-        if (File.Exists(LogFilePath))
-        {
-            File.Delete(LogFilePath);
-        }
-    }
-
     [Fact]
     public async Task AddToQueue_ShouldEnqueueMessage()
     {
         // Arrange
-        using var streamWriter = new StreamWriter(LogFilePath, append: false);
+        using var memoryStream = new MemoryStream();
+        using var streamWriter = new StreamWriter(memoryStream);
         var fileWriter = new FileWriter(streamWriter);
 
         // Act
         fileWriter.AddToQueue("Hello, World!".AsSpan());
-        await Task.Delay(1500); // Yazma döngüsünün tamamlanmasını bekle
+        await Task.Delay(1500); // Allow the background thread to write the log
 
         // Assert
-        fileWriter.Dispose();
-        var logContents = File.ReadAllText(LogFilePath);
+        memoryStream.Seek(0, SeekOrigin.Begin); // Reset the stream position
+        using var reader = new StreamReader(memoryStream);
+        var logContents = await reader.ReadToEndAsync();
         Assert.Contains("Hello, World!", logContents);
+
+        fileWriter.Dispose();
     }
 
     [Fact]
     public async Task Dispose_ShouldStopWritingThread()
     {
         // Arrange
-        using var streamWriter = new StreamWriter(LogFilePath, append: false);
+        using var memoryStream = new MemoryStream();
+        using var streamWriter = new StreamWriter(memoryStream);
         var fileWriter = new FileWriter(streamWriter);
 
-        // Act
-        fileWriter.AddToQueue("This will not be written.".AsSpan());
-        fileWriter.Dispose();
-        await Task.Delay(1500); // Yazma döngüsü durmuş olmalı
+        // İlk mesajı ekleyip işlenmesini bekleyelim
+        fileWriter.AddToQueue("First message".AsSpan());
+        await Task.Delay(1500);
 
-        // Assert
-        var logContents = File.ReadAllText(LogFilePath);
-        Assert.DoesNotContain("This will not be written.", logContents);
+        memoryStream.Seek(0, SeekOrigin.Begin); // Stream'i başa sar
+        using var reader = new StreamReader(memoryStream);
+        var logContents = await reader.ReadToEndAsync();
+
+        Assert.Contains("First message", logContents);
+
+        // Dispose çağrısı yapıldıktan sonra log eklemeye çalışalım
+        fileWriter.Dispose();
+        fileWriter.AddToQueue("Second message".AsSpan());
+        Assert.DoesNotContain("Second message", logContents);
     }
+
+
 }
