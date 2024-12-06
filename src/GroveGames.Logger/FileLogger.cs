@@ -1,8 +1,10 @@
 namespace GroveGames.Logger;
 
-public class FileLogger : ILogger
+public sealed class FileLogger : ILogger
 {
     private readonly IFileWriter _fileWriter;
+
+    private readonly List<ILogProcessor> _processors;
 
     private static ReadOnlySpan<char> ErrorLevel => "ERROR";
     private static ReadOnlySpan<char> WarningLevel => "WARNING";
@@ -14,21 +16,37 @@ public class FileLogger : ILogger
     public FileLogger(IFileWriter fileWriter)
     {
         _fileWriter = fileWriter;
-    }
-
-    public void Error(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
-    {
-        Log(ErrorLevel, tag, message);
+        _processors = [];
     }
 
     public void Info(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         Log(InfoLevel, tag, message);
+
+        for (var i = 0; i < _processors.Count; i++)
+        {
+            _processors[i].ProcessInfo(tag, message);
+        }
     }
 
     public void Warning(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         Log(WarningLevel, tag, message);
+
+        for (var i = 0; i < _processors.Count; i++)
+        {
+            _processors[i].ProcessWarning(tag, message);
+        }
+    }
+
+    public void Error(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    {
+        Log(ErrorLevel, tag, message);
+
+        for (var i = 0; i < _processors.Count; i++)
+        {
+            _processors[i].ProcessError(tag, message);
+        }
     }
 
     private void Log(ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
@@ -75,6 +93,16 @@ public class FileLogger : ILogger
 
         var messageLength = message.Length;
         message.CopyTo(buffer.Slice(offset, messageLength));
+    }
+
+    public void AddProcessor(ILogProcessor processor)
+    {
+        _processors.Add(processor);
+    }
+
+    public void RemoveProcessor(ILogProcessor processor)
+    {
+        _processors.Remove(processor);
     }
 
     public void Dispose()

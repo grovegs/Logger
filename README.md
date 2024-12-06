@@ -18,6 +18,7 @@ A high-performance, low-allocation logging library designed for .NET application
 - **Asynchronous File Writing**: Logs are written to files asynchronously using a background thread.
 - **Customizable File Management**: Automatically rotates log files and removes old ones based on a configurable limit.
 - **Mockable Interfaces**: Provides interfaces like `ILogger` and `IFileWriter` for unit testing and flexibility.
+- **Godot Integration**: Includes `GodotLogger` for seamless logging in Godot projects.
 
 ---
 
@@ -46,13 +47,14 @@ To use the logger, initialize a `FileLogger` instance with a custom `IFileWriter
 ```csharp
 using GroveGames.Logger;
 
+// Access the shared instance of GodotFileLogger
 var fileWriter = new FileWriter(new StreamWriter("app.log", append: true));
 var logger = new FileLogger(fileWriter);
 ```
 
 ### Logging Messages
 
-Log messages using the `Info`, `Warning`, and `Error` methods:
+Log messages with tags and messages:
 
 ```csharp
 logger.Info("Application", "Application started.");
@@ -66,15 +68,87 @@ The `FileWriter` automatically manages log files. If the number of log files exc
 
 ---
 
+### Processor-Based Logging
+
+The `ILogProcessor` interface allows you to extend the logging system by processing logs as they are generated. Processors can be dynamically added or removed at runtime.
+
+#### Adding a Processor
+
+##### Custom Log Processor
+
+Implement the `ILogProcessor` interface to define custom log processing behavior:
+
+```csharp
+public class CustomLogProcessor : ILogProcessor
+{
+    public void ProcessLog(ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    {
+        // Custom log handling logic
+        Console.WriteLine($"[{level}] [{tag}]: {message}");
+    }
+}
+```
+
+#### Adding Your Processor
+
+Add your custom processor to the logger:
+
+```csharp
+logger.AddProcessor(new CustomLogProcessor());
+```
+
+#### Removing a Processor
+
+Processors can be removed when they are no longer needed:
+
+```csharp
+logger.RemoveProcessor(customProcessor);
+```
+---
+
+## Godot Integration
+
+The `GodotFileLogger` class extends the `ILogger` interface and integrates seamlessly with the Godot Engine. Logs are saved to files while also being processed for the Godot console.
+
+### Enabling Godot Logging
+
+```csharp
+using GroveGames.Logger;
+
+// Access the shared instance of GodotFileLogger
+var logger = GodotFileLogger.Shared;
+
+// Add a processor to print logs to the Godot output console
+logger.AddProcessor(new GodotLogProcessor(s => GD.Print(s)));
+
+logger.Info("Game", "Game started.");
+logger.Warning("Game", "Potential performance issue.");
+logger.Error("Game", "Unhandled exception occurred.");
+```
+
+### Example Log Output in Godot
+
+In the Godot editor, logs processed by `GodotLogProcessor` will appear in the output console like this:
+
+```
+[INFO] [Game] Game started.
+[WARNING] [Game] Potential performance issue.
+[ERROR] [Game] Unhandled exception occurred.
+```
+
+---
+
 ## Architecture
 
 ### Core Components
 
-1. **`ILogger`**: Interface for logging messages.
-2. **`FileLogger`**: Main logging implementation that formats log messages and delegates writing to `IFileWriter`.
-3. **`IFileWriter`**: Interface for handling file operations.
-4. **`FileWriter`**: Writes log messages to files asynchronously using a background thread.
-5. **`LogFileFactory`**: Handles file creation and rotation.
+1. **`ILogger`**: Interface defining core logging functionality.
+2. **`GodotFileLogger`**: Combines file-based logging with processor-based extensibility for Godot Engine.
+3. **`ILogProcessor`**: Interface for implementing custom log processors.
+4. **`FileLogger`**: Handles core file-based logging operations.
+5. **`FileWriter`**: Writes log messages to files asynchronously using a background thread.
+6. **`LogFileFactory`**: Manages log file creation and rotation.
+7. **`GodotLogProcessor`**: A processor for displaying logs in the Godot console.
 
 ### Logging Format
 
@@ -92,11 +166,11 @@ Example:
 
 ## Testing
 
-The library is thoroughly tested using `xUnit` and `Moq`. Tests ensure that:
+The library is tested with `xUnit` and `Moq` to ensure reliability and performance. Tests cover:
 
-1. No heap allocation occurs during logging (`FileLoggerAllocationTests`).
-2. Log messages are correctly written to files (`FileLoggerTests`).
-3. File management functions as expected (`LogFileFactoryTests`).
+1. File-based logging functionality.
+2. Processor-based log handling.
+3. Log file creation and rotation.
 
 ### Running Tests
 
@@ -104,29 +178,6 @@ Run tests using the .NET CLI:
 
 ```bash
 dotnet test
-```
-
----
-
-## Extending the Library
-
-### Custom File Writer
-
-Implement `IFileWriter` to customize how logs are written:
-
-```csharp
-public class CustomFileWriter : IFileWriter
-{
-    public void AddToQueue(ReadOnlySpan<char> message)
-    {
-        // Custom file writing logic
-    }
-
-    public void Dispose()
-    {
-        // Cleanup logic
-    }
-}
 ```
 
 ---

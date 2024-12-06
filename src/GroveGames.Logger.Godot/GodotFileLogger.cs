@@ -1,13 +1,11 @@
-using Godot;
-
 namespace GroveGames.Logger;
 
-public class GodotLogger : ILogger
+public sealed class GodotFileLogger : ILogger
 {
-    public static readonly GodotLogger Shared = new();
+    public static readonly GodotFileLogger Shared = new();
     private readonly FileLogger _logger;
 
-    public GodotLogger()
+    public GodotFileLogger()
     {
         var logFileFactory = new GodotLogFileFactory();
         var fileWriter = new FileWriter(logFileFactory.CreateFile());
@@ -27,6 +25,16 @@ public class GodotLogger : ILogger
     public void Error(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         _logger.Error(tag, message);
+    }
+
+    public void AddProcessor(ILogProcessor processor)
+    {
+        _logger.AddProcessor(processor);
+    }
+
+    public void RemoveProcessor(ILogProcessor processor)
+    {
+        _logger.RemoveProcessor(processor);
     }
 
     public void Dispose()
