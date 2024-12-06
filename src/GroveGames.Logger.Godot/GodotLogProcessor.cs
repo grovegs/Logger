@@ -19,6 +19,6 @@ public sealed class GodotLogProcessor : ILogProcessor
     public void ProcessWarning(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         var msg = $"{tag} | {message}";
-        GD.PrintRich($"[color=yellow]{msg}");
+        GD.PrintRich($"[color=yellow]⚠️ {msg}");
     }
 }
