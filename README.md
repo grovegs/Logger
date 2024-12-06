@@ -69,7 +69,7 @@ The `FileWriter` automatically manages log files. If the number of log files exc
 
 ## Godot Integration
 
-The `GodotLogger` class extends the `ILogger` interface to provide seamless integration with the Godot engine. It combines the benefits of `FileLogger` for file-based logging with an additional processing layer for handling Godot-specific logging requirements.
+The `GodotFileLogger` class extends the `ILogger` interface to provide seamless integration with the Godot engine. It combines the benefits of `FileLogger` for file-based logging with an additional processing layer for handling Godot-specific logging requirements.
 
 ### Features
 
@@ -77,16 +77,16 @@ The `GodotLogger` class extends the `ILogger` interface to provide seamless inte
 - **Godot Log Processor**: Optionally enable a log processor that hooks into Godot's logging system.
 - **File-Based Logging**: Log messages are persisted to a file using the `FileLogger`.
 
-### Setting Up `GodotLogger`
+### Setting Up `GodotFileLogger`
 
 ```csharp
 using GroveGames.Logger;
 
-// Access the shared instance of GodotLogger
-var logger = GodotLogger.Shared;
+// Access the shared instance of GodotFileLogger
+var logger = GodotFileLogger.Shared;
 
 // Enable Godot-specific log processing (e.g., display logs in Godot console)
-logger.EnableGodotProcessor(log => GD.Print(log));
+logger.SetProcessor(new GodotLogProcessor(log => GD.Print(log)));
 ```
 
 ### Logging Messages
@@ -94,14 +94,14 @@ logger.EnableGodotProcessor(log => GD.Print(log));
 You can log messages with tags and messages, just like with `FileLogger`:
 
 ```csharp
-logger.Info("Game".AsSpan(), "Game started.".AsSpan());
-logger.Warning("Game".AsSpan(), "Potential performance issue.".AsSpan());
-logger.Error("Game".AsSpan(), "Unhandled exception occurred.".AsSpan());
+logger.Info("Game".AsSpan(), "Game started");
+logger.Warning("Game".AsSpan(), "Potential performance issue");
+logger.Error("Game".AsSpan(), "Unhandled exception occurred.");
 ```
 
 ### Example Output
 
-In the Godot editor, if `EnableGodotProcessor` is enabled, logs will appear in the Godot output console like this:
+In the Godot editor, if `SetProcessor` is called, logs will appear in the Godot output console like this:
 
 ```
 [INFO] [Game] Game started.
@@ -122,11 +122,11 @@ Logs are also saved to a file. The file location can be configured using the `Go
 You can customize the behavior of the Godot-specific log processor by passing a callback function to `EnableGodotProcessor`:
 
 ```csharp
-logger.EnableGodotProcessor(log =>
+logger.SetProcessor(new GodotLogProcessor(log =>
 {
     // Custom log handling logic
     GD.Print($"[Custom]: {log}");
-});
+}));
 ```
 
 #### Default Processor Behavior
