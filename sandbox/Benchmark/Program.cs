@@ -18,7 +18,8 @@ public class Benchmark
     [GlobalSetup]
     public void Setup()
     {
-        _fileLogger = new FileLogger(new LogFileFactory(Environment.CurrentDirectory).CreateFile());
+        var fileWriter = new FileWriter(new LogFileFactory(Environment.CurrentDirectory).CreateFile());
+        _fileLogger = new FileLogger(fileWriter);
         var factory = LoggerFactory.Create(builder =>
         {
             builder.SetMinimumLevel(LogLevel.Debug);
