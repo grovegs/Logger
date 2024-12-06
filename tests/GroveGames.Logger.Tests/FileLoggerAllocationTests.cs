@@ -11,13 +11,10 @@ public class FileLoggerAllocationTests
         var testFileWriter = new TestFileWriterAllocation();
         var logger = new FileLogger(testFileWriter);
 
-        var tag = "TestTag".AsSpan();
-        var message = "Test message".AsSpan();
-
         long initialAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
-        logger.Info(tag, message);
+        logger.Info("TestTag", "Test message");
 
         long finalAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 
@@ -32,13 +29,10 @@ public class FileLoggerAllocationTests
         var testFileWriter = new TestFileWriterAllocation();
         var logger = new FileLogger(testFileWriter);
 
-        var tag = "ErrorTag".AsSpan();
-        var message = "Error message".AsSpan();
-
         long initialAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
-        logger.Error(tag, message);
+        logger.Error("TestTag", "Test message");
 
         long finalAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 
@@ -53,13 +47,10 @@ public class FileLoggerAllocationTests
         var testFileWriter = new TestFileWriterAllocation();
         var logger = new FileLogger(testFileWriter);
 
-        var tag = "WarningTag".AsSpan();
-        var message = "Warning message".AsSpan();
-
         long initialAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
-        logger.Warning(tag, message);
+        logger.Warning("TestTag", "Test message");
 
         long finalAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 
