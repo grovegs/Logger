@@ -10,7 +10,8 @@ public class GodotLogger : ILogger
     public GodotLogger()
     {
         var logFileFactory = new GodotLogFileFactory();
-        _logger = new FileLogger(logFileFactory.CreateFile());
+        var fileWriter = new FileWriter(logFileFactory.CreateFile());
+        _logger = new FileLogger(fileWriter);
     }
 
     public void Info(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)

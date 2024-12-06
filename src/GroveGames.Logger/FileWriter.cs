@@ -1,10 +1,9 @@
-using System.Collections.Concurrent;
-
 namespace GroveGames.Logger;
 
-public class FileWriter : IDisposable
+public class FileWriter : IFileWriter
 {
-    private const int WriteInterval = 2000;
+    private const int WriteInterval = 1000;
+    private const int InitialMessageCapacity = 256;
 
     private readonly Queue<char> _messageQueue;
 
@@ -17,7 +16,7 @@ public class FileWriter : IDisposable
     public FileWriter(StreamWriter streamWriter)
     {
         _semaphore = new SemaphoreSlim(1, 1);
-        _messageQueue = new Queue<char>();
+        _messageQueue = new Queue<char>(InitialMessageCapacity);
 
         _writer = streamWriter;
 

@@ -2,7 +2,7 @@ namespace GroveGames.Logger;
 
 public sealed class LogFileFactory : ILogFileFactory
 {
-    private const string FolderName = "Logs";
+    private const string FolderName = "ApplicationLogs";
     private readonly string _root;
 
     public LogFileFactory(string root)
