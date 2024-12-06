@@ -15,7 +15,7 @@ public class FileWriter : IDisposable
     public FileWriter(StreamWriter streamWriter)
     {
         _semaphore = new SemaphoreSlim(1, 1);
-        _messageQueue = new Queue<char>();
+        _messageQueue = new Queue<char>(1000);
 
         _writer = streamWriter;
 
