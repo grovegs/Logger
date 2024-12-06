@@ -2,7 +2,7 @@ using Godot;
 
 namespace GroveGames.Logger;
 
-public class GodotLogProcessor : ILogProcessor
+public sealed class GodotLogProcessor : ILogProcessor
 {
     private readonly Action<string> _onLogReceived;
 
@@ -14,7 +14,6 @@ public class GodotLogProcessor : ILogProcessor
     public void ProcessLog(ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         var msg = $"{level} | {tag} | {message}";
-        GD.Print(msg);
         _onLogReceived?.Invoke(msg);
     }
 }

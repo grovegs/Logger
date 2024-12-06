@@ -1,8 +1,10 @@
 namespace GroveGames.Logger;
 
-public class FileLogger : ILogger
+public sealed class FileLogger : ILogger
 {
     private readonly IFileWriter _fileWriter;
+
+    private ILogProcessor _logProcessor;
 
     private static ReadOnlySpan<char> ErrorLevel => "ERROR";
     private static ReadOnlySpan<char> WarningLevel => "WARNING";
@@ -14,6 +16,7 @@ public class FileLogger : ILogger
     public FileLogger(IFileWriter fileWriter)
     {
         _fileWriter = fileWriter;
+        _logProcessor = LogProcessor.Empty;
     }
 
     public void Error(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
@@ -36,6 +39,7 @@ public class FileLogger : ILogger
         Span<char> buffer = stackalloc char[level.Length + tag.Length + message.Length + DateTimeSize + SeperatorSize];
         Format(buffer, level, tag, message);
         _fileWriter.AddToQueue(buffer);
+        _logProcessor.ProcessLog(level, tag, message);
     }
 
     private void Format(Span<char> buffer, ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
@@ -75,6 +79,11 @@ public class FileLogger : ILogger
 
         var messageLength = message.Length;
         message.CopyTo(buffer.Slice(offset, messageLength));
+    }
+
+    public void SetProcessor(ILogProcessor processor)
+    {
+        _logProcessor = processor;
     }
 
     public void Dispose()
