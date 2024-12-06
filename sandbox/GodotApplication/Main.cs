@@ -6,10 +6,11 @@ public partial class Main : Node2D
 {
     public override void _Ready()
     {
-        GodotFileLogger.Shared.AddProcessor(new GodotLogProcessor(s => GD.Print(s)));
-        GodotFileLogger.Shared.Info("test", "test");
+        GodotFileLogger.Shared.AddProcessor(new GodotLogProcessor());
+        GodotFileLogger.Shared.Warning("test", "test");
+        GodotFileLogger.Shared.Error("test", "test");
 
-        for (var i = 0; i< 1000; i++)
+        for (var i = 0; i< 10; i++)
         {
              GodotFileLogger.Shared.Info("test", $"{i}");
         }

@@ -4,16 +4,21 @@ namespace GroveGames.Logger;
 
 public sealed class GodotLogProcessor : ILogProcessor
 {
-    private readonly Action<string> _onLogReceived;
-
-    public GodotLogProcessor(Action<string> onLogReceived = null)
+    public void ProcessError(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        _onLogReceived = onLogReceived;
+        var msg = $"{tag} | {message}";
+        GD.PrintErr(msg);
     }
 
-    public void ProcessLog(ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    public void ProcessInfo(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        var msg = $"{level} | {tag} | {message}";
-        _onLogReceived?.Invoke(msg);
+        var msg = $"{tag} | {message}";
+        GD.Print(msg);
+    }
+
+    public void ProcessWarning(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    {
+        var msg = $"{tag} | {message}";
+        GD.PrintRich($"[color=yellow]{msg}");
     }
 }

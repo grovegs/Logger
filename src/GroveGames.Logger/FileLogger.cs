@@ -19,19 +19,34 @@ public sealed class FileLogger : ILogger
         _processors = [];
     }
 
-    public void Error(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
-    {
-        Log(ErrorLevel, tag, message);
-    }
-
     public void Info(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         Log(InfoLevel, tag, message);
+
+        for (var i = 0; i < _processors.Count; i++)
+        {
+            _processors[i].ProcessInfo(tag, message);
+        }
     }
 
     public void Warning(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         Log(WarningLevel, tag, message);
+
+        for (var i = 0; i < _processors.Count; i++)
+        {
+            _processors[i].ProcessWarning(tag, message);
+        }
+    }
+
+    public void Error(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    {
+        Log(ErrorLevel, tag, message);
+
+        for (var i = 0; i < _processors.Count; i++)
+        {
+            _processors[i].ProcessError(tag, message);
+        }
     }
 
     private void Log(ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
@@ -39,11 +54,6 @@ public sealed class FileLogger : ILogger
         Span<char> buffer = stackalloc char[level.Length + tag.Length + message.Length + DateTimeSize + SeperatorSize];
         Format(buffer, level, tag, message);
         _fileWriter.AddToQueue(buffer);
-
-        for (var i = 0; i < _processors.Count; i++)
-        {
-            _processors[i].ProcessLog(level, tag, message);
-        }
     }
 
     private void Format(Span<char> buffer, ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
