@@ -4,7 +4,7 @@ public sealed class FileLogger : ILogger
 {
     private readonly IFileWriter _fileWriter;
 
-    private ILogProcessor _logProcessor;
+    private readonly List<ILogProcessor> _processors;
 
     private static ReadOnlySpan<char> ErrorLevel => "ERROR";
     private static ReadOnlySpan<char> WarningLevel => "WARNING";
@@ -16,7 +16,7 @@ public sealed class FileLogger : ILogger
     public FileLogger(IFileWriter fileWriter)
     {
         _fileWriter = fileWriter;
-        _logProcessor = LogProcessor.Empty;
+        _processors = [];
     }
 
     public void Error(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
@@ -39,7 +39,11 @@ public sealed class FileLogger : ILogger
         Span<char> buffer = stackalloc char[level.Length + tag.Length + message.Length + DateTimeSize + SeperatorSize];
         Format(buffer, level, tag, message);
         _fileWriter.AddToQueue(buffer);
-        _logProcessor.ProcessLog(level, tag, message);
+
+        for (var i = 0; i < _processors.Count; i++)
+        {
+            _processors[i].ProcessLog(level, tag, message);
+        }
     }
 
     private void Format(Span<char> buffer, ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
@@ -81,9 +85,14 @@ public sealed class FileLogger : ILogger
         message.CopyTo(buffer.Slice(offset, messageLength));
     }
 
-    public void SetProcessor(ILogProcessor processor)
+    public void AddProcessor(ILogProcessor processor)
     {
-        _logProcessor = processor;
+        _processors.Add(processor);
+    }
+
+    public void RemoveProcessor(ILogProcessor processor)
+    {
+        _processors.Remove(processor);
     }
 
     public void Dispose()

@@ -12,11 +12,6 @@ public sealed class GodotFileLogger : ILogger
         _logger = new FileLogger(fileWriter);
     }
 
-    public void SetProcessor(ILogProcessor processor)
-    {
-        _logger.SetProcessor(processor);
-    }
-
     public void Info(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         _logger.Info(tag, message);
@@ -30,6 +25,16 @@ public sealed class GodotFileLogger : ILogger
     public void Error(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         _logger.Error(tag, message);
+    }
+
+    public void AddProcessor(ILogProcessor processor)
+    {
+        _logger.AddProcessor(processor);
+    }
+
+    public void RemoveProcessor(ILogProcessor processor)
+    {
+        _logger.RemoveProcessor(processor);
     }
 
     public void Dispose()

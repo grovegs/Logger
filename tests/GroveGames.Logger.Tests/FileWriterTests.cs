@@ -1,7 +1,7 @@
-using GroveGames.Logger;
-
 using System.IO;
 using System.Threading.Tasks;
+
+using GroveGames.Logger;
 
 using Xunit;
 

@@ -7,5 +7,6 @@ public interface ILogger : IDisposable
     void Info(ReadOnlySpan<char> tag, ReadOnlySpan<char> message);
     void Error(ReadOnlySpan<char> tag, ReadOnlySpan<char> message);
     void Warning(ReadOnlySpan<char> tag, ReadOnlySpan<char> message);
-    void SetProcessor(ILogProcessor processor);
+    void AddProcessor(ILogProcessor processor);
+    void RemoveProcessor(ILogProcessor processor);
 }
