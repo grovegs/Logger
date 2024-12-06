@@ -36,17 +36,15 @@ public class FileWriterTests
         using var streamWriter = new StreamWriter(memoryStream);
         var fileWriter = new FileWriter(streamWriter);
 
-        // İlk mesajı ekleyip işlenmesini bekleyelim
         fileWriter.AddToQueue("First message".AsSpan());
         await Task.Delay(1500);
 
-        memoryStream.Seek(0, SeekOrigin.Begin); // Stream'i başa sar
+        memoryStream.Seek(0, SeekOrigin.Begin);
         using var reader = new StreamReader(memoryStream);
         var logContents = await reader.ReadToEndAsync();
 
         Assert.Contains("First message", logContents);
 
-        // Dispose çağrısı yapıldıktan sonra log eklemeye çalışalım
         fileWriter.Dispose();
         fileWriter.AddToQueue("Second message".AsSpan());
         Assert.DoesNotContain("Second message", logContents);
