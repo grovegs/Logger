@@ -6,9 +6,9 @@ public class LogFileFactoryTests
     public void CreateFile_ShouldCreateLogFileInCorrectDirectory()
     {
         // Arrange
-        string rootPath = "C:\\Logs";
+        string rootPath = Environment.CurrentDirectory;
         var factory = new LogFileFactory(rootPath);
-        var expectedDirectory = Path.Combine(rootPath, "Logs");
+        var expectedDirectory = Path.Combine(rootPath, "ApplicationLogs");
 
         // Act
         using (var stream = factory.CreateFile())
