@@ -59,22 +59,3 @@ public ref struct LogInterpolatedStringHandler
         return true;
     }
 }
-public class Example
-{
-    public void FormatExample()
-    {
-        Span<char> buffer = stackalloc char[100];
-
-        int number = 42;
-        decimal price = 123.45m;
-        DateTime now = DateTime.Now;
-
-        if (SpanFormatter.TryFormat(buffer,
-            $"Number: {number}, Price: {price:C2}, Date: {now:d}",
-            out var formatted))
-        {
-            Console.WriteLine(formatted.ToString());
-        }
-    }
-}
-
