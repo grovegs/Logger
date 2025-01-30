@@ -12,7 +12,7 @@ public sealed class GodotFileLogger : ILogger
         _logger = new FileLogger(fileWriter);
     }
 
-    public void Info(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    public void Info(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
         _logger.Info(tag, message);
     }

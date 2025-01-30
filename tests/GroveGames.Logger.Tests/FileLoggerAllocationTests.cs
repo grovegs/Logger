@@ -1,6 +1,6 @@
-using GroveGames.Logger;
+using System.Buffers;
 
-using Xunit;
+namespace GroveGames.Logger.Tests;
 
 public class FileLoggerAllocationTests
 {
@@ -10,11 +10,12 @@ public class FileLoggerAllocationTests
         // Arrange
         var testFileWriter = new TestFileWriterAllocation();
         var logger = new FileLogger(testFileWriter);
+        logger.Info("Warmup", $"Warmup message {42}");
 
         long initialAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
-        logger.Info("TestTag", "Test message");
+        logger.Info("TestTag", $"Test message {initialAllocatedBytes}");
 
         long finalAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 

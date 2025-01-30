@@ -10,16 +10,15 @@ public class FileLoggerTests
         // Arrange
         var testFileWriter = new TestFileWriter();
         var logger = new FileLogger(testFileWriter);
-
+        int a = 5;
         var tag = "TestTag".AsSpan();
-        var message = "Test message".AsSpan();
 
         // Act
-        logger.Info(tag, message);
+        logger.Info(tag, $"Test message {a}");
 
         // Assert
         Assert.Single(testFileWriter.Messages);
-        Assert.Contains("INFO | TestTag | Test message", testFileWriter.Messages[0]);
+        Assert.Contains("INFO | TestTag | Test message 5", testFileWriter.Messages[0]);
     }
 
     [Fact]

@@ -6,10 +6,6 @@ public sealed class FileLogger : ILogger
 
     private readonly List<ILogProcessor> _processors;
 
-    private static ReadOnlySpan<char> ErrorLevel => "ERROR";
-    private static ReadOnlySpan<char> WarningLevel => "WARNING";
-    private static ReadOnlySpan<char> InfoLevel => "INFO";
-
     private const int DateTimeSize = 19;
     private const int SeperatorSize = 9;
 
@@ -19,19 +15,19 @@ public sealed class FileLogger : ILogger
         _processors = [];
     }
 
-    public void Info(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    public void Info(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
-        Log(InfoLevel, tag, message);
+        Log(LogLevel.Info, tag, message.Written);
 
         for (var i = 0; i < _processors.Count; i++)
         {
-            _processors[i].ProcessInfo(tag, message);
+            _processors[i].ProcessInfo(tag, message.Written);
         }
     }
 
     public void Warning(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        Log(WarningLevel, tag, message);
+        Log(LogLevel.Warning, tag, message);
 
         for (var i = 0; i < _processors.Count; i++)
         {
@@ -41,7 +37,7 @@ public sealed class FileLogger : ILogger
 
     public void Error(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        Log(ErrorLevel, tag, message);
+        Log(LogLevel.Error, tag, message);
 
         for (var i = 0; i < _processors.Count; i++)
         {
