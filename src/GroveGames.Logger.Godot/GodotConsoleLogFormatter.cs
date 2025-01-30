@@ -2,7 +2,7 @@ namespace GroveGames.Logger;
 
 public sealed class GodotConsoleLogFormatter : ILogFormatter
 {
-    private const int WarningStyleSize = 15; // "[color=yellow]⚠️"
+    private const int WarningStyleSize = 16; // "[color=yellow]⚠️ "
     private const int DateTimeSize = 19; // yyyy-MM-dd HH:mm:ss
     private const int BracketsAndSpaces = 4; // " [" + "] " = 2+2=4
 
@@ -29,7 +29,7 @@ public sealed class GodotConsoleLogFormatter : ILogFormatter
         // Copy warning style
         if (level.SequenceEqual("WARNING"))
         {
-            ReadOnlySpan<char> warningStyle = "[color=yellow]⚠️";
+            ReadOnlySpan<char> warningStyle = "[color=yellow]⚠️ ";
             warningStyle.CopyTo(buffer.Slice(offset, warningStyle.Length));
             offset += warningStyle.Length;
         }
