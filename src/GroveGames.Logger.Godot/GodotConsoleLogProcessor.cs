@@ -13,9 +13,9 @@ public sealed class GodotConsoleLogProcessor : ILogProcessor
 
     public void ProcessInfo(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        var bufferSize = _logFormatter.GetBufferSize(LogLevel.Warning, tag, message);
+        var bufferSize = _logFormatter.GetBufferSize(LogLevel.Info, tag, message);
         Span<char> buffer = stackalloc char[bufferSize];
-        _logFormatter.Format(buffer, LogLevel.Warning, tag, message);
+        _logFormatter.Format(buffer, LogLevel.Info, tag, message);
         GD.Print(buffer.ToString());
     }
 
