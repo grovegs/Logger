@@ -1,14 +1,21 @@
 namespace GroveGames.Logger.Tests;
 
-public class LogFileFactoryTests
+public class LogFileFactoryTests : IDisposable
 {
+    private readonly string _testDirectory;
+
+    public LogFileFactoryTests()
+    {
+        _testDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        Directory.CreateDirectory(_testDirectory);
+    }
+
     [Fact]
     public void CreateFile_ShouldCreateLogFileInCorrectDirectory()
     {
         // Arrange
-        string rootPath = Environment.CurrentDirectory;
-        var factory = new LogFileFactory(rootPath);
-        var expectedDirectory = Path.Combine(rootPath, "ApplicationLogs");
+        var factory = new LogFileFactory(_testDirectory);
+        var expectedDirectory = Path.Combine(_testDirectory, "ApplicationLogs");
 
         // Act
         using (var stream = factory.CreateFile())
@@ -23,17 +30,15 @@ public class LogFileFactoryTests
     public void CreateFile_ShouldDeleteOldestFile_WhenLimitExceeded()
     {
         // Arrange
-        var factory = new LogFileFactory(Environment.CurrentDirectory);
-        var directory = Path.Combine(Environment.CurrentDirectory, "ApplicationLogs");
-
-        Directory.Delete(directory, true);
+        var directory = Path.Combine(_testDirectory, "ApplicationLogs");
         Directory.CreateDirectory(directory);
 
-        // Create 10 dummy files
         for (int i = 0; i < 10; i++)
         {
-            File.Create(Path.Combine(directory, $"log_{i}.log")).Close();
+            using (File.Create(Path.Combine(directory, $"log_{i}.log"))) { }
         }
+
+        var factory = new LogFileFactory(_testDirectory);
 
         // Act
         factory.CreateFile();
@@ -41,5 +46,15 @@ public class LogFileFactoryTests
         // Assert
         var files = Directory.GetFiles(directory);
         Assert.Equal(10, files.Length);
+    }
+
+    public void Dispose()
+    {
+        if (Directory.Exists(_testDirectory))
+        {
+            Directory.Delete(_testDirectory, true);
+        }
+
+        GC.SuppressFinalize(this);
     }
 }
