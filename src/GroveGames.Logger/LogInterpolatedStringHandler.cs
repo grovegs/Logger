@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
 
 namespace GroveGames.Logger;
@@ -8,17 +9,19 @@ public ref struct LogInterpolatedStringHandler
     private readonly Span<char> _buffer;
     private int _position;
 
-    public readonly Span<char> Written => _buffer[.._position];
+    public readonly ReadOnlySpan<char> Written => _buffer[.._position];
 
-    public LogInterpolatedStringHandler(int literalLength, int formattedCount, Span<char> buffer)
+    public LogInterpolatedStringHandler(int literalLength, int formattedCount)
     {
-        _buffer = buffer;
+        var array = ArrayPool<char>.Shared.Rent(literalLength + formattedCount);
+        _buffer = array.AsSpan();
+        ArrayPool<char>.Shared.Return(array);
         _position = 0;
     }
 
-    public bool AppendLiteral(ReadOnlySpan<char> s)
+    public bool AppendLiteral(ReadOnlySpan<char> value)
     {
-        return TryWrite(s);
+        return TryWrite(value);
     }
 
     public bool AppendFormatted<T>(T value) where T : ISpanFormattable
