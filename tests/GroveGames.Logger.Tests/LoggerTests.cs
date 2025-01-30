@@ -48,7 +48,7 @@ public class LoggerTests
         // Arrange
         var logger = new Logger();
         var testFileWriter = new TestFileWriterAllocation();
-        var processor = new FileLogProcessor(testFileWriter);
+        var processor = new FileLogProcessor(testFileWriter, new FileLogFormatter());
         logger.AddProcessor(processor);
         logger.Info("Warmup", $"Warmup message {42}");
 
@@ -87,7 +87,7 @@ public class LoggerTests
         // Arrange
         var logger = new Logger();
         var testFileWriter = new TestFileWriterAllocation();
-        var processor = new FileLogProcessor(testFileWriter);
+        var processor = new FileLogProcessor(testFileWriter, new FileLogFormatter());
         logger.AddProcessor(processor);
         logger.Warning("Warmup", $"Warmup message {42}");
 
@@ -126,7 +126,7 @@ public class LoggerTests
         // Arrange
         var logger = new Logger();
         var testFileWriter = new TestFileWriterAllocation();
-        var processor = new FileLogProcessor(testFileWriter);
+        var processor = new FileLogProcessor(testFileWriter, new FileLogFormatter());
         logger.AddProcessor(processor);
         logger.Error("Warmup", $"Warmup message {42}");
 
