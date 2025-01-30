@@ -6,7 +6,6 @@ public class FileWriter : IFileWriter
     private const int InitialMessageCapacity = 256;
 
     private readonly Queue<char> _messageQueue;
-
     private readonly Thread _writeThread;
     private readonly StreamWriter _writer;
     private readonly SemaphoreSlim _semaphore;
