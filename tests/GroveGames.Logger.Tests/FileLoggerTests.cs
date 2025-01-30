@@ -1,6 +1,4 @@
-using GroveGames.Logger;
-
-using Xunit;
+namespace GroveGames.Logger.Tests;
 
 public class FileLoggerTests
 {
@@ -10,16 +8,15 @@ public class FileLoggerTests
         // Arrange
         var testFileWriter = new TestFileWriter();
         var logger = new FileLogger(testFileWriter);
-
+        int a = 5;
         var tag = "TestTag".AsSpan();
-        var message = "Test message".AsSpan();
 
         // Act
-        logger.Info(tag, message);
+        logger.Info(tag, $"Test message {a}");
 
         // Assert
         Assert.Single(testFileWriter.Messages);
-        Assert.Contains("INFO | TestTag | Test message", testFileWriter.Messages[0]);
+        Assert.Contains("INFO | TestTag | Test message 5", testFileWriter.Messages[0]);
     }
 
     [Fact]
@@ -30,10 +27,9 @@ public class FileLoggerTests
         var logger = new FileLogger(testFileWriter);
 
         var tag = "WarningTag".AsSpan();
-        var message = "Warning message".AsSpan();
 
         // Act
-        logger.Warning(tag, message);
+        logger.Warning(tag, $"Warning message");
 
         // Assert
         Assert.Single(testFileWriter.Messages);
@@ -48,10 +44,9 @@ public class FileLoggerTests
         var logger = new FileLogger(testFileWriter);
 
         var tag = "ErrorTag".AsSpan();
-        var message = "Error message".AsSpan();
 
         // Act
-        logger.Error(tag, message);
+        logger.Error(tag, $"Error message");
 
         // Assert
         Assert.Single(testFileWriter.Messages);

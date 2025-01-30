@@ -1,9 +1,4 @@
-using System.IO;
-using System.Threading.Tasks;
-
-using GroveGames.Logger;
-
-using Xunit;
+namespace GroveGames.Logger.Tests;
 
 public class FileWriterTests
 {

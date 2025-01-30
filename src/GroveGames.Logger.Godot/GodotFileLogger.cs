@@ -12,17 +12,17 @@ public sealed class GodotFileLogger : ILogger
         _logger = new FileLogger(fileWriter);
     }
 
-    public void Info(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    public void Info(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
         _logger.Info(tag, message);
     }
 
-    public void Warning(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    public void Warning(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
         _logger.Warning(tag, message);
     }
 
-    public void Error(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    public void Error(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
         _logger.Error(tag, message);
     }
