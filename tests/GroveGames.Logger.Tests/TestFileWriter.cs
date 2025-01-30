@@ -1,4 +1,4 @@
-using GroveGames.Logger;
+namespace GroveGames.Logger.Tests;
 
 public class TestFileWriter : IFileWriter
 {

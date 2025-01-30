@@ -1,6 +1,4 @@
-using GroveGames.Logger;
-
-using Xunit;
+namespace GroveGames.Logger.Tests;
 
 public class FileLoggerTests
 {
