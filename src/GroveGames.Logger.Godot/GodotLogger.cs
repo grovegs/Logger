@@ -10,8 +10,8 @@ public sealed class GodotLogger : ILogger
         _logger = new Logger();
         var fileFactory = new GodotLogFileFactory();
         var fileWriter = new FileWriter(fileFactory.CreateFile());
-        _logger.AddProcessor(new FileLogProcessor(fileWriter));
-        _logger.AddProcessor(new GodotLogProcessor());
+        _logger.AddProcessor(new FileLogProcessor(fileWriter, new FileLogFormatter()));
+        _logger.AddProcessor(new GodotConsoleLogProcessor(new GodotConsoleLogFormatter()));
     }
 
     public void Info(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
