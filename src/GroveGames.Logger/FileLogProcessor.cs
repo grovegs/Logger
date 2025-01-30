@@ -1,48 +1,30 @@
 namespace GroveGames.Logger;
 
-public sealed class FileLogger : ILogger
+public sealed class FileLogProcessor : ILogProcessor
 {
-    private readonly IFileWriter _fileWriter;
-
-    private readonly List<ILogProcessor> _processors;
-
     private const int DateTimeSize = 19;
     private const int SeperatorSize = 9;
 
-    public FileLogger(IFileWriter fileWriter)
+    private readonly IFileWriter _fileWriter;
+
+    public FileLogProcessor(IFileWriter fileWriter)
     {
         _fileWriter = fileWriter;
-        _processors = [];
     }
 
-    public void Info(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
+    public void ProcessInfo(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        Log(LogLevel.Info, tag, message.Written);
-
-        for (var i = 0; i < _processors.Count; i++)
-        {
-            _processors[i].ProcessInfo(tag, message.Written);
-        }
+        Log(LogLevel.Info, tag, message);
     }
 
-    public void Warning(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
+    public void ProcessWarning(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        Log(LogLevel.Warning, tag, message.Written);
-
-        for (var i = 0; i < _processors.Count; i++)
-        {
-            _processors[i].ProcessWarning(tag, message.Written);
-        }
+        Log(LogLevel.Warning, tag, message);
     }
 
-    public void Error(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
+    public void ProcessError(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        Log(LogLevel.Error, tag, message.Written);
-
-        for (var i = 0; i < _processors.Count; i++)
-        {
-            _processors[i].ProcessError(tag, message.Written);
-        }
+        Log(LogLevel.Error, tag, message);
     }
 
     private void Log(ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
@@ -56,10 +38,7 @@ public sealed class FileLogger : ILogger
     {
         Span<char> dateTimeBuffer = stackalloc char[DateTimeSize];
         var now = DateTime.UtcNow;
-        if (!now.TryFormat(dateTimeBuffer, out int charsWritten, "yyyy-MM-dd HH:mm:ss"))
-        {
-            //Exception
-        }
+        now.TryFormat(dateTimeBuffer, out _, "yyyy-MM-dd HH:mm:ss");
 
         ReadOnlySpan<char> seperator = " | ";
         var seperatorLength = seperator.Length;
@@ -89,20 +68,5 @@ public sealed class FileLogger : ILogger
 
         var messageLength = message.Length;
         message.CopyTo(buffer.Slice(offset, messageLength));
-    }
-
-    public void AddProcessor(ILogProcessor processor)
-    {
-        _processors.Add(processor);
-    }
-
-    public void RemoveProcessor(ILogProcessor processor)
-    {
-        _processors.Remove(processor);
-    }
-
-    public void Dispose()
-    {
-        _fileWriter.Dispose();
     }
 }

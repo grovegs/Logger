@@ -1,15 +1,17 @@
 namespace GroveGames.Logger;
 
-public sealed class GodotFileLogger : ILogger
+public sealed class GodotLogger : ILogger
 {
-    public static readonly GodotFileLogger Shared = new();
-    private readonly FileLogger _logger;
+    public static readonly GodotLogger Shared = new();
+    private readonly Logger _logger;
 
-    public GodotFileLogger()
+    public GodotLogger()
     {
-        var logFileFactory = new GodotLogFileFactory();
-        var fileWriter = new FileWriter(logFileFactory.CreateFile());
-        _logger = new FileLogger(fileWriter);
+        _logger = new Logger();
+        var fileFactory = new GodotLogFileFactory();
+        var fileWriter = new FileWriter(fileFactory.CreateFile());
+        _logger.AddProcessor(new FileLogProcessor(fileWriter));
+        _logger.AddProcessor(new GodotLogProcessor());
     }
 
     public void Info(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)

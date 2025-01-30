@@ -16,21 +16,19 @@ public class FileWriter : IFileWriter
     {
         _semaphore = new SemaphoreSlim(1, 1);
         _messageQueue = new Queue<char>(InitialMessageCapacity);
-
         _writer = streamWriter;
-
         _writeThread = new Thread(Write) { Name = "LogWriteThread" };
-
         _isRunning = true;
         _writeThread.Start();
     }
 
     public void AddToQueue(ReadOnlySpan<char> message)
     {
-        foreach (var ch in message)
+        foreach (var character in message)
         {
-            _messageQueue.Enqueue(ch);
+            _messageQueue.Enqueue(character);
         }
+
         _messageQueue.Enqueue('\n');
     }
 
