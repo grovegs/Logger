@@ -25,23 +25,23 @@ public sealed class FileLogger : ILogger
         }
     }
 
-    public void Warning(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    public void Warning(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
-        Log(LogLevel.Warning, tag, message);
+        Log(LogLevel.Warning, tag, message.Written);
 
         for (var i = 0; i < _processors.Count; i++)
         {
-            _processors[i].ProcessWarning(tag, message);
+            _processors[i].ProcessWarning(tag, message.Written);
         }
     }
 
-    public void Error(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    public void Error(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
-        Log(LogLevel.Error, tag, message);
+        Log(LogLevel.Error, tag, message.Written);
 
         for (var i = 0; i < _processors.Count; i++)
         {
-            _processors[i].ProcessError(tag, message);
+            _processors[i].ProcessError(tag, message.Written);
         }
     }
 

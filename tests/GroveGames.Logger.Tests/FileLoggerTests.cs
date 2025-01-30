@@ -29,10 +29,9 @@ public class FileLoggerTests
         var logger = new FileLogger(testFileWriter);
 
         var tag = "WarningTag".AsSpan();
-        var message = "Warning message".AsSpan();
 
         // Act
-        logger.Warning(tag, message);
+        logger.Warning(tag, $"Warning message");
 
         // Assert
         Assert.Single(testFileWriter.Messages);
@@ -47,10 +46,9 @@ public class FileLoggerTests
         var logger = new FileLogger(testFileWriter);
 
         var tag = "ErrorTag".AsSpan();
-        var message = "Error message".AsSpan();
 
         // Act
-        logger.Error(tag, message);
+        logger.Error(tag, $"Error message");
 
         // Assert
         Assert.Single(testFileWriter.Messages);
