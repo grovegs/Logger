@@ -11,12 +11,15 @@ public partial class Main : Node2D
         var fileLogProcessor = new FileLogProcessor(fileWriter, new FileLogFormatter());
         Logger.Shared.AddProcessor(fileLogProcessor);
         Logger.Shared.AddProcessor(new GodotConsoleLogProcessor(new GodotConsoleLogFormatter()));
-        Logger.Shared.Warning("test", $"test");
-        Logger.Shared.Error("test", $"test");
+
+        Logger.Shared.Debug("test", $"test");
 
         for (var i = 0; i < 10; i++)
         {
             Logger.Shared.Info("test", $"{i}");
         }
+
+        Logger.Shared.Warning("test", $"test");
+        Logger.Shared.Error("test", $"test");
     }
 }

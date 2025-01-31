@@ -1,6 +1,8 @@
+using System.Diagnostics;
+
 namespace GroveGames.Logger;
 
-public sealed class Logger : ILogger
+public sealed class Logger
 {
     public static readonly Logger Shared = new();
 
@@ -9,6 +11,15 @@ public sealed class Logger : ILogger
     public Logger()
     {
         _processors = [];
+    }
+
+    [Conditional("DEBUG")]
+    public void Debug(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
+    {
+        foreach (var processor in _processors)
+        {
+            processor.ProcessDebug(tag, message.Written);
+        }
     }
 
     public void Info(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)

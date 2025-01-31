@@ -15,7 +15,7 @@ public class LogFileFactoryTests : IDisposable
     {
         // Arrange
         var factory = new LogFileFactory(_testDirectory);
-        var expectedDirectory = Path.Combine(_testDirectory, "ApplicationLogs");
+        var expectedDirectory = Path.Combine(_testDirectory, "logs");
 
         // Act
         using (var stream = factory.CreateFile())
@@ -30,7 +30,7 @@ public class LogFileFactoryTests : IDisposable
     public void CreateFile_ShouldDeleteOldestFile_WhenLimitExceeded()
     {
         // Arrange
-        var directory = Path.Combine(_testDirectory, "ApplicationLogs");
+        var directory = Path.Combine(_testDirectory, "logs");
         Directory.CreateDirectory(directory);
 
         for (int i = 0; i < 10; i++)

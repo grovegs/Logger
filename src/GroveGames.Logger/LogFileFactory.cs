@@ -2,8 +2,9 @@ namespace GroveGames.Logger;
 
 public sealed class LogFileFactory : ILogFileFactory
 {
-    private const string FolderName = "ApplicationLogs";
+    private const string FolderName = "logs";
     private readonly string _root;
+    private const int MaxLogFiles = 10;
 
     public LogFileFactory(string root)
     {
@@ -13,22 +14,21 @@ public sealed class LogFileFactory : ILogFileFactory
     public StreamWriter CreateFile()
     {
         var path = Path.Combine(_root, FolderName);
-        var fileName = DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".log";
+        var fileName = $"{DateTime.UtcNow:yyyyMMdd_HHmmss}.log";
 
         if (!Directory.Exists(path))
         {
             Directory.CreateDirectory(path);
-            return new StreamWriter(Path.Combine(path, fileName), true);
         }
 
         var directoryInfo = new DirectoryInfo(path);
 
         var files = directoryInfo.GetFiles();
 
-        if (files.Length >= 10)
+        if (files.Length >= MaxLogFiles)
         {
-            var sortedFiles = files.OrderByDescending(f => f.CreationTime);
-            sortedFiles.Last().Delete();
+            var oldestFile = files.OrderBy(f => f.CreationTime).First();
+            oldestFile.Delete();
         }
 
         return new StreamWriter(Path.Combine(path, fileName), true);

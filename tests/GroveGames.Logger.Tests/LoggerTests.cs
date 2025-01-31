@@ -1,12 +1,20 @@
+using System.Diagnostics;
+
 namespace GroveGames.Logger.Tests;
 
 public class LoggerTests
 {
     private class TestLogProcessor : ILogProcessor
     {
+        public List<string> DebugMessages { get; } = [];
         public List<string> InfoMessages { get; } = [];
         public List<string> WarningMessages { get; } = [];
         public List<string> ErrorMessages { get; } = [];
+
+        public void ProcessDebug(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+        {
+            DebugMessages.Add($"{tag}: {message}");
+        }
 
         public void ProcessInfo(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
         {
@@ -22,6 +30,49 @@ public class LoggerTests
         {
             ErrorMessages.Add($"{tag}: {message}");
         }
+    }
+
+    [Fact]
+    public void Debug_ShouldCall_ProcessInfo_OnAllProcessors()
+    {
+        // Arrange
+        var processor = new TestLogProcessor();
+        var logger = new Logger();
+        logger.AddProcessor(processor);
+
+        var tag = "TestTag";
+        var i = 1;
+
+        // Act
+        logger.Debug(tag, $"Debug message {i}");
+
+        // Assert
+#if DEBUG
+        Assert.Contains("TestTag: Debug message 1", processor.DebugMessages);
+#else
+        Assert.Empty(processor.DebugMessages);
+#endif
+    }
+
+    [Fact]
+    public void Debug_ShouldNotCauseHeapAllocation()
+    {
+        // Arrange
+        var logger = new Logger();
+        var testFileWriter = new TestFileWriterAllocation();
+        var processor = new FileLogProcessor(testFileWriter, new FileLogFormatter());
+        logger.AddProcessor(processor);
+        logger.Debug("Warmup", $"Warmup message {42}");
+
+        long initialAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
+
+        // Act
+        logger.Info("TestTag", $"Test message {initialAllocatedBytes}");
+
+        long finalAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
+
+        // Assert
+        Assert.Equal(initialAllocatedBytes, finalAllocatedBytes);
     }
 
     [Fact]
