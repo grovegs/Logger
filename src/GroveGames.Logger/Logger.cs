@@ -1,8 +1,12 @@
+using System.Collections.Immutable;
+
 namespace GroveGames.Logger;
 
 public sealed class Logger : ILogger
 {
-    private readonly List<ILogProcessor> _processors;
+    public static readonly Logger Shared = new();
+
+    private readonly ImmutableArray<ILogProcessor> _processors;
 
     public Logger()
     {
@@ -11,25 +15,25 @@ public sealed class Logger : ILogger
 
     public void Info(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
-        for (var i = 0; i < _processors.Count; i++)
+        foreach (ILogProcessor processor in _processors)
         {
-            _processors[i].ProcessInfo(tag, message.Written);
+            processor.ProcessInfo(tag, message.Written);
         }
     }
 
     public void Warning(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
-        for (var i = 0; i < _processors.Count; i++)
+        foreach (ILogProcessor processor in _processors)
         {
-            _processors[i].ProcessWarning(tag, message.Written);
+            processor.ProcessWarning(tag, message.Written);
         }
     }
 
     public void Error(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
-        for (var i = 0; i < _processors.Count; i++)
+        foreach (ILogProcessor processor in _processors)
         {
-            _processors[i].ProcessError(tag, message.Written);
+            processor.ProcessError(tag, message.Written);
         }
     }
 
@@ -45,14 +49,16 @@ public sealed class Logger : ILogger
 
     public void Dispose()
     {
-        for (var i = 0; i < _processors.Count; i++)
+        foreach (ILogProcessor v in _processors)
         {
-            if (_processors[i] is not IDisposable disposable)
+            if (v is not IDisposable disposable)
             {
                 continue;
             }
 
             disposable.Dispose();
         }
+
+        _processors.Clear();
     }
 }
