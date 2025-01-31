@@ -193,7 +193,3 @@ Contributions are welcome! Please open issues for bugs or feature requests and s
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contact
-
-For questions or support, please contact [support@grovegames.com](mailto:support@grovegames.com).
