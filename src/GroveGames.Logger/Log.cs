@@ -1,12 +1,12 @@
 namespace GroveGames.Logger;
 
-public sealed class Logger : ILogger
+public sealed class Log : ILog
 {
-    public static readonly Logger Shared = new();
+    public static readonly Log Shared = new();
 
     private readonly List<ILogProcessor> _processors;
 
-    public Logger()
+    public Log()
     {
         _processors = [];
     }
@@ -25,11 +25,11 @@ public sealed class Logger : ILogger
     }
 #endif
 
-    public void Info(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
+    public void Information(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
         foreach (var processor in _processors)
         {
-            processor.ProcessInfo(tag, message.Written);
+            processor.ProcessInformation(tag, message.Written);
         }
     }
 
