@@ -10,4 +10,6 @@ public interface ILog : IDisposable
     void Information(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message);
     void Warning(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message);
     void Error(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message);
+    void AddProcessor(ILogProcessor processor);
+    void RemoveProcessor(ILogProcessor processor);
 }
