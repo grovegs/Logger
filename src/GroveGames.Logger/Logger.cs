@@ -1,12 +1,10 @@
-using System.Collections.Immutable;
-
 namespace GroveGames.Logger;
 
 public sealed class Logger : ILogger
 {
     public static readonly Logger Shared = new();
 
-    private readonly ImmutableArray<ILogProcessor> _processors;
+    private readonly List<ILogProcessor> _processors;
 
     public Logger()
     {
@@ -15,7 +13,7 @@ public sealed class Logger : ILogger
 
     public void Info(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
-        foreach (ILogProcessor processor in _processors)
+        foreach (var processor in _processors)
         {
             processor.ProcessInfo(tag, message.Written);
         }
@@ -23,7 +21,7 @@ public sealed class Logger : ILogger
 
     public void Warning(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
-        foreach (ILogProcessor processor in _processors)
+        foreach (var processor in _processors)
         {
             processor.ProcessWarning(tag, message.Written);
         }
@@ -31,7 +29,7 @@ public sealed class Logger : ILogger
 
     public void Error(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
-        foreach (ILogProcessor processor in _processors)
+        foreach (var processor in _processors)
         {
             processor.ProcessError(tag, message.Written);
         }
@@ -49,7 +47,7 @@ public sealed class Logger : ILogger
 
     public void Dispose()
     {
-        foreach (ILogProcessor processor in _processors)
+        foreach (var processor in _processors)
         {
             if (processor is not IDisposable disposable)
             {
