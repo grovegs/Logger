@@ -11,6 +11,11 @@ public sealed class FileLogProcessor : ILogProcessor
         _logFormatter = logFormatter;
     }
 
+    public void ProcessDebug(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    {
+        ProcessLog(LogLevel.Debug, tag, message);
+    }
+
     public void ProcessInfo(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         ProcessLog(LogLevel.Info, tag, message);
