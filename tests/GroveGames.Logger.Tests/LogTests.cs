@@ -1,8 +1,6 @@
-using System.Diagnostics;
-
 namespace GroveGames.Logger.Tests;
 
-public class LoggerTests
+public class LogTests
 {
     private class TestLogProcessor : ILogProcessor
     {
@@ -16,7 +14,7 @@ public class LoggerTests
             DebugMessages.Add($"{tag}: {message}");
         }
 
-        public void ProcessInfo(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+        public void ProcessInformation(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
         {
             InfoMessages.Add($"{tag}: {message}");
         }
@@ -33,18 +31,18 @@ public class LoggerTests
     }
 
     [Fact]
-    public void Debug_ShouldCall_ProcessInfo_OnAllProcessors()
+    public void Debug_ShouldCall_ProcessInformation_OnAllProcessors()
     {
         // Arrange
         var processor = new TestLogProcessor();
-        var logger = new Logger();
-        logger.AddProcessor(processor);
+        var log = new Log();
+        log.AddProcessor(processor);
 
         var tag = "TestTag";
         var i = 1;
 
         // Act
-        logger.Debug(tag, $"Debug message {i}");
+        log.Debug(tag, $"Debug message {i}");
 
         // Assert
 #if DEBUG
@@ -58,16 +56,16 @@ public class LoggerTests
     public void Debug_ShouldNotCauseHeapAllocation()
     {
         // Arrange
-        var logger = new Logger();
+        var log = new Log();
         var testFileWriter = new TestFileWriterAllocation();
         var processor = new FileLogProcessor(testFileWriter, new FileLogFormatter());
-        logger.AddProcessor(processor);
-        logger.Debug("Warmup", $"Warmup message {42}");
+        log.AddProcessor(processor);
+        log.Debug("Warmup", $"Warmup message {42}");
 
         long initialAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
-        logger.Info("TestTag", $"Test message {initialAllocatedBytes}");
+        log.Information("TestTag", $"Test message {initialAllocatedBytes}");
 
         long finalAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 
@@ -76,37 +74,37 @@ public class LoggerTests
     }
 
     [Fact]
-    public void Info_ShouldCall_ProcessInfo_OnAllProcessors()
+    public void Information_ShouldCall_ProcessInformation_OnAllProcessors()
     {
         // Arrange
         var processor = new TestLogProcessor();
-        var logger = new Logger();
-        logger.AddProcessor(processor);
+        var log = new Log();
+        log.AddProcessor(processor);
 
         var tag = "TestTag";
         var i = 1;
 
         // Act
-        logger.Info(tag, $"Info message {i}");
+        log.Information(tag, $"Info message {i}");
 
         // Assert
         Assert.Contains("TestTag: Info message 1", processor.InfoMessages);
     }
 
     [Fact]
-    public void Info_ShouldNotCauseHeapAllocation()
+    public void Information_ShouldNotCauseHeapAllocation()
     {
         // Arrange
-        var logger = new Logger();
+        var log = new Log();
         var testFileWriter = new TestFileWriterAllocation();
         var processor = new FileLogProcessor(testFileWriter, new FileLogFormatter());
-        logger.AddProcessor(processor);
-        logger.Info("Warmup", $"Warmup message {42}");
+        log.AddProcessor(processor);
+        log.Information("Warmup", $"Warmup message {42}");
 
         long initialAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
-        logger.Info("TestTag", $"Test message {initialAllocatedBytes}");
+        log.Information("TestTag", $"Test message {initialAllocatedBytes}");
 
         long finalAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 
@@ -119,14 +117,14 @@ public class LoggerTests
     {
         // Arrange
         var processor = new TestLogProcessor();
-        var logger = new Logger();
-        logger.AddProcessor(processor);
+        var log = new Log();
+        log.AddProcessor(processor);
 
         var tag = "TestTag";
         var i = 1;
 
         // Act
-        logger.Warning(tag, $"Warning message {i}");
+        log.Warning(tag, $"Warning message {i}");
 
         // Assert
         Assert.Contains("TestTag: Warning message 1", processor.WarningMessages);
@@ -136,16 +134,16 @@ public class LoggerTests
     public void Warning_ShouldNotCauseHeapAllocation()
     {
         // Arrange
-        var logger = new Logger();
+        var log = new Log();
         var testFileWriter = new TestFileWriterAllocation();
         var processor = new FileLogProcessor(testFileWriter, new FileLogFormatter());
-        logger.AddProcessor(processor);
-        logger.Warning("Warmup", $"Warmup message {42}");
+        log.AddProcessor(processor);
+        log.Warning("Warmup", $"Warmup message {42}");
 
         long initialAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
-        logger.Warning("TestTag", $"Test message {float.Epsilon}");
+        log.Warning("TestTag", $"Test message {float.Epsilon}");
 
         long finalAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 
@@ -158,14 +156,14 @@ public class LoggerTests
     {
         // Arrange
         var processor = new TestLogProcessor();
-        var logger = new Logger();
-        logger.AddProcessor(processor);
+        var log = new Log();
+        log.AddProcessor(processor);
 
         var tag = "TestTag";
         var i = 1;
 
         // Act
-        logger.Error(tag, $"Error message {i}");
+        log.Error(tag, $"Error message {i}");
 
         // Assert
         Assert.Contains("TestTag: Error message 1", processor.ErrorMessages);
@@ -175,16 +173,16 @@ public class LoggerTests
     public void Error_ShouldNotCauseHeapAllocation()
     {
         // Arrange
-        var logger = new Logger();
+        var log = new Log();
         var testFileWriter = new TestFileWriterAllocation();
         var processor = new FileLogProcessor(testFileWriter, new FileLogFormatter());
-        logger.AddProcessor(processor);
-        logger.Error("Warmup", $"Warmup message {42}");
+        log.AddProcessor(processor);
+        log.Error("Warmup", $"Warmup message {42}");
 
         long initialAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
-        logger.Error("TestTag", $"Test message {int.MaxValue}");
+        log.Error("TestTag", $"Test message {int.MaxValue}");
 
         long finalAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 
@@ -197,13 +195,13 @@ public class LoggerTests
     {
         // Arrange
         var processor = new TestLogProcessor();
-        var logger = new Logger();
+        var log = new Log();
 
         // Act
-        logger.AddProcessor(processor);
+        log.AddProcessor(processor);
 
         // Assert
-        logger.Info("Test", $"Message");
+        log.Information("Test", $"Message");
         Assert.Contains("Test: Message", processor.InfoMessages);
     }
 
@@ -212,12 +210,12 @@ public class LoggerTests
     {
         // Arrange
         var processor = new TestLogProcessor();
-        var logger = new Logger();
-        logger.AddProcessor(processor);
-        logger.RemoveProcessor(processor);
+        var log = new Log();
+        log.AddProcessor(processor);
+        log.RemoveProcessor(processor);
 
         // Act
-        logger.Info("Test".AsSpan(), $"Message");
+        log.Information("Test".AsSpan(), $"Message");
 
         // Assert
         Assert.DoesNotContain("Test: Message", processor.InfoMessages);
@@ -228,11 +226,11 @@ public class LoggerTests
     {
         // Arrange
         var disposableProcessor = new TestLogProcessor();
-        var logger = new Logger();
-        logger.AddProcessor(disposableProcessor);
+        var log = new Log();
+        log.AddProcessor(disposableProcessor);
 
         // Act
-        logger.Dispose();
+        log.Dispose();
 
         // Assert
         // No specific assertion needed for this test as TestLogProcessor does not implement IDisposable
@@ -243,11 +241,11 @@ public class LoggerTests
     {
         // Arrange
         var processor = new TestLogProcessor();
-        var logger = new Logger();
-        logger.AddProcessor(processor);
+        var log = new Log();
+        log.AddProcessor(processor);
 
         // Act & Assert
-        var exception = Record.Exception(() => logger.Dispose());
+        var exception = Record.Exception(() => log.Dispose());
         Assert.Null(exception);
     }
 }

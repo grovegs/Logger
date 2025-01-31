@@ -16,9 +16,9 @@ public sealed class FileLogProcessor : ILogProcessor
         ProcessLog(LogLevel.Debug, tag, message);
     }
 
-    public void ProcessInfo(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    public void ProcessInformation(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        ProcessLog(LogLevel.Info, tag, message);
+        ProcessLog(LogLevel.Information, tag, message);
     }
 
     public void ProcessWarning(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)

@@ -5,7 +5,7 @@ public sealed class FileLogFormatter : ILogFormatter
     private static ReadOnlySpan<char> LevelCharacter(LogLevel level) => level switch
     {
         LogLevel.Debug => "D",
-        LogLevel.Info => "I",
+        LogLevel.Information => "I",
         LogLevel.Warning => "W",
         LogLevel.Error => "E",
         _ => "U" // Unknown

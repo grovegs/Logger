@@ -1,19 +1,17 @@
-using System.Diagnostics;
-
 namespace GroveGames.Logger;
 
-public sealed class Logger
+public sealed class Log : ILog
 {
-    public static readonly Logger Shared = new();
+    public static readonly Log Shared = new();
 
     private readonly List<ILogProcessor> _processors;
 
-    public Logger()
+    public Log()
     {
         _processors = [];
     }
 
-    [Conditional("DEBUG")]
+#if DEBUG
     public void Debug(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
         foreach (var processor in _processors)
@@ -21,12 +19,17 @@ public sealed class Logger
             processor.ProcessDebug(tag, message.Written);
         }
     }
+#else
+    public void Debug(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    {
+    }
+#endif
 
-    public void Info(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
+    public void Information(ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
         foreach (var processor in _processors)
         {
-            processor.ProcessInfo(tag, message.Written);
+            processor.ProcessInformation(tag, message.Written);
         }
     }
 

@@ -3,7 +3,7 @@ namespace GroveGames.Logger;
 public enum LogLevel
 {
     Debug,
-    Info,
+    Information,
     Warning,
     Error
 }
