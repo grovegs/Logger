@@ -3,7 +3,7 @@ namespace GroveGames.Logger;
 public sealed class GodotConsoleLogFormatter : ILogFormatter
 {
     private const int WarningStyleSize = 16; // "[color=yellow]⚠️ "
-    private const int DateTimeSize = 19; // yyyy-MM-dd HH:mm:ss
+    private const int DateTimeSize = 8; // HH:mm:ss
     private const int BracketsAndSpaces = 4; // " [" + "] " = 2+2=4
 
     public int GetBufferSize(ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
@@ -19,7 +19,7 @@ public sealed class GodotConsoleLogFormatter : ILogFormatter
     public void Format(Span<char> buffer, ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         Span<char> dateBuffer = stackalloc char[DateTimeSize];
-        DateTime.UtcNow.TryFormat(dateBuffer, out _, "yyyy-MM-dd HH:mm:ss");
+        DateTime.UtcNow.TryFormat(dateBuffer, out _, "HH:mm:ss");
 
         ReadOnlySpan<char> openBracket = " [";
         ReadOnlySpan<char> closeBracket = "] ";
@@ -34,7 +34,7 @@ public sealed class GodotConsoleLogFormatter : ILogFormatter
             offset += warningStyle.Length;
         }
 
-        // Copy datetime (19 chars)
+        // Copy datetime (8 chars)
         dateBuffer.CopyTo(buffer.Slice(offset, dateBuffer.Length));
         offset += dateBuffer.Length;
 
