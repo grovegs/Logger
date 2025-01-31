@@ -13,20 +13,20 @@ public sealed class FileLogProcessor : ILogProcessor
 
     public void ProcessInfo(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        Log(LogLevel.Info, tag, message);
+        ProcessLog(LogLevel.Info, tag, message);
     }
 
     public void ProcessWarning(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        Log(LogLevel.Warning, tag, message);
+        ProcessLog(LogLevel.Warning, tag, message);
     }
 
     public void ProcessError(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        Log(LogLevel.Error, tag, message);
+        ProcessLog(LogLevel.Error, tag, message);
     }
 
-    private void Log(ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    private void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         var bufferSize = _logFormatter.GetBufferSize(level, tag, message);
         Span<char> buffer = stackalloc char[bufferSize];

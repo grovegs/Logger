@@ -3,14 +3,15 @@ namespace GroveGames.Logger;
 public sealed class FileLogFormatter : ILogFormatter
 {
     private const int DateTimeSize = 8; // HH:mm:ss
+    private const int LevelCharacterSize = 1; // D, I, W, E, U
     private const int BracketsAndSpaces = 7; // " [" + "] [" + "] " = 2+3+2=7
 
-    public int GetBufferSize(ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    public int GetBufferSize(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        return DateTimeSize + BracketsAndSpaces + level.Length + tag.Length + message.Length;
+        return DateTimeSize + BracketsAndSpaces + LevelCharacterSize + tag.Length + message.Length;
     }
 
-    public void Format(Span<char> buffer, ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    public void Format(Span<char> buffer, LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         Span<char> dateBuffer = stackalloc char[DateTimeSize];
         DateTime.UtcNow.TryFormat(dateBuffer, out _, "HH:mm:ss");
@@ -18,6 +19,7 @@ public sealed class FileLogFormatter : ILogFormatter
         ReadOnlySpan<char> openBracket = " [";
         ReadOnlySpan<char> closeOpenBracket = "] [";
         ReadOnlySpan<char> closeBracket = "] ";
+        ReadOnlySpan<char> levelCharacter = GetLevelCharacter(level);
 
         int offset = 0;
 
@@ -30,8 +32,8 @@ public sealed class FileLogFormatter : ILogFormatter
         offset += 2;
 
         // Copy level
-        level.CopyTo(buffer.Slice(offset, level.Length));
-        offset += level.Length;
+        levelCharacter.CopyTo(buffer.Slice(offset, levelCharacter.Length));
+        offset += levelCharacter.Length;
 
         // Copy "] [" (3 chars)
         closeOpenBracket.CopyTo(buffer.Slice(offset, 3));
@@ -48,4 +50,12 @@ public sealed class FileLogFormatter : ILogFormatter
         // Copy message
         message.CopyTo(buffer.Slice(offset, message.Length));
     }
+
+    private static ReadOnlySpan<char> GetLevelCharacter(LogLevel level) => level switch
+    {
+        LogLevel.Info => "I",
+        LogLevel.Warning => "W",
+        LogLevel.Error => "E",
+        _ => "U" // Unknown
+    };
 }

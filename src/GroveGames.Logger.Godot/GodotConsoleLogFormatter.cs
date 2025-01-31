@@ -6,17 +6,17 @@ public sealed class GodotConsoleLogFormatter : ILogFormatter
     private const int DateTimeSize = 8; // HH:mm:ss
     private const int BracketsAndSpaces = 4; // " [" + "] " = 2+2=4
 
-    public int GetBufferSize(ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    public int GetBufferSize(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        if (level.SequenceEqual("WARNING"))
+        if (level == LogLevel.Warning)
         {
-            return WarningStyleSize + DateTimeSize + BracketsAndSpaces + level.Length + tag.Length + message.Length;
+            return WarningStyleSize + DateTimeSize + BracketsAndSpaces + tag.Length + message.Length;
         }
 
-        return DateTimeSize + BracketsAndSpaces + level.Length + tag.Length + message.Length;
+        return DateTimeSize + BracketsAndSpaces + tag.Length + message.Length;
     }
 
-    public void Format(Span<char> buffer, ReadOnlySpan<char> level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    public void Format(Span<char> buffer, LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         Span<char> dateBuffer = stackalloc char[DateTimeSize];
         DateTime.UtcNow.TryFormat(dateBuffer, out _, "HH:mm:ss");
@@ -27,7 +27,7 @@ public sealed class GodotConsoleLogFormatter : ILogFormatter
         int offset = 0;
 
         // Copy warning style
-        if (level.SequenceEqual("WARNING"))
+        if (level == LogLevel.Warning)
         {
             ReadOnlySpan<char> warningStyle = "[color=yellow]⚠️ ";
             warningStyle.CopyTo(buffer.Slice(offset, warningStyle.Length));

@@ -49,9 +49,9 @@ public sealed class Logger : ILogger
 
     public void Dispose()
     {
-        foreach (ILogProcessor v in _processors)
+        foreach (ILogProcessor processor in _processors)
         {
-            if (v is not IDisposable disposable)
+            if (processor is not IDisposable disposable)
             {
                 continue;
             }
