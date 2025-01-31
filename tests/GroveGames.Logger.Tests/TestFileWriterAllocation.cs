@@ -2,7 +2,7 @@ namespace GroveGames.Logger.Tests;
 
 public class TestFileWriterAllocation : IFileWriter
 {
-    public Queue<char> Messages { get; } = new(128);
+    public Queue<char> Messages { get; } = new(1024);
 
     public void AddToQueue(ReadOnlySpan<char> message)
     {

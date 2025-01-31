@@ -4,7 +4,7 @@ namespace GroveGames.Logger;
 
 public class GodotLogFileFactory : ILogFileFactory
 {
-    private readonly ILogFileFactory _logFileFactory;
+    private readonly LogFileFactory _logFileFactory;
 
     public GodotLogFileFactory()
     {
