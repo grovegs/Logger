@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace GroveGames.Logger.Tests;
 
 public class LoggerTests
@@ -45,7 +47,11 @@ public class LoggerTests
         logger.Debug(tag, $"Debug message {i}");
 
         // Assert
+#if DEBUG
         Assert.Contains("TestTag: Debug message 1", processor.DebugMessages);
+#else
+        Assert.Empty(processor.DebugMessages);
+#endif
     }
 
     [Fact]
