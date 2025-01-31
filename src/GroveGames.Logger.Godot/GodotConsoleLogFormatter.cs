@@ -2,55 +2,55 @@ namespace GroveGames.Logger;
 
 public sealed class GodotConsoleLogFormatter : ILogFormatter
 {
-    private const int WarningStyleSize = 16; // "[color=yellow]⚠️ "
-    private const int DateTimeSize = 8; // HH:mm:ss
-    private const int BracketsAndSpaces = 4; // " [" + "] " = 2+2=4
+    private static ReadOnlySpan<char> WarningTag => "[color=yellow]⚠️ ";
+    private static ReadOnlySpan<char> TimeFormat => "HH:mm:ss ";
+    private static ReadOnlySpan<char> LeftBracket => "[";
+    private static ReadOnlySpan<char> RightBracket => "] ";
 
     public int GetBufferSize(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
+        var bufferSize = 9 + 1 + tag.Length + 2 + message.Length;
+
         if (level == LogLevel.Warning)
         {
-            return WarningStyleSize + DateTimeSize + BracketsAndSpaces + tag.Length + message.Length;
+            bufferSize += 17;
         }
 
-        return DateTimeSize + BracketsAndSpaces + tag.Length + message.Length;
+        return bufferSize;
     }
 
     public void Format(Span<char> buffer, LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        Span<char> dateBuffer = stackalloc char[DateTimeSize];
-        DateTime.UtcNow.TryFormat(dateBuffer, out _, "HH:mm:ss");
+        int currentPosition = 0;
 
-        ReadOnlySpan<char> openBracket = " [";
-        ReadOnlySpan<char> closeBracket = "] ";
-
-        int offset = 0;
-
-        // Copy warning style
+        // Add warning tag if needed
         if (level == LogLevel.Warning)
         {
-            ReadOnlySpan<char> warningStyle = "[color=yellow]⚠️ ";
-            warningStyle.CopyTo(buffer.Slice(offset, warningStyle.Length));
-            offset += warningStyle.Length;
+            WarningTag.CopyTo(buffer[currentPosition..]);
+            currentPosition += WarningTag.Length;
         }
 
-        // Copy datetime (8 chars)
-        dateBuffer.CopyTo(buffer.Slice(offset, dateBuffer.Length));
-        offset += dateBuffer.Length;
+        // Format and copy datetime
+        var timeFormat = TimeFormat;
+        Span<char> timeBuffer = stackalloc char[timeFormat.Length];
 
-        // Copy " [" (2 chars)
-        openBracket.CopyTo(buffer.Slice(offset, 2));
-        offset += 2;
+        if (!DateTime.UtcNow.TryFormat(timeBuffer, out int charsWritten, timeFormat))
+        {
+            throw new FormatException("Failed to format DateTime");
+        }
 
-        // Copy tag
-        tag.CopyTo(buffer.Slice(offset, tag.Length));
-        offset += tag.Length;
+        timeBuffer.CopyTo(buffer[currentPosition..]);
+        currentPosition += timeFormat.Length;
 
-        // Copy "] " (2 chars)
-        closeBracket.CopyTo(buffer.Slice(offset, 2));
-        offset += 2;
+        LeftBracket.CopyTo(buffer[currentPosition..]);
+        currentPosition += LeftBracket.Length;
 
-        // Copy message
-        message.CopyTo(buffer.Slice(offset, message.Length));
+        tag.CopyTo(buffer[currentPosition..]);
+        currentPosition += tag.Length;
+
+        RightBracket.CopyTo(buffer[currentPosition..]);
+        currentPosition += RightBracket.Length;
+
+        message.CopyTo(buffer[currentPosition..]);
     }
 }
