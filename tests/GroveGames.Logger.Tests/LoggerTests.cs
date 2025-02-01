@@ -49,7 +49,7 @@ public class LoggerTests
 #if DEBUG
         Assert.Contains("TestTag: Debug message 1", processor.DebugLogs);
 #else
-        Assert.Empty(processor.DebugMessages);
+        Assert.Empty(processor.DebugLogs);
 #endif
     }
 
