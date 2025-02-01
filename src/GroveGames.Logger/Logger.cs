@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace GroveGames.Logger;
 
 public sealed class Logger : ILogger
@@ -11,12 +13,29 @@ public sealed class Logger : ILogger
         _logProcessors = [];
     }
 
-    public void Log(LogLevel level, ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
+    private void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         foreach (var logProcessor in _logProcessors)
         {
-            logProcessor.Process(level, tag, message.Written);
+            logProcessor.Process(level, tag, message);
         }
+    }
+
+    [Conditional("DEBUG")]
+    private void ProcessDebugLog(ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    {
+        ProcessLog(LogLevel.Debug, tag, message);
+    }
+
+    public void Log(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    {
+        if (level == LogLevel.Debug)
+        {
+            ProcessDebugLog(tag, message);
+            return;
+        }
+
+        ProcessLog(level, tag, message);
     }
 
     public void AddLogProcessor(ILogProcessor logProcessor)
