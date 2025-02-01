@@ -4,8 +4,6 @@ namespace GroveGames.Logger;
 
 public sealed class Logger : ILogger
 {
-    public static readonly Logger Shared = new();
-
     private readonly List<ILogProcessor> _logProcessors;
 
     public Logger()
@@ -17,7 +15,7 @@ public sealed class Logger : ILogger
     {
         foreach (var logProcessor in _logProcessors)
         {
-            logProcessor.Process(level, tag, message);
+            logProcessor.ProcessLog(level, tag, message);
         }
     }
 

@@ -2,5 +2,5 @@ namespace GroveGames.Logger;
 
 public interface ILogProcessor
 {
-    void Process(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message);
+    void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message);
 }
