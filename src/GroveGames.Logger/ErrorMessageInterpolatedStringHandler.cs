@@ -3,9 +3,9 @@ using System.Runtime.CompilerServices;
 namespace GroveGames.Logger;
 
 [InterpolatedStringHandler]
-public readonly ref struct ErrorMessageInterpolatedStringHandler
+public ref struct ErrorMessageInterpolatedStringHandler
 {
-    private readonly MessageInterpolatedStringHandler _handler;
+    private MessageInterpolatedStringHandler _handler;
 
     public readonly ReadOnlySpan<char> Written => _handler.Written;
 
@@ -13,7 +13,7 @@ public readonly ref struct ErrorMessageInterpolatedStringHandler
     {
         if (logger.MinimumLogLevel > LogLevel.Error)
         {
-            _handler = default;
+            _handler = MessageInterpolatedStringHandler.Empty;
             return;
         }
 

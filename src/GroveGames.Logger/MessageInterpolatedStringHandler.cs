@@ -6,10 +6,18 @@ namespace GroveGames.Logger;
 [InterpolatedStringHandler]
 public ref struct MessageInterpolatedStringHandler
 {
+    public static MessageInterpolatedStringHandler Empty => new([]);
+
     private readonly Span<char> _buffer;
     private int _position;
 
     public readonly ReadOnlySpan<char> Written => _buffer[.._position];
+
+    private MessageInterpolatedStringHandler(Span<char> buffer)
+    {
+        _buffer = buffer;
+        _position = 0;
+    }
 
     public MessageInterpolatedStringHandler(int literalLength, int formattedCount)
     {
