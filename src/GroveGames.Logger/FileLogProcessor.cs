@@ -11,7 +11,7 @@ public sealed class FileLogProcessor : ILogProcessor
         _logFormatter = logFormatter;
     }
 
-    public void Process(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         var bufferSize = _logFormatter.GetBufferSize(level, tag, message);
         Span<char> buffer = stackalloc char[bufferSize];

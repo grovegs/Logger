@@ -9,7 +9,7 @@ public class LoggerTests
         public List<string> WarningLogs { get; } = [];
         public List<string> ErrorLogs { get; } = [];
 
-        public void Process(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+        public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
         {
             var log = $"{tag}: {message}";
 

@@ -1,10 +1,7 @@
-using System.Diagnostics;
-
 namespace GroveGames.Logger;
 
 public static class LoggerExtensions
 {
-    [Conditional("DEBUG")]
     public static void LogDebug(this ILogger logger, ReadOnlySpan<char> tag, LogInterpolatedStringHandler message)
     {
         logger.Log(LogLevel.Debug, tag, message.Written);
