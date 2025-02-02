@@ -2,22 +2,31 @@ namespace GroveGames.Logger;
 
 public sealed class Logger : ILogger
 {
-    public static readonly Logger Shared = new();
-
-    private readonly List<ILogProcessor> _logProcessors = [];
-    private readonly object _lock = new();
+    private readonly LogLevel _minimumLogLevel;
+    private readonly List<ILogProcessor> _logProcessors;
     private bool _disposed;
+
+    public LogLevel MinimumLogLevel => _minimumLogLevel;
+
+    public Logger(LogLevel minimumLogLevel)
+    {
+        _minimumLogLevel = minimumLogLevel;
+        _logProcessors = [];
+        _disposed = false;
+    }
 
     public void Log(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        lock (_lock)
+        if (level < _minimumLogLevel)
         {
-            foreach (var logProcessor in _logProcessors)
-            {
-                logProcessor.ProcessLog(level, tag, message);
-            }
+            return;
+        }
+
+        foreach (var logProcessor in _logProcessors)
+        {
+            logProcessor.ProcessLog(level, tag, message);
         }
     }
 
@@ -25,22 +34,14 @@ public sealed class Logger : ILogger
     {
         ArgumentNullException.ThrowIfNull(logProcessor);
         ObjectDisposedException.ThrowIf(_disposed, this);
-
-        lock (_lock)
-        {
-            _logProcessors.Add(logProcessor);
-        }
+        _logProcessors.Add(logProcessor);
     }
 
     public void RemoveLogProcessor(ILogProcessor logProcessor)
     {
         ArgumentNullException.ThrowIfNull(logProcessor);
         ObjectDisposedException.ThrowIf(_disposed, this);
-
-        lock (_lock)
-        {
-            _logProcessors.Remove(logProcessor);
-        }
+        _logProcessors.Remove(logProcessor);
     }
 
     public void Dispose()
@@ -50,22 +51,14 @@ public sealed class Logger : ILogger
             return;
         }
 
-        lock (_lock)
+        foreach (var logProcessor in _logProcessors)
         {
-            if (_disposed)
+            if (logProcessor is IDisposable disposable)
             {
-                return;
+                disposable.Dispose();
             }
-
-            foreach (var logProcessor in _logProcessors)
-            {
-                if (logProcessor is IDisposable disposable)
-                {
-                    disposable.Dispose();
-                }
-            }
-
-            _disposed = true;
         }
+
+        _disposed = true;
     }
 }

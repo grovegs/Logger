@@ -4,19 +4,39 @@ using System.Runtime.CompilerServices;
 namespace GroveGames.Logger;
 
 [InterpolatedStringHandler]
-public ref struct LogInterpolatedStringHandler
+public ref struct MessageInterpolatedStringHandler
 {
+    public static MessageInterpolatedStringHandler Empty => new([]);
+
     private readonly Span<char> _buffer;
+    private readonly char[] _rentedArray;
     private int _position;
 
     public readonly ReadOnlySpan<char> Written => _buffer[.._position];
 
-    public LogInterpolatedStringHandler(int literalLength, int formattedCount)
+    private MessageInterpolatedStringHandler(Span<char> buffer)
     {
-        var array = ArrayPool<char>.Shared.Rent(literalLength + formattedCount);
-        _buffer = array.AsSpan();
-        ArrayPool<char>.Shared.Return(array);
+        _buffer = buffer;
+        _rentedArray = [];
         _position = 0;
+    }
+
+    public MessageInterpolatedStringHandler(int literalLength, int formattedCount)
+    {
+        var rentedArray = ArrayPool<char>.Shared.Rent(literalLength + formattedCount);
+        _buffer = rentedArray.AsSpan();
+        _rentedArray = rentedArray;
+        _position = 0;
+    }
+
+    public readonly void Dispose()
+    {
+        if (_rentedArray == Array.Empty<char>())
+        {
+            return;
+        }
+
+        ArrayPool<char>.Shared.Return(_rentedArray);
     }
 
     public bool AppendLiteral(ReadOnlySpan<char> value)
