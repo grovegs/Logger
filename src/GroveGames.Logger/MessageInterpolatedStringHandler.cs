@@ -4,14 +4,14 @@ using System.Runtime.CompilerServices;
 namespace GroveGames.Logger;
 
 [InterpolatedStringHandler]
-public ref struct LogInterpolatedStringHandler
+public ref struct MessageInterpolatedStringHandler
 {
     private readonly Span<char> _buffer;
     private int _position;
 
     public readonly ReadOnlySpan<char> Written => _buffer[.._position];
 
-    public LogInterpolatedStringHandler(int literalLength, int formattedCount)
+    public MessageInterpolatedStringHandler(int literalLength, int formattedCount)
     {
         var array = ArrayPool<char>.Shared.Rent(literalLength + formattedCount);
         _buffer = array.AsSpan();

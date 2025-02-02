@@ -2,11 +2,15 @@ namespace GroveGames.Logger;
 
 public sealed class Logger : ILogger
 {
+    private readonly LogLevel _minimumLogLevel;
     private readonly List<ILogProcessor> _logProcessors;
     private bool _disposed;
 
-    public Logger()
+    public LogLevel MinimumLogLevel => _minimumLogLevel;
+
+    public Logger(LogLevel minimumLogLevel)
     {
+        _minimumLogLevel = minimumLogLevel;
         _logProcessors = [];
         _disposed = false;
     }
@@ -14,6 +18,11 @@ public sealed class Logger : ILogger
     public void Log(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (level < _minimumLogLevel)
+        {
+            return;
+        }
 
         foreach (var logProcessor in _logProcessors)
         {
