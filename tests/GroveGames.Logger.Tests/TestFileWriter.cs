@@ -4,7 +4,7 @@ public class TestFileWriter : IFileWriter
 {
     public List<string> Messages { get; } = new(24);
 
-    public void AddToQueue(ReadOnlySpan<char> message)
+    public void AddEntry(ReadOnlySpan<char> message)
     {
         Messages.Add(message.ToString());
     }

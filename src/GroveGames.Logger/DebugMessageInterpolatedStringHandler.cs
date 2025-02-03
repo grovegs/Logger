@@ -11,7 +11,7 @@ public ref struct DebugMessageInterpolatedStringHandler
 
     public DebugMessageInterpolatedStringHandler(int literalLength, int formattedCount, ILogger logger)
     {
-        if (logger.MinimumLogLevel > LogLevel.Debug)
+        if (logger.MinimumLevel > LogLevel.Debug)
         {
             _handler = MessageInterpolatedStringHandler.Empty;
             return;

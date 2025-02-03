@@ -2,34 +2,32 @@ namespace GroveGames.Logger;
 
 public class FileWriter : IFileWriter
 {
-    private const int WriteInterval = 1000;
-    private const int InitialMessageCapacity = 256;
-
-    private readonly Queue<char> _messageQueue;
-    private readonly Thread _writeThread;
     private readonly StreamWriter _writer;
+    private readonly int _writeInterval;
     private readonly SemaphoreSlim _semaphore;
-
+    private readonly Queue<char> _characterQueue;
+    private readonly Thread _writeThread;
     private bool _isRunning;
 
-    public FileWriter(StreamWriter streamWriter)
+    public FileWriter(StreamWriter streamWriter, int writeInterval, int characterQueueSize)
     {
-        _semaphore = new SemaphoreSlim(1, 1);
-        _messageQueue = new Queue<char>(InitialMessageCapacity);
         _writer = streamWriter;
-        _writeThread = new Thread(Write) { Name = "LogWriteThread" };
+        _writeInterval = writeInterval;
+        _semaphore = new SemaphoreSlim(1, 1);
+        _characterQueue = new Queue<char>(characterQueueSize);
+        _writeThread = new Thread(Write) { Name = "LogFileWriteThread" };
         _isRunning = true;
         _writeThread.Start();
     }
 
-    public void AddToQueue(ReadOnlySpan<char> message)
+    public void AddEntry(ReadOnlySpan<char> entry)
     {
-        foreach (var character in message)
+        foreach (var character in entry)
         {
-            _messageQueue.Enqueue(character);
+            _characterQueue.Enqueue(character);
         }
 
-        _messageQueue.Enqueue('\n');
+        _characterQueue.Enqueue('\n');
     }
 
     private async void Write()
@@ -37,7 +35,8 @@ public class FileWriter : IFileWriter
         while (_isRunning)
         {
             await _semaphore.WaitAsync();
-            while (_messageQueue.TryDequeue(out var result))
+
+            while (_characterQueue.TryDequeue(out var result))
             {
                 try
                 {
@@ -52,7 +51,7 @@ public class FileWriter : IFileWriter
             await _writer.FlushAsync();
             _semaphore.Release();
 
-            await Task.Delay(WriteInterval);
+            await Task.Delay(_writeInterval);
         }
     }
 

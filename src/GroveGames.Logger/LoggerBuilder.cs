@@ -3,28 +3,27 @@ namespace GroveGames.Logger;
 public sealed class LoggerBuilder : ILoggerBuilder
 {
     private readonly List<ILogProcessor> _logProcessors;
-    private LogLevel _minimumLogLevel;
+    private LogLevel _minimumLevel;
 
     public LoggerBuilder()
     {
         _logProcessors = [];
-        _minimumLogLevel = LogLevel.Information;
     }
 
-    public ILoggerBuilder AddLogProcessor(ILogProcessor logProcessor)
+    public ILoggerBuilder AddLogProcessor(ILogProcessor processor)
     {
-        _logProcessors.Add(logProcessor);
+        _logProcessors.Add(processor);
         return this;
     }
 
-    public ILoggerBuilder SetMinimumLogLevel(LogLevel minimumLogLevel)
+    public ILoggerBuilder SetMinimumLevel(LogLevel level)
     {
-        _minimumLogLevel = minimumLogLevel;
+        _minimumLevel = level;
         return this;
     }
 
     public ILogger Build()
     {
-        return new Logger([.. _logProcessors], _minimumLogLevel);
+        return new Logger([.. _logProcessors], _minimumLevel);
     }
 }

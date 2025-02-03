@@ -11,7 +11,7 @@ public class FileWriterTests
         var fileWriter = new FileWriter(streamWriter);
 
         // Act
-        fileWriter.AddToQueue("Hello, World!".AsSpan());
+        fileWriter.AddEntry("Hello, World!".AsSpan());
         await Task.Delay(1500); // Allow the background thread to write the log
 
         // Assert
@@ -31,7 +31,7 @@ public class FileWriterTests
         using var streamWriter = new StreamWriter(memoryStream);
         var fileWriter = new FileWriter(streamWriter);
 
-        fileWriter.AddToQueue("First message".AsSpan());
+        fileWriter.AddEntry("First message".AsSpan());
         await Task.Delay(1500);
 
         memoryStream.Seek(0, SeekOrigin.Begin);
@@ -41,7 +41,7 @@ public class FileWriterTests
         Assert.Contains("First message", logContents);
 
         fileWriter.Dispose();
-        fileWriter.AddToQueue("Second message".AsSpan());
+        fileWriter.AddEntry("Second message".AsSpan());
         Assert.DoesNotContain("Second message", logContents);
     }
 

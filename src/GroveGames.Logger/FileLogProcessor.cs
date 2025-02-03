@@ -3,19 +3,19 @@ namespace GroveGames.Logger;
 public sealed class FileLogProcessor : ILogProcessor
 {
     private readonly IFileWriter _fileWriter;
-    private readonly ILogFormatter _logFormatter;
+    private readonly ILogFormatter _formatter;
 
-    public FileLogProcessor(IFileWriter fileWriter, ILogFormatter logFormatter)
+    public FileLogProcessor(IFileWriter fileWriter, ILogFormatter formatter)
     {
         _fileWriter = fileWriter;
-        _logFormatter = logFormatter;
+        _formatter = formatter;
     }
 
     public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        var bufferSize = _logFormatter.GetBufferSize(level, tag, message);
+        var bufferSize = _formatter.GetBufferSize(level, tag, message);
         Span<char> buffer = stackalloc char[bufferSize];
-        _logFormatter.Format(buffer, level, tag, message);
-        _fileWriter.AddToQueue(buffer);
+        _formatter.Format(buffer, level, tag, message);
+        _fileWriter.AddEntry(buffer);
     }
 }
