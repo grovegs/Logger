@@ -1,17 +1,17 @@
 namespace GroveGames.Logger;
 
-public sealed class Logger : ILogger
+public sealed class Logger : ILogger, IDisposable
 {
-    private readonly LogLevel _minimumLogLevel;
-    private readonly List<ILogProcessor> _logProcessors;
+    private readonly ILogProcessor[] _logProcessors;
+    private readonly LogLevel _minimumLevel;
     private bool _disposed;
 
-    public LogLevel MinimumLogLevel => _minimumLogLevel;
+    public LogLevel MinimumLevel => _minimumLevel;
 
-    public Logger(LogLevel minimumLogLevel)
+    public Logger(ILogProcessor[] logProcessors, LogLevel minimumLevel)
     {
-        _minimumLogLevel = minimumLogLevel;
-        _logProcessors = [];
+        _logProcessors = logProcessors;
+        _minimumLevel = minimumLevel;
         _disposed = false;
     }
 
@@ -19,7 +19,7 @@ public sealed class Logger : ILogger
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (level < _minimumLogLevel)
+        if (level < _minimumLevel)
         {
             return;
         }
@@ -28,20 +28,6 @@ public sealed class Logger : ILogger
         {
             logProcessor.ProcessLog(level, tag, message);
         }
-    }
-
-    public void AddLogProcessor(ILogProcessor logProcessor)
-    {
-        ArgumentNullException.ThrowIfNull(logProcessor);
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        _logProcessors.Add(logProcessor);
-    }
-
-    public void RemoveLogProcessor(ILogProcessor logProcessor)
-    {
-        ArgumentNullException.ThrowIfNull(logProcessor);
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        _logProcessors.Remove(logProcessor);
     }
 
     public void Dispose()

@@ -2,13 +2,13 @@ using Godot;
 
 namespace GroveGames.Logger;
 
-public class GodotLogFileFactory : ILogFileFactory
+public sealed class GodotLogFileFactory : ILogFileFactory
 {
     private readonly LogFileFactory _logFileFactory;
 
-    public GodotLogFileFactory()
+    public GodotLogFileFactory(string fileFolderName, int maxFileCount)
     {
-        _logFileFactory = new LogFileFactory(OS.GetUserDataDir());
+        _logFileFactory = new LogFileFactory(OS.GetUserDataDir(), fileFolderName, maxFileCount);
     }
 
     public StreamWriter CreateFile()

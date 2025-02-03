@@ -17,8 +17,7 @@ public class LoggerTests
     {
         // Arrange
         var processor = new TestLogProcessor();
-        var logger = new Logger(LogLevel.Debug);
-        logger.AddLogProcessor(processor);
+        var logger = new Logger([processor], LogLevel.Debug);
 
         var tag = "TestTag";
         var message = "Test message";
@@ -35,8 +34,7 @@ public class LoggerTests
     {
         // Arrange
         var processor = new TestLogProcessor();
-        var logger = new Logger(LogLevel.Warning); // Only logs Warning and above
-        logger.AddLogProcessor(processor);
+        var logger = new Logger([processor], LogLevel.Warning); // Only logs Warning and above
 
         var tag = "TestTag";
         var message = "This should not be logged";
@@ -49,43 +47,11 @@ public class LoggerTests
     }
 
     [Fact]
-    public void AddProcessor_ShouldStoreProcessor()
-    {
-        // Arrange
-        var processor = new TestLogProcessor();
-        var logger = new Logger(LogLevel.Information);
-
-        // Act
-        logger.AddLogProcessor(processor);
-        logger.Log(LogLevel.Information, "Test".AsSpan(), "Message".AsSpan());
-
-        // Assert
-        Assert.Contains("Test: Message", processor.Logs);
-    }
-
-    [Fact]
-    public void RemoveProcessor_ShouldNotCallProcessorAfterRemoval()
-    {
-        // Arrange
-        var processor = new TestLogProcessor();
-        var logger = new Logger(LogLevel.Information);
-        logger.AddLogProcessor(processor);
-        logger.RemoveLogProcessor(processor);
-
-        // Act
-        logger.Log(LogLevel.Information, "Test".AsSpan(), "Message".AsSpan());
-
-        // Assert
-        Assert.Empty(processor.Logs);
-    }
-
-    [Fact]
     public void Dispose_ShouldCallDispose_OnDisposableProcessors()
     {
         // Arrange
         var disposableProcessor = new TestLogProcessor();
-        var logger = new Logger(LogLevel.Information);
-        logger.AddLogProcessor(disposableProcessor);
+        var logger = new Logger([disposableProcessor], LogLevel.Information);
 
         // Act
         logger.Dispose();
@@ -99,8 +65,7 @@ public class LoggerTests
     {
         // Arrange
         var processor = new TestLogProcessor();
-        var logger = new Logger(LogLevel.Information);
-        logger.AddLogProcessor(processor);
+        var logger = new Logger([processor], LogLevel.Information);
 
         // Act & Assert
         var exception = Record.Exception(() => logger.Dispose());

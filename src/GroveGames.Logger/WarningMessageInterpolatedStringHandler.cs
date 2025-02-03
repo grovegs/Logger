@@ -11,7 +11,7 @@ public ref struct WarningMessageInterpolatedStringHandler
 
     public WarningMessageInterpolatedStringHandler(int literalLength, int formattedCount, ILogger logger)
     {
-        if (logger.MinimumLogLevel > LogLevel.Warning)
+        if (logger.MinimumLevel > LogLevel.Warning)
         {
             _handler = MessageInterpolatedStringHandler.Empty;
             return;

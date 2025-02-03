@@ -11,7 +11,7 @@ public ref struct ErrorMessageInterpolatedStringHandler
 
     public ErrorMessageInterpolatedStringHandler(int literalLength, int formattedCount, ILogger logger)
     {
-        if (logger.MinimumLogLevel > LogLevel.Error)
+        if (logger.MinimumLevel > LogLevel.Error)
         {
             _handler = MessageInterpolatedStringHandler.Empty;
             return;
