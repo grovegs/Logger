@@ -8,7 +8,7 @@ public sealed class FileLogFormatter : ILogFormatter
         LogLevel.Information => "I",
         LogLevel.Warning => "W",
         LogLevel.Error => "E",
-        _ => "U" // Unknown
+        _ => "N" // None
     };
     private static ReadOnlySpan<char> TimeFormat => "HH:mm:ss ";
     private static ReadOnlySpan<char> LeftBracket => "[";
