@@ -1,65 +1,121 @@
+using System.Buffers;
+
 namespace GroveGames.Logger;
 
-public class FileWriter : IFileWriter
+public sealed class FileWriter : IFileWriter, IDisposable
 {
     private readonly StreamWriter _writer;
     private readonly int _writeInterval;
-    private readonly SemaphoreSlim _semaphore;
     private readonly Queue<char> _characterQueue;
-    private readonly Thread _writeThread;
-    private bool _isRunning;
+    private readonly object _queueLock = new();
+    private readonly CancellationTokenSource _cancellationTokenSource;
+    private bool _disposed;
+    private readonly Task _writeTask;
 
-    public FileWriter(StreamWriter streamWriter, int writeInterval, int characterQueueSize)
+    public FileWriter(StreamWriter writer, int writeInterval, int characterQueueSize)
     {
-        _writer = streamWriter;
+        ArgumentNullException.ThrowIfNull(writer);
+        _writer = writer;
         _writeInterval = writeInterval;
-        _semaphore = new SemaphoreSlim(1, 1);
         _characterQueue = new Queue<char>(characterQueueSize);
-        _writeThread = new Thread(Write) { Name = "LogFileWriteThread" };
-        _isRunning = true;
-        _writeThread.Start();
+        _queueLock = new();
+        _cancellationTokenSource = new();
+        _disposed = false;
+        _writeTask = Task.Run(() => StartWriteLoop(_cancellationTokenSource.Token));
     }
 
     public void AddEntry(ReadOnlySpan<char> entry)
     {
-        foreach (var character in entry)
+        if (_cancellationTokenSource.IsCancellationRequested)
         {
-            _characterQueue.Enqueue(character);
+            return;
         }
 
-        _characterQueue.Enqueue('\n');
-    }
-
-    private async void Write()
-    {
-        while (_isRunning)
+        lock (_queueLock)
         {
-            await _semaphore.WaitAsync();
-
-            while (_characterQueue.TryDequeue(out var result))
+            foreach (var character in entry)
             {
-                try
-                {
-                    await _writer.WriteAsync(result);
-                }
-                catch
-                {
-                    Dispose();
-                }
+                _characterQueue.Enqueue(character);
             }
 
-            await _writer.FlushAsync();
-            _semaphore.Release();
+            foreach (var character in Environment.NewLine)
+            {
+                _characterQueue.Enqueue(character);
+            }
+        }
+    }
 
-            await Task.Delay(_writeInterval);
+    private void StartWriteLoop(CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                Task.Delay(_writeInterval, cancellationToken).Wait(cancellationToken);
+                WriteEntries();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private void WriteEntries()
+    {
+        char[] buffer;
+        int count;
+
+        lock (_queueLock)
+        {
+            if (_characterQueue.Count == 0)
+            {
+                return;
+            }
+
+            count = _characterQueue.Count;
+            buffer = ArrayPool<char>.Shared.Rent(count);
+
+            for (int i = 0; i < count; i++)
+            {
+                buffer[i] = _characterQueue.Dequeue();
+            }
+        }
+
+        try
+        {
+            _writer.Write(buffer, 0, count);
+            _writer.Flush();
+        }
+        finally
+        {
+            ArrayPool<char>.Shared.Return(buffer);
         }
     }
 
     public void Dispose()
     {
-        _isRunning = false;
-        _writeThread?.Join();
-        _writer?.Close();
-        _writer?.Dispose();
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        _cancellationTokenSource.Cancel();
+
+        try
+        {
+            _writeTask.Wait();
+        }
+        catch (AggregateException ex) when (ex.InnerException is OperationCanceledException)
+        {
+        }
+        finally
+        {
+            _cancellationTokenSource.Dispose();
+            _writer.Dispose();
+        }
+
+        GC.SuppressFinalize(this);
     }
 }
