@@ -1,6 +1,6 @@
 namespace GroveGames.Logger;
 
-public sealed class FileLogProcessor : ILogProcessor
+public sealed class FileLogProcessor : ILogProcessor, IDisposable
 {
     private readonly IFileWriter _fileWriter;
     private readonly ILogFormatter _formatter;
@@ -9,6 +9,11 @@ public sealed class FileLogProcessor : ILogProcessor
     {
         _fileWriter = fileWriter;
         _formatter = formatter;
+    }
+
+    public void Dispose()
+    {
+        _fileWriter.Dispose();
     }
 
     public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
