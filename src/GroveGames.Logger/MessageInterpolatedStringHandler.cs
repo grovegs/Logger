@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 namespace GroveGames.Logger;
@@ -23,8 +24,9 @@ public ref struct MessageInterpolatedStringHandler
 
     public MessageInterpolatedStringHandler(int literalLength, int formattedCount)
     {
-        var rentedArray = ArrayPool<char>.Shared.Rent(literalLength + formattedCount);
-        _buffer = rentedArray.AsSpan();
+        var bufferSize = literalLength + formattedCount;
+        var rentedArray = ArrayPool<char>.Shared.Rent(bufferSize);
+        _buffer = rentedArray.AsSpan(0, bufferSize);
         _rentedArray = rentedArray;
         _position = 0;
     }
@@ -49,7 +51,7 @@ public ref struct MessageInterpolatedStringHandler
 
     public bool AppendFormatted<T>(T value, string? format) where T : ISpanFormattable
     {
-        return value.TryFormat(_buffer[_position..], out int written, format, default) && Advance(written);
+        return value.TryFormat(_buffer[_position..], out int written, format, CultureInfo.InvariantCulture) && Advance(written);
     }
 
     public bool AppendFormatted(ReadOnlySpan<char> value)
