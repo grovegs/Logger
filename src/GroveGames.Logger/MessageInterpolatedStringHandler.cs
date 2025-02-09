@@ -31,12 +31,10 @@ public ref struct MessageInterpolatedStringHandler
 
     public readonly void Dispose()
     {
-        if (_rentedArray == Array.Empty<char>())
+        if (_rentedArray.Length > 0)
         {
-            return;
+            ArrayPool<char>.Shared.Return(_rentedArray);
         }
-
-        ArrayPool<char>.Shared.Return(_rentedArray);
     }
 
     public bool AppendLiteral(ReadOnlySpan<char> value)
