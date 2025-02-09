@@ -8,7 +8,7 @@ public class LoggerTests
 
         public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
         {
-            Logs.Add($"{tag.ToString()}: {message.ToString()}"); // ToString only for assertions
+            Logs.Add($"{tag.ToString()}: {message.ToString()}");
         }
     }
 
@@ -34,7 +34,7 @@ public class LoggerTests
     {
         // Arrange
         var processor = new TestLogProcessor();
-        var logger = new Logger([processor], LogLevel.Warning); // Only logs Warning and above
+        var logger = new Logger([processor], LogLevel.Warning);
 
         var tag = "TestTag";
         var message = "This should not be logged";
