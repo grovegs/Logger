@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 namespace GroveGames.Logger;
@@ -23,20 +24,20 @@ public ref struct MessageInterpolatedStringHandler
 
     public MessageInterpolatedStringHandler(int literalLength, int formattedCount)
     {
-        var rentedArray = ArrayPool<char>.Shared.Rent(literalLength + formattedCount);
-        _buffer = rentedArray.AsSpan();
+        var formattedLength = formattedCount * 16;
+        var bufferSize = literalLength + formattedLength;
+        var rentedArray = ArrayPool<char>.Shared.Rent(bufferSize);
+        _buffer = rentedArray.AsSpan(0, bufferSize);
         _rentedArray = rentedArray;
         _position = 0;
     }
 
     public readonly void Dispose()
     {
-        if (_rentedArray == Array.Empty<char>())
+        if (_rentedArray.Length > 0)
         {
-            return;
+            ArrayPool<char>.Shared.Return(_rentedArray);
         }
-
-        ArrayPool<char>.Shared.Return(_rentedArray);
     }
 
     public bool AppendLiteral(ReadOnlySpan<char> value)
@@ -46,12 +47,12 @@ public ref struct MessageInterpolatedStringHandler
 
     public bool AppendFormatted<T>(T value) where T : ISpanFormattable
     {
-        return value.TryFormat(_buffer[_position..], out int written, default, default) && Advance(written);
+        return value.TryFormat(_buffer[_position..], out int written, default, CultureInfo.InvariantCulture) && Advance(written);
     }
 
     public bool AppendFormatted<T>(T value, string? format) where T : ISpanFormattable
     {
-        return value.TryFormat(_buffer[_position..], out int written, format, default) && Advance(written);
+        return value.TryFormat(_buffer[_position..], out int written, format, CultureInfo.InvariantCulture) && Advance(written);
     }
 
     public bool AppendFormatted(ReadOnlySpan<char> value)

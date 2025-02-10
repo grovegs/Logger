@@ -22,7 +22,7 @@ public sealed class LoggerBuilder : ILoggerBuilder
         return this;
     }
 
-    public ILogger Build()
+    public Logger Build()
     {
         return new Logger([.. _logProcessors], _minimumLevel);
     }
