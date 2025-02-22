@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Text;
 using System.Threading.Channels;
 
@@ -8,20 +7,22 @@ public sealed class FileWriter : IFileWriter
 {
     private readonly Stream _stream;
     private readonly int _writeInterval;
-    private readonly Channel<byte[]> _channel;
+    private byte[] _buffer;
+    private readonly Channel<Memory<byte>> _channel;
     private readonly byte[] _newLine;
     private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly Task _writeTask;
     private bool _disposed;
 
-    public FileWriter(Stream stream, int writeInterval)
+    public FileWriter(Stream stream, int writeInterval, int bufferSize)
     {
         ArgumentNullException.ThrowIfNull(stream);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(writeInterval);
 
         _stream = stream;
         _writeInterval = writeInterval;
-        _channel = Channel.CreateUnbounded<byte[]>(new UnboundedChannelOptions
+        _buffer = new byte[bufferSize];
+        _channel = Channel.CreateUnbounded<Memory<byte>>(new UnboundedChannelOptions
         {
             SingleReader = true,
             SingleWriter = false
@@ -35,23 +36,21 @@ public sealed class FileWriter : IFileWriter
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        int byteCount = Encoding.UTF8.GetByteCount(entry);
-        int totalBytes = byteCount + _newLine.Length;
-        byte[] buffer = ArrayPool<byte>.Shared.Rent(totalBytes);
+        var byteCount = Encoding.UTF8.GetByteCount(entry);
+        var totalBytes = byteCount + 1;
+        var bufferSize = _buffer.Length;
 
-        try
+        if (totalBytes > bufferSize)
         {
-            int bytesWritten = Encoding.UTF8.GetBytes(entry, buffer);
-            _newLine.CopyTo(buffer.AsSpan(bytesWritten));
-
-            if (!_channel.Writer.TryWrite(buffer))
-            {
-                throw new InvalidOperationException("Failed to write to channel");
-            }
+            Array.Resize(ref _buffer, totalBytes);
         }
-        finally
+
+        int bytesWritten = Encoding.UTF8.GetBytes(entry, _buffer);
+        _newLine.CopyTo(_buffer, bytesWritten);
+
+        if (!_channel.Writer.TryWrite(_buffer))
         {
-            ArrayPool<byte>.Shared.Return(buffer);
+            throw new InvalidOperationException("Failed to write to channel");
         }
     }
 
