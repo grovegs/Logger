@@ -20,6 +20,7 @@ public sealed class FileWriter : IFileWriter
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(writeInterval);
 
         _stream = stream;
+        _writeInterval = writeInterval;
         _channel = Channel.CreateUnbounded<byte[]>(new UnboundedChannelOptions
         {
             SingleReader = true,
