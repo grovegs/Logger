@@ -1,88 +1,66 @@
-using System.Buffers;
-using System.Collections.Concurrent;
+using System.Text;
+using System.Threading.Channels;
 
 namespace GroveGames.Logger;
 
-public sealed class FileWriter : IFileWriter, IDisposable
+public sealed class FileWriter : IFileWriter
 {
-    private readonly StreamWriter _writer;
+    private readonly Stream _stream;
     private readonly int _writeInterval;
-    private readonly ConcurrentQueue<char> _characterQueue;
+    private readonly Channel<byte[]> _channel;
+    private readonly byte[] _newLine;
     private readonly CancellationTokenSource _cancellationTokenSource;
-    private bool _disposed;
     private readonly Task _writeTask;
+    private bool _disposed;
 
-    public FileWriter(StreamWriter writer, int writeInterval, int characterQueueSize)
+    public FileWriter(Stream stream, int writeInterval)
     {
-        ArgumentNullException.ThrowIfNull(writer);
-        _writer = writer;
-        _writeInterval = writeInterval;
-        _characterQueue = new ConcurrentQueue<char>();
+        ArgumentNullException.ThrowIfNull(stream);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(writeInterval);
+
+        _stream = stream;
+        _channel = Channel.CreateUnbounded<byte[]>(new UnboundedChannelOptions
+        {
+            SingleReader = true,
+            SingleWriter = false
+        });
+        _newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
         _cancellationTokenSource = new();
-        _disposed = false;
-        _writeTask = Task.Run(() => StartWriteLoop(_cancellationTokenSource.Token));
+        _writeTask = ProcessEntriesAsync(_cancellationTokenSource.Token);
     }
 
     public void AddEntry(ReadOnlySpan<char> entry)
     {
-        if (_cancellationTokenSource.IsCancellationRequested)
-        {
-            return;
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        foreach (var character in entry)
-        {
-            _characterQueue.Enqueue(character);
-        }
+        var bytes = new byte[Encoding.UTF8.GetByteCount(entry) + _newLine.Length];
+        var bytesWritten = Encoding.UTF8.GetBytes(entry, bytes);
+        _newLine.CopyTo(bytes, bytesWritten);
 
-        foreach (var character in Environment.NewLine)
+        if (!_channel.Writer.TryWrite(bytes))
         {
-            _characterQueue.Enqueue(character);
+            throw new InvalidOperationException("Failed to write to channel");
         }
     }
 
-    private void StartWriteLoop(CancellationToken cancellationToken)
+    private async Task ProcessEntriesAsync(CancellationToken cancellationToken)
     {
         try
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                Task.Delay(_writeInterval, cancellationToken).Wait(cancellationToken);
-                WriteEntries();
+                var entry = await _channel.Reader.ReadAsync(cancellationToken);
+                await _stream.WriteAsync(entry, cancellationToken);
+                await _stream.FlushAsync(cancellationToken);
+                await Task.Delay(_writeInterval, cancellationToken);
             }
         }
         catch (OperationCanceledException)
         {
-        }
-    }
-
-    private void WriteEntries()
-    {
-        char[] buffer;
-        int count;
-
-        if (_characterQueue.IsEmpty)
-        {
-            return;
-        }
-
-        count = _characterQueue.Count;
-        buffer = ArrayPool<char>.Shared.Rent(count);
-
-        for (int i = 0; i < count; i++)
-        {
-            _characterQueue.TryDequeue(out var character);
-            buffer[i] = character;
-        }
-
-        try
-        {
-            _writer.Write(buffer, 0, count);
-            _writer.Flush();
-        }
-        finally
-        {
-            ArrayPool<char>.Shared.Return(buffer);
+            while (_channel.Reader.TryRead(out var entry))
+            {
+                await _stream.WriteAsync(entry, cancellationToken);
+            }
         }
     }
 
@@ -94,20 +72,20 @@ public sealed class FileWriter : IFileWriter, IDisposable
         }
 
         _disposed = true;
-
+        _channel.Writer.Complete();
         _cancellationTokenSource.Cancel();
 
         try
         {
             _writeTask.Wait();
         }
-        catch (AggregateException ex) when (ex.InnerException is OperationCanceledException)
+        catch (OperationCanceledException)
         {
         }
         finally
         {
             _cancellationTokenSource.Dispose();
-            _writer.Dispose();
+            _stream.Dispose();
         }
 
         GC.SuppressFinalize(this);
