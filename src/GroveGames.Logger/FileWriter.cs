@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections.Concurrent;
 
 namespace GroveGames.Logger;
 
@@ -6,8 +7,7 @@ public sealed class FileWriter : IFileWriter, IDisposable
 {
     private readonly StreamWriter _writer;
     private readonly int _writeInterval;
-    private readonly Queue<char> _characterQueue;
-    private readonly object _queueLock = new();
+    private readonly ConcurrentQueue<char> _characterQueue;
     private readonly CancellationTokenSource _cancellationTokenSource;
     private bool _disposed;
     private readonly Task _writeTask;
@@ -17,8 +17,7 @@ public sealed class FileWriter : IFileWriter, IDisposable
         ArgumentNullException.ThrowIfNull(writer);
         _writer = writer;
         _writeInterval = writeInterval;
-        _characterQueue = new Queue<char>(characterQueueSize);
-        _queueLock = new();
+        _characterQueue = new ConcurrentQueue<char>();
         _cancellationTokenSource = new();
         _disposed = false;
         _writeTask = Task.Run(() => StartWriteLoop(_cancellationTokenSource.Token));
@@ -31,17 +30,14 @@ public sealed class FileWriter : IFileWriter, IDisposable
             return;
         }
 
-        lock (_queueLock)
+        foreach (var character in entry)
         {
-            foreach (var character in entry)
-            {
-                _characterQueue.Enqueue(character);
-            }
+            _characterQueue.Enqueue(character);
+        }
 
-            foreach (var character in Environment.NewLine)
-            {
-                _characterQueue.Enqueue(character);
-            }
+        foreach (var character in Environment.NewLine)
+        {
+            _characterQueue.Enqueue(character);
         }
     }
 
@@ -65,20 +61,18 @@ public sealed class FileWriter : IFileWriter, IDisposable
         char[] buffer;
         int count;
 
-        lock (_queueLock)
+        if (_characterQueue.IsEmpty)
         {
-            if (_characterQueue.Count == 0)
-            {
-                return;
-            }
+            return;
+        }
 
-            count = _characterQueue.Count;
-            buffer = ArrayPool<char>.Shared.Rent(count);
+        count = _characterQueue.Count;
+        buffer = ArrayPool<char>.Shared.Rent(count);
 
-            for (int i = 0; i < count; i++)
-            {
-                buffer[i] = _characterQueue.Dequeue();
-            }
+        for (int i = 0; i < count; i++)
+        {
+            _characterQueue.TryDequeue(out var character);
+            buffer[i] = character;
         }
 
         try
