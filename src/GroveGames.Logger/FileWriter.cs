@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Text;
 using System.Threading.Channels;
 
@@ -33,13 +34,23 @@ public sealed class FileWriter : IFileWriter
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var bytes = new byte[Encoding.UTF8.GetByteCount(entry) + _newLine.Length];
-        var bytesWritten = Encoding.UTF8.GetBytes(entry, bytes);
-        _newLine.CopyTo(bytes, bytesWritten);
+        int byteCount = Encoding.UTF8.GetByteCount(entry);
+        int totalBytes = byteCount + _newLine.Length;
+        byte[] buffer = ArrayPool<byte>.Shared.Rent(totalBytes);
 
-        if (!_channel.Writer.TryWrite(bytes))
+        try
         {
-            throw new InvalidOperationException("Failed to write to channel");
+            int bytesWritten = Encoding.UTF8.GetBytes(entry, buffer);
+            _newLine.CopyTo(buffer.AsSpan(bytesWritten));
+
+            if (!_channel.Writer.TryWrite(buffer))
+            {
+                throw new InvalidOperationException("Failed to write to channel");
+            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 
