@@ -5,15 +5,17 @@ public sealed class LogFileFactory : ILogFileFactory
     private readonly string _root;
     private readonly string _folderName;
     private readonly int _maxFileCount;
+    private readonly int _bufferSize;
 
-    public LogFileFactory(string root, string folderName, int maxfileCount)
+    public LogFileFactory(string root, string folderName, int maxFileCount, int bufferSize)
     {
         _root = root;
         _folderName = folderName;
-        _maxFileCount = maxfileCount;
+        _maxFileCount = maxFileCount;
+        _bufferSize = bufferSize;
     }
 
-    public StreamWriter CreateFile()
+    public FileStream CreateFile()
     {
         var path = Path.Combine(_root, _folderName);
         var fileName = $"{DateTime.UtcNow:yyyyMMdd_HHmmss}.log";
@@ -24,7 +26,6 @@ public sealed class LogFileFactory : ILogFileFactory
         }
 
         var directoryInfo = new DirectoryInfo(path);
-
         var files = directoryInfo.GetFiles();
 
         if (files.Length >= _maxFileCount)
@@ -33,6 +34,13 @@ public sealed class LogFileFactory : ILogFileFactory
             oldestFile.Delete();
         }
 
-        return new StreamWriter(Path.Combine(path, fileName), true);
+        return new FileStream(
+            Path.Combine(path, fileName),
+            FileMode.Create,
+            FileAccess.Write,
+            FileShare.Read,
+            _bufferSize,
+            true
+        );
     }
 }

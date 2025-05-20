@@ -1,6 +1,6 @@
 namespace GroveGames.Logger;
 
-public interface IFileWriter : IDisposable
+public interface IStreamWriter : IDisposable
 {
     void AddEntry(ReadOnlySpan<char> entry);
 }
