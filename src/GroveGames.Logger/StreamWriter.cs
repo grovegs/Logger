@@ -11,24 +11,28 @@ public sealed class StreamWriter : IStreamWriter
     private readonly Stream _stream;
     private readonly int _bufferSize;
     private readonly Channel<ArraySegment<byte>> _channel;
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly CancellationTokenSource _cancellationTokenSource;
+    private readonly Lock _flushLock;
     private readonly Task _writeTask;
-    private readonly Lock _flushLock = new();
     private volatile bool _disposed;
 
-    public StreamWriter(Stream stream, int bufferSize)
+    public StreamWriter(Stream stream, int bufferSize, int channelCapacity)
     {
         ArgumentNullException.ThrowIfNull(stream);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(bufferSize);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(channelCapacity);
 
         _stream = stream;
         _bufferSize = bufferSize;
-        _channel = Channel.CreateUnbounded<ArraySegment<byte>>(new UnboundedChannelOptions
+        _channel = Channel.CreateBounded<ArraySegment<byte>>(new BoundedChannelOptions(channelCapacity)
         {
+            FullMode = BoundedChannelFullMode.DropNewest,
             SingleReader = true,
             SingleWriter = false,
             AllowSynchronousContinuations = false
         });
+        _cancellationTokenSource = new CancellationTokenSource();
+        _flushLock = new Lock();
         _writeTask = Task.Run(() => ProcessEntriesAsync(_cancellationTokenSource.Token));
     }
 
@@ -38,16 +42,13 @@ public sealed class StreamWriter : IStreamWriter
 
         var byteCount = Encoding.UTF8.GetByteCount(entry);
         var totalLength = byteCount + NewLine.Length;
-
         var buffer = ArrayPool<byte>.Shared.Rent(totalLength);
-
         var bytesWritten = Encoding.UTF8.GetBytes(entry, buffer);
         NewLine.CopyTo(buffer.AsSpan(bytesWritten));
 
         if (!_channel.Writer.TryWrite(new ArraySegment<byte>(buffer, 0, totalLength)))
         {
-            ArrayPool<byte>.Shared.Return(buffer, clearArray: false);
-            throw new InvalidOperationException("Failed to write to channel");
+            ArrayPool<byte>.Shared.Return(buffer, false);
         }
     }
 
@@ -121,8 +122,7 @@ public sealed class StreamWriter : IStreamWriter
 
         _disposed = true;
         _channel.Writer.TryComplete();
-        _cancellationTokenSource.Cancel();
-        _writeTask.Wait(TimeSpan.FromSeconds(5));
+        _writeTask.Wait();
         _cancellationTokenSource.Dispose();
         _stream.Dispose();
     }
