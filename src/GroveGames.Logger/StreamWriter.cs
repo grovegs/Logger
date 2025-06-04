@@ -56,48 +56,54 @@ public sealed class StreamWriter : IStreamWriter
     {
         var batchBuffer = ArrayPool<byte>.Shared.Rent(_bufferSize);
         var batchPosition = 0;
+        var reader = _channel.Reader;
 
-        await foreach (var segment in _channel.Reader.ReadAllAsync(cancellationToken))
+        while (await reader.WaitToReadAsync(cancellationToken))
         {
-            var entryBuffer = segment.Array!;
-            var entryLength = segment.Count;
-
-            if (batchPosition + entryLength > _bufferSize)
+            while (reader.TryRead(out var segment))
             {
-                if (batchPosition > 0)
+                var entryBuffer = segment.Array!;
+                var entryLength = segment.Count;
+
+                if (batchPosition + entryLength > _bufferSize)
+                {
+                    if (batchPosition > 0)
+                    {
+                        await _stream.WriteAsync(batchBuffer.AsMemory(0, batchPosition), cancellationToken);
+                        batchPosition = 0;
+                    }
+
+                    if (entryLength > _bufferSize)
+                    {
+                        await _stream.WriteAsync(entryBuffer.AsMemory(0, entryLength), cancellationToken);
+                    }
+                    else
+                    {
+                        Buffer.BlockCopy(entryBuffer, 0, batchBuffer, 0, entryLength);
+                        batchPosition = entryLength;
+                    }
+                }
+                else
+                {
+                    Buffer.BlockCopy(entryBuffer, 0, batchBuffer, batchPosition, entryLength);
+                    batchPosition += entryLength;
+                }
+
+                ArrayPool<byte>.Shared.Return(entryBuffer, false);
+
+                if (batchPosition >= _bufferSize * 3 / 4)
                 {
                     await _stream.WriteAsync(batchBuffer.AsMemory(0, batchPosition), cancellationToken);
                     batchPosition = 0;
                 }
-
-                if (entryLength > _bufferSize)
-                {
-                    await _stream.WriteAsync(entryBuffer.AsMemory(0, entryLength), cancellationToken);
-                }
-                else
-                {
-                    Buffer.BlockCopy(entryBuffer, 0, batchBuffer, 0, entryLength);
-                    batchPosition = entryLength;
-                }
-            }
-            else
-            {
-                Buffer.BlockCopy(entryBuffer, 0, batchBuffer, batchPosition, entryLength);
-                batchPosition += entryLength;
             }
 
-            ArrayPool<byte>.Shared.Return(entryBuffer, false);
-
-            if (batchPosition >= _bufferSize * 3 / 4)
+            if (batchPosition > 0)
             {
                 await _stream.WriteAsync(batchBuffer.AsMemory(0, batchPosition), cancellationToken);
+                await _stream.FlushAsync(cancellationToken);
                 batchPosition = 0;
             }
-        }
-
-        if (batchPosition > 0)
-        {
-            await _stream.WriteAsync(batchBuffer.AsMemory(0, batchPosition), cancellationToken);
         }
 
         ArrayPool<byte>.Shared.Return(batchBuffer, false);
