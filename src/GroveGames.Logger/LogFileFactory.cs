@@ -18,29 +18,32 @@ public sealed class LogFileFactory : ILogFileFactory
     public FileStream CreateFile()
     {
         var path = Path.Combine(_root, _folderName);
-        var fileName = $"{DateTime.UtcNow:yyyyMMdd_HHmmss}.log";
+        var fileName = $"{DateTime.UtcNow:yyyyMMdd_HHmmss_fff}.log";
 
         if (!Directory.Exists(path))
         {
             Directory.CreateDirectory(path);
         }
 
-        var directoryInfo = new DirectoryInfo(path);
-        var files = directoryInfo.GetFiles();
-
-        if (files.Length >= _maxFileCount)
-        {
-            var oldestFile = files.OrderBy(file => file.CreationTime).First();
-            oldestFile.Delete();
-        }
-
-        return new FileStream(
-            Path.Combine(path, fileName),
+        var newFilePath = Path.Combine(path, fileName);
+        var fileStream = new FileStream(
+            newFilePath,
             FileMode.Create,
             FileAccess.Write,
             FileShare.Read,
             _bufferSize,
             true
         );
+
+        var directoryInfo = new DirectoryInfo(path);
+        var files = directoryInfo.GetFiles("*.log");
+
+        if (files.Length > _maxFileCount)
+        {
+            var oldestFile = files.OrderBy(file => file.CreationTime).First();
+            oldestFile.Delete();
+        }
+
+        return fileStream;
     }
 }
