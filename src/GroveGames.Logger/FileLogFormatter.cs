@@ -8,7 +8,7 @@ public sealed class FileLogFormatter : ILogFormatter
         LogLevel.Information => "I",
         LogLevel.Warning => "W",
         LogLevel.Error => "E",
-        _ => "N" // None
+        _ => "N"
     };
     private static ReadOnlySpan<char> TimeFormat => "HH:mm:ss ";
     private static ReadOnlySpan<char> LeftBracket => "[";
@@ -22,9 +22,7 @@ public sealed class FileLogFormatter : ILogFormatter
 
     public void Format(Span<char> buffer, LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        int currentPosition = 0;
-
-        // Format and copy datetime
+        var currentPosition = 0;
         Span<char> timeBuffer = stackalloc char[TimeFormat.Length];
 
         if (!DateTime.UtcNow.TryFormat(timeBuffer, out int charsWritten, TimeFormat))
