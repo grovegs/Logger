@@ -1,6 +1,6 @@
 namespace GroveGames.Logger.Tests;
 
-public class TestFileWriter : IFileWriter
+public class TestStreamWriter : IStreamWriter
 {
     public List<string> Messages { get; } = new(24);
 
@@ -10,6 +10,10 @@ public class TestFileWriter : IFileWriter
     }
 
     public void Dispose()
+    {
+    }
+
+    public void Flush()
     {
     }
 }

@@ -1,6 +1,6 @@
 namespace GroveGames.Logger.Tests;
 
-public class TestFileWriterAllocation : IFileWriter
+public class TestStreamWriterAllocation : IStreamWriter
 {
     public Queue<char> Messages { get; } = new(1024);
 
@@ -12,6 +12,10 @@ public class TestFileWriterAllocation : IFileWriter
         }
 
         Messages.Enqueue('\n');
+    }
+
+    public void Flush()
+    {
     }
 
     public void Dispose()
