@@ -23,14 +23,12 @@ public sealed class GodotConsoleLogFormatter : ILogFormatter
     {
         int currentPosition = 0;
 
-        // Add warning tag if needed
         if (level == LogLevel.Warning)
         {
             WarningTag.CopyTo(buffer[currentPosition..]);
             currentPosition += WarningTag.Length;
         }
 
-        // Format and copy datetime
         var timeFormat = TimeFormat;
         Span<char> timeBuffer = stackalloc char[timeFormat.Length];
 
