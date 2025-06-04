@@ -9,6 +9,13 @@ public sealed class LogFileFactory : ILogFileFactory
 
     public LogFileFactory(string root, string folderName, int maxFileCount, int bufferSize)
     {
+        ArgumentNullException.ThrowIfNull(root);
+        ArgumentNullException.ThrowIfNull(folderName);
+        ArgumentException.ThrowIfNullOrEmpty(root);
+        ArgumentException.ThrowIfNullOrEmpty(folderName);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxFileCount);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(bufferSize);
+
         _root = root;
         _folderName = folderName;
         _maxFileCount = maxFileCount;
