@@ -169,7 +169,7 @@ public sealed class LogFileFactoryTests : IDisposable
     }
 
     [Fact]
-    public void CreateFile_ShouldHandleConcurrentAccess()
+    public async Task CreateFile_ShouldHandleConcurrentAccess()
     {
         // Arrange
         var factory = new LogFileFactory(_testDirectory, DefaultFolderName, DefaultMaxFileCount, DefaultFileBufferSize);
@@ -196,7 +196,7 @@ public sealed class LogFileFactoryTests : IDisposable
             }
         })).ToArray();
 
-        Task.WaitAll(tasks);
+        await Task.WhenAll(tasks);
 
         // Assert
         Assert.Empty(exceptions);
