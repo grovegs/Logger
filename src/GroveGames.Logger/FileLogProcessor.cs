@@ -7,6 +7,9 @@ public sealed class FileLogProcessor : ILogProcessor, IDisposable
 
     public FileLogProcessor(IStreamWriter writer, ILogFormatter formatter)
     {
+        ArgumentNullException.ThrowIfNull(writer);
+        ArgumentNullException.ThrowIfNull(formatter);
+
         _writer = writer;
         _formatter = formatter;
     }
