@@ -262,14 +262,14 @@ public sealed class StreamWriterTests : IDisposable
 
         // Should have written a reasonable number of entries (some may be dropped due to channel capacity)
         Assert.True(lines.Length > 0, "Should have written at least some entries");
-        
+
         // Check that entries from multiple threads were written
         var threadsWithEntries = lines
             .Select(line => line.Split('_')[0])
             .Where(threadPrefix => threadPrefix.StartsWith("Thread"))
             .Distinct()
             .Count();
-        
+
         Assert.True(threadsWithEntries > 1, $"Expected entries from multiple threads, but only found {threadsWithEntries}");
     }
 

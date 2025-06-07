@@ -275,15 +275,15 @@ public sealed class FileLogFormatterTests
         var afterUtc = DateTime.UtcNow;
         var formatted = buffer.ToString();
         var timeString = formatted.Substring(0, 8); // Extract HH:mm:ss
-        
+
         // Parse the time from the formatted string
         if (TimeSpan.TryParseExact(timeString, @"hh\:mm\:ss", null, out var parsedTime))
         {
             var beforeTime = beforeUtc.TimeOfDay;
             var afterTime = afterUtc.TimeOfDay;
-            
+
             // Allow for some tolerance due to execution time
-            Assert.True(parsedTime >= beforeTime.Subtract(TimeSpan.FromSeconds(1)) && 
+            Assert.True(parsedTime >= beforeTime.Subtract(TimeSpan.FromSeconds(1)) &&
                        parsedTime <= afterTime.Add(TimeSpan.FromSeconds(1)));
         }
         else
@@ -304,7 +304,7 @@ public sealed class FileLogFormatterTests
 
         // Act
         _formatter.Format(buffer, level, tag.AsSpan(), message.AsSpan());
-        
+
         // Assert
         var formatted = buffer.ToString();
         Assert.NotEmpty(formatted);
