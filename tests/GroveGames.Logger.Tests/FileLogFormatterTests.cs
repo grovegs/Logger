@@ -288,7 +288,7 @@ public sealed class FileLogFormatterTests
         }
         else
         {
-            Assert.True(false, $"Could not parse time from formatted string: {timeString}");
+            Assert.Fail($"Could not parse time from formatted string: {timeString}");
         }
     }
 
