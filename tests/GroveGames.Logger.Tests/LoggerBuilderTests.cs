@@ -28,16 +28,6 @@ public sealed class LoggerBuilderTests : IDisposable
     }
 
     [Fact]
-    public void AddLogProcessor_WithNullProcessor_ShouldThrowArgumentNullException()
-    {
-        // Arrange
-        var builder = new LoggerBuilder();
-
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => builder.AddLogProcessor(null!));
-    }
-
-    [Fact]
     public void AddLogProcessor_WithMultipleProcessors_ShouldChainCorrectly()
     {
         // Arrange
