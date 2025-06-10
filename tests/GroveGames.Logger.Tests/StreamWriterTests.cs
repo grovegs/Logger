@@ -2,7 +2,7 @@ using System.Text;
 
 namespace GroveGames.Logger.Tests;
 
-public class StreamWriterTests
+public sealed class StreamWriterTests
 {
     [Fact]
     public void Constructor_ThrowsArgumentNullException_WhenStreamIsNull()
