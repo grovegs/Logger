@@ -1,11 +1,51 @@
-using static GroveGames.Logger.LoggerExtensions;
-
 namespace GroveGames.Logger.Tests;
 
-public sealed class FileLogProcessorTests : IDisposable
+public sealed class FileLogProcessorTests
 {
+    private sealed class TestStreamWriter : IStreamWriter
+    {
+        public List<string> Entries { get; } = [];
+        public bool IsDisposed { get; private set; }
+        public bool IsFlushed { get; private set; }
+
+        public void AddEntry(ReadOnlySpan<char> entry)
+        {
+            Entries.Add(entry.ToString().TrimEnd('\0'));
+        }
+
+        public void Flush()
+        {
+            IsFlushed = true;
+        }
+
+        public void Dispose()
+        {
+            IsDisposed = true;
+        }
+    }
+
+    private sealed class TestLogFormatter : ILogFormatter
+    {
+        public List<(LogLevel level, string tag, string message)> GetBufferSizeCalls { get; } = [];
+        public List<(LogLevel level, string tag, string message)> FormatCalls { get; } = [];
+
+        public int GetBufferSize(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+        {
+            GetBufferSizeCalls.Add((level, tag.ToString(), message.ToString()));
+            var formatted = $"{level}|{tag.ToString()}|{message.ToString()}";
+            return formatted.Length;
+        }
+
+        public void Format(Span<char> buffer, LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+        {
+            FormatCalls.Add((level, tag.ToString(), message.ToString()));
+            var formatted = $"{level}|{tag.ToString()}|{message.ToString()}";
+            formatted.AsSpan().CopyTo(buffer[..formatted.Length]);
+        }
+    }
+
     [Fact]
-    public void Constructor_WithNullWriter_ShouldThrowArgumentNullException()
+    public void Constructor_NullWriter_ThrowsArgumentNullException()
     {
         // Arrange
         var formatter = new TestLogFormatter();
@@ -15,7 +55,7 @@ public sealed class FileLogProcessorTests : IDisposable
     }
 
     [Fact]
-    public void Constructor_WithNullFormatter_ShouldThrowArgumentNullException()
+    public void Constructor_NullFormatter_ThrowsArgumentNullException()
     {
         // Arrange
         var writer = new TestStreamWriter();
@@ -25,202 +65,211 @@ public sealed class FileLogProcessorTests : IDisposable
     }
 
     [Fact]
-    public void ProcessLog_ShouldCallFormatterWithCorrectParameters()
+    public void Constructor_ValidParameters_CreatesInstance()
     {
         // Arrange
-        var formatter = new TestLogFormatter();
         var writer = new TestStreamWriter();
-        using var processor = new FileLogProcessor(writer, formatter);
-        const LogLevel level = LogLevel.Information;
-        const string tag = "TestTag";
-        const string message = "Test message";
+        var formatter = new TestLogFormatter();
 
         // Act
-        processor.ProcessLog(level, tag.AsSpan(), message.AsSpan());
+        using var processor = new FileLogProcessor(writer, formatter);
+
+        // Assert
+        Assert.NotNull(processor);
+    }
+
+    [Fact]
+    public void ProcessLog_ValidInput_CallsFormatterGetBufferSize()
+    {
+        // Arrange
+        var writer = new TestStreamWriter();
+        var formatter = new TestLogFormatter();
+        using var processor = new FileLogProcessor(writer, formatter);
+
+        // Act
+        processor.ProcessLog(LogLevel.Information, "API".AsSpan(), "Request completed".AsSpan());
 
         // Assert
         Assert.Single(formatter.GetBufferSizeCalls);
-        var call = formatter.GetBufferSizeCalls[0];
-        Assert.Equal(level, call.Level);
-        Assert.Equal(tag, call.Tag);
-        Assert.Equal(message, call.Message);
+        Assert.Equal((LogLevel.Information, "API", "Request completed"), formatter.GetBufferSizeCalls[0]);
     }
 
     [Fact]
-    public void ProcessLog_ShouldCallFormatterFormatWithCorrectParameters()
+    public void ProcessLog_ValidInput_CallsFormatterFormat()
     {
         // Arrange
-        var formatter = new TestLogFormatter();
         var writer = new TestStreamWriter();
+        var formatter = new TestLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
-        const LogLevel level = LogLevel.Warning;
-        const string tag = "TestTag";
-        const string message = "Test message";
 
         // Act
-        processor.ProcessLog(level, tag.AsSpan(), message.AsSpan());
+        processor.ProcessLog(LogLevel.Warning, "DB".AsSpan(), "Connection timeout".AsSpan());
 
         // Assert
         Assert.Single(formatter.FormatCalls);
-        var call = formatter.FormatCalls[0];
-        Assert.Equal(level, call.Level);
-        Assert.Equal(tag, call.Tag);
-        Assert.Equal(message, call.Message);
+        Assert.Equal((LogLevel.Warning, "DB", "Connection timeout"), formatter.FormatCalls[0]);
     }
 
     [Fact]
-    public void ProcessLog_ShouldPassFormattedMessageToWriter()
+    public void ProcessLog_ValidInput_CallsWriterAddEntry()
     {
         // Arrange
-        var formatter = new TestLogFormatter();
         var writer = new TestStreamWriter();
+        var formatter = new TestLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
-        const LogLevel level = LogLevel.Error;
-        const string tag = "TestTag";
-        const string message = "Test message";
 
         // Act
-        processor.ProcessLog(level, tag.AsSpan(), message.AsSpan());
+        processor.ProcessLog(LogLevel.Error, "AUTH".AsSpan(), "Login failed".AsSpan());
 
         // Assert
-        Assert.Single(writer.Messages);
-        Assert.Equal(formatter.FormattedOutput, writer.Messages[0]);
+        Assert.Single(writer.Entries);
+        Assert.Equal("Error|AUTH|Login failed", writer.Entries[0]);
     }
 
-    [Fact]
-    public void ProcessLog_WithEmptyTag_ShouldProcessCorrectly()
+    [Theory]
+    [InlineData(LogLevel.Debug)]
+    [InlineData(LogLevel.Information)]
+    [InlineData(LogLevel.Warning)]
+    [InlineData(LogLevel.Error)]
+    public void ProcessLog_DifferentLogLevels_ProcessesCorrectly(LogLevel level)
     {
         // Arrange
-        var formatter = new TestLogFormatter();
         var writer = new TestStreamWriter();
+        var formatter = new TestLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
-        const LogLevel level = LogLevel.Debug;
-        var tag = ReadOnlySpan<char>.Empty;
-        const string message = "Test message";
 
         // Act
-        processor.ProcessLog(level, tag, message.AsSpan());
-
-        // Assert
-        Assert.Single(formatter.GetBufferSizeCalls);
-        Assert.Single(formatter.FormatCalls);
-        Assert.Single(writer.Messages);
-    }
-
-    [Fact]
-    public void ProcessLog_WithEmptyMessage_ShouldProcessCorrectly()
-    {
-        // Arrange
-        var formatter = new TestLogFormatter();
-        var writer = new TestStreamWriter();
-        using var processor = new FileLogProcessor(writer, formatter);
-        const LogLevel level = LogLevel.Information;
-        const string tag = "TestTag";
-        var message = ReadOnlySpan<char>.Empty;
-
-        // Act
-        processor.ProcessLog(level, tag.AsSpan(), message);
+        processor.ProcessLog(level, "TEST".AsSpan(), "message".AsSpan());
 
         // Assert
         Assert.Single(formatter.GetBufferSizeCalls);
         Assert.Single(formatter.FormatCalls);
-        Assert.Single(writer.Messages);
+        Assert.Single(writer.Entries);
+        Assert.Equal(level, formatter.GetBufferSizeCalls[0].level);
+        Assert.Equal(level, formatter.FormatCalls[0].level);
     }
 
     [Fact]
-    public void ProcessLog_WithLargeMessage_ShouldProcessCorrectly()
+    public void ProcessLog_EmptyTag_ProcessesCorrectly()
     {
         // Arrange
-        var formatter = new TestLogFormatter();
         var writer = new TestStreamWriter();
+        var formatter = new TestLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
-        const LogLevel level = LogLevel.Warning;
-        const string tag = "TestTag";
-        var message = new string('X', 10000); // Large message
 
         // Act
-        processor.ProcessLog(level, tag.AsSpan(), message.AsSpan());
+        processor.ProcessLog(LogLevel.Information, ReadOnlySpan<char>.Empty, "No tag message".AsSpan());
 
         // Assert
         Assert.Single(formatter.GetBufferSizeCalls);
-        Assert.Single(formatter.FormatCalls);
-        Assert.Single(writer.Messages);
-        Assert.Equal(formatter.FormattedOutput, writer.Messages[0]);
+        Assert.Equal((LogLevel.Information, "", "No tag message"), formatter.GetBufferSizeCalls[0]);
+        Assert.Single(writer.Entries);
+        Assert.Equal("Information||No tag message", writer.Entries[0]);
     }
 
     [Fact]
-    public void ProcessLog_WithUnicodeCharacters_ShouldProcessCorrectly()
+    public void ProcessLog_EmptyMessage_ProcessesCorrectly()
     {
         // Arrange
-        var formatter = new TestLogFormatter();
         var writer = new TestStreamWriter();
+        var formatter = new TestLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
-        const LogLevel level = LogLevel.Information;
-        const string tag = "测试🌍";
-        const string message = "Unicode message: 世界 🚀";
 
         // Act
-        processor.ProcessLog(level, tag.AsSpan(), message.AsSpan());
+        processor.ProcessLog(LogLevel.Debug, "EMPTY".AsSpan(), ReadOnlySpan<char>.Empty);
 
         // Assert
         Assert.Single(formatter.GetBufferSizeCalls);
-        Assert.Single(formatter.FormatCalls);
-        Assert.Single(writer.Messages);
-
-        var formatCall = formatter.FormatCalls[0];
-        Assert.Equal(tag, formatCall.Tag);
-        Assert.Equal(message, formatCall.Message);
+        Assert.Equal((LogLevel.Debug, "EMPTY", ""), formatter.GetBufferSizeCalls[0]);
+        Assert.Single(writer.Entries);
+        Assert.Equal("Debug|EMPTY|", writer.Entries[0]);
     }
 
     [Fact]
-    public void ProcessLog_MultipleMessages_ShouldProcessEachCorrectly()
+    public void ProcessLog_EmptyTagAndMessage_ProcessesCorrectly()
     {
         // Arrange
-        var formatter = new TestLogFormatter();
         var writer = new TestStreamWriter();
+        var formatter = new TestLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
 
-        var messages = new[]
-        {
-            (LogLevel.Debug, "Tag1", "Message1"),
-            (LogLevel.Information, "Tag2", "Message2"),
-            (LogLevel.Warning, "Tag3", "Message3"),
-            (LogLevel.Error, "Tag4", "Message4")
-        };
-
         // Act
-        foreach (var (level, tag, message) in messages)
-        {
-            processor.ProcessLog(level, tag.AsSpan(), message.AsSpan());
-        }
+        processor.ProcessLog(LogLevel.Warning, ReadOnlySpan<char>.Empty, ReadOnlySpan<char>.Empty);
 
         // Assert
-        Assert.Equal(4, formatter.GetBufferSizeCalls.Count);
-        Assert.Equal(4, formatter.FormatCalls.Count);
-        Assert.Equal(4, writer.Messages.Count);
-
-        for (int i = 0; i < messages.Length; i++)
-        {
-            var (expectedLevel, expectedTag, expectedMessage) = messages[i];
-            var getBufferCall = formatter.GetBufferSizeCalls[i];
-            var formatCall = formatter.FormatCalls[i];
-
-            Assert.Equal(expectedLevel, getBufferCall.Level);
-            Assert.Equal(expectedTag, getBufferCall.Tag);
-            Assert.Equal(expectedMessage, getBufferCall.Message);
-
-            Assert.Equal(expectedLevel, formatCall.Level);
-            Assert.Equal(expectedTag, formatCall.Tag);
-            Assert.Equal(expectedMessage, formatCall.Message);
-        }
+        Assert.Single(formatter.GetBufferSizeCalls);
+        Assert.Equal((LogLevel.Warning, "", ""), formatter.GetBufferSizeCalls[0]);
+        Assert.Single(writer.Entries);
+        Assert.Equal("Warning||", writer.Entries[0]);
     }
 
     [Fact]
-    public void Dispose_ShouldDisposeWriter()
+    public void ProcessLog_LongTagAndMessage_ProcessesCorrectly()
     {
         // Arrange
-        var formatter = new TestLogFormatter();
         var writer = new TestStreamWriter();
+        var formatter = new TestLogFormatter();
+        using var processor = new FileLogProcessor(writer, formatter);
+        var longTag = new string('A', 50);
+        var longMessage = new string('B', 200);
+
+        // Act
+        processor.ProcessLog(LogLevel.Information, longTag.AsSpan(), longMessage.AsSpan());
+
+        // Assert
+        Assert.Single(formatter.GetBufferSizeCalls);
+        Assert.Equal((LogLevel.Information, longTag, longMessage), formatter.GetBufferSizeCalls[0]);
+        Assert.Single(writer.Entries);
+        Assert.Contains(longTag, writer.Entries[0]);
+        Assert.Contains(longMessage, writer.Entries[0]);
+    }
+
+    [Fact]
+    public void ProcessLog_MultipleEntries_ProcessesAll()
+    {
+        // Arrange
+        var writer = new TestStreamWriter();
+        var formatter = new TestLogFormatter();
+        using var processor = new FileLogProcessor(writer, formatter);
+
+        // Act
+        processor.ProcessLog(LogLevel.Information, "API".AsSpan(), "First".AsSpan());
+        processor.ProcessLog(LogLevel.Warning, "DB".AsSpan(), "Second".AsSpan());
+        processor.ProcessLog(LogLevel.Error, "AUTH".AsSpan(), "Third".AsSpan());
+
+        // Assert
+        Assert.Equal(3, formatter.GetBufferSizeCalls.Count);
+        Assert.Equal(3, formatter.FormatCalls.Count);
+        Assert.Equal(3, writer.Entries.Count);
+        Assert.Equal("Information|API|First", writer.Entries[0]);
+        Assert.Equal("Warning|DB|Second", writer.Entries[1]);
+        Assert.Equal("Error|AUTH|Third", writer.Entries[2]);
+    }
+
+    [Fact]
+    public void ProcessLog_SpecialCharacters_ProcessesCorrectly()
+    {
+        // Arrange
+        var writer = new TestStreamWriter();
+        var formatter = new TestLogFormatter();
+        using var processor = new FileLogProcessor(writer, formatter);
+
+        // Act
+        processor.ProcessLog(LogLevel.Information, "HTTP/2".AsSpan(), "Status: 200 OK".AsSpan());
+
+        // Assert
+        Assert.Single(formatter.GetBufferSizeCalls);
+        Assert.Equal((LogLevel.Information, "HTTP/2", "Status: 200 OK"), formatter.GetBufferSizeCalls[0]);
+        Assert.Single(writer.Entries);
+        Assert.Equal("Information|HTTP/2|Status: 200 OK", writer.Entries[0]);
+    }
+
+    [Fact]
+    public void Dispose_CallsWriterDispose()
+    {
+        // Arrange
+        var writer = new TestStreamWriter();
+        var formatter = new TestLogFormatter();
         var processor = new FileLogProcessor(writer, formatter);
 
         // Act
@@ -231,79 +280,36 @@ public sealed class FileLogProcessorTests : IDisposable
     }
 
     [Fact]
-    public void Dispose_ShouldBeIdempotent()
+    public void Dispose_CalledMultipleTimes_DoesNotThrow()
     {
         // Arrange
-        var formatter = new TestLogFormatter();
         var writer = new TestStreamWriter();
-        var processor = new FileLogProcessor(writer, formatter);
-
-        // Act & Assert
-        processor.Dispose();
-        processor.Dispose();
-        processor.Dispose();
-
-        Assert.True(writer.IsDisposed);
-    }
-
-    [Fact]
-    public void ProcessLog_AfterDispose_ShouldStillWork()
-    {
-        // Arrange
         var formatter = new TestLogFormatter();
-        var writer = new TestStreamWriter();
         var processor = new FileLogProcessor(writer, formatter);
 
         // Act
         processor.Dispose();
-        processor.ProcessLog(LogLevel.Information, "Tag".AsSpan(), "Message".AsSpan());
+        processor.Dispose();
+        processor.Dispose();
 
         // Assert
-        Assert.Single(formatter.GetBufferSizeCalls);
-        Assert.Single(formatter.FormatCalls);
+        Assert.True(writer.IsDisposed);
     }
 
-    public void Dispose()
+    [Fact]
+    public void ProcessLog_AllocatesCorrectBufferSize()
     {
-        GC.SuppressFinalize(this);
-    }
+        // Arrange
+        var writer = new TestStreamWriter();
+        var formatter = new TestLogFormatter();
+        using var processor = new FileLogProcessor(writer, formatter);
 
-    private sealed class TestLogFormatter : ILogFormatter
-    {
-        public List<(LogLevel Level, string Tag, string Message)> GetBufferSizeCalls { get; } = [];
-        public List<(LogLevel Level, string Tag, string Message)> FormatCalls { get; } = [];
-        public string FormattedOutput => "FORMATTED_OUTPUT";
+        // Act
+        processor.ProcessLog(LogLevel.Information, "TEST".AsSpan(), "message".AsSpan());
 
-        public int GetBufferSize(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
-        {
-            GetBufferSizeCalls.Add((level, tag.ToString(), message.ToString()));
-            return FormattedOutput.Length;
-        }
-
-        public void Format(Span<char> buffer, LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
-        {
-            FormatCalls.Add((level, tag.ToString(), message.ToString()));
-            FormattedOutput.AsSpan().CopyTo(buffer);
-        }
-    }
-
-    private sealed class TestStreamWriter : IStreamWriter
-    {
-        public List<string> Messages { get; } = new();
-        public bool IsDisposed { get; private set; }
-
-        public void AddEntry(ReadOnlySpan<char> message)
-        {
-            Messages.Add(message.ToString());
-        }
-
-        public void Dispose()
-        {
-            IsDisposed = true;
-        }
-
-        public void Flush()
-        {
-        }
+        // Assert
+        Assert.Single(writer.Entries);
+        var entry = writer.Entries[0];
+        Assert.Equal("Information|TEST|message", entry);
     }
 }
