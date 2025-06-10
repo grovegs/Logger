@@ -14,6 +14,19 @@ public sealed class FileLogFormatter : ILogFormatter
     private static ReadOnlySpan<char> LeftBracket => "[";
     private static ReadOnlySpan<char> RightBracket => "] ";
 
+    private readonly TimeProvider _timeProvider;
+
+    public FileLogFormatter(TimeProvider timeProvider)
+    {
+        ArgumentNullException.ThrowIfNull(timeProvider);
+
+        _timeProvider = timeProvider;
+    }
+
+    public FileLogFormatter() : this(TimeProvider.System)
+    {
+    }
+
     public int GetBufferSize(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         var bufferSize = 9 + 1 + 1 + 2 + 1 + tag.Length + 2 + message.Length;
@@ -24,8 +37,9 @@ public sealed class FileLogFormatter : ILogFormatter
     {
         var currentPosition = 0;
         Span<char> timeBuffer = stackalloc char[TimeFormat.Length];
+        var currentTime = _timeProvider.GetUtcNow().DateTime;
 
-        if (!DateTime.UtcNow.TryFormat(timeBuffer, out int charsWritten, TimeFormat))
+        if (!currentTime.TryFormat(timeBuffer, out int charsWritten, TimeFormat))
         {
             "??:??:?? ".AsSpan().CopyTo(timeBuffer);
         }
