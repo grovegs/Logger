@@ -27,7 +27,7 @@ public sealed class FileLogFormatter : ILogFormatter
 
         if (!DateTime.UtcNow.TryFormat(timeBuffer, out int charsWritten, TimeFormat))
         {
-            throw new FormatException("Failed to format datetime");
+            "??:??:?? ".AsSpan().CopyTo(timeBuffer);
         }
 
         var leftBracket = LeftBracket;
