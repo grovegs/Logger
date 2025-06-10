@@ -2,251 +2,93 @@ namespace GroveGames.Logger.Tests;
 
 public sealed class FileLogFormatterTests
 {
-    [Fact]
-    public void GetBufferSize_EmptyTagAndMessage_ReturnsCorrectSize()
+    private class TestTimeProvider : TimeProvider
     {
-        // Arrange
+        public override DateTimeOffset GetUtcNow() => new(2024, 1, 1, 12, 34, 56, TimeSpan.Zero);
+    }
+
+    [Fact]
+    public void Constructor_NullTimeProvider_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() => new FileLogFormatter(null!));
+    }
+
+    [Fact]
+    public void Constructor_Default_UsesSystemTimeProvider()
+    {
         var formatter = new FileLogFormatter();
-        var tag = ReadOnlySpan<char>.Empty;
-        var message = ReadOnlySpan<char>.Empty;
+        Assert.NotNull(formatter);
+    }
 
-        // Act
-        var result = formatter.GetBufferSize(LogLevel.Information, tag, message);
-
-        // Assert
-        Assert.Equal(16, result);
+    [Fact]
+    public void Constructor_ValidTimeProvider_CreatesInstance()
+    {
+        var timeProvider = new TestTimeProvider();
+        var formatter = new FileLogFormatter(timeProvider);
+        Assert.NotNull(formatter);
     }
 
     [Theory]
-    [InlineData("API", "Request completed", 36)]
-    [InlineData("DB", "Connection established", 40)]
-    [InlineData("Cache", "Hit", 24)]
-    public void GetBufferSize_VariousTagsAndMessages_ReturnsCorrectSize(string tag, string message, int expectedSize)
+    [InlineData(LogLevel.Debug, "Tag", "Message", 26)]
+    [InlineData(LogLevel.Information, "Tag", "Message", 26)]
+    [InlineData(LogLevel.Warning, "Tag", "Message", 26)]
+    [InlineData(LogLevel.Error, "Tag", "Message", 26)]
+    [InlineData(LogLevel.None, "Tag", "Message", 26)]
+    public void GetBufferSize_VariousLogLevels_ReturnsCorrectSize(LogLevel level, string tag, string message, int expected)
     {
         // Arrange
         var formatter = new FileLogFormatter();
 
         // Act
-        var result = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
+        var size = formatter.GetBufferSize(level, tag.AsSpan(), message.AsSpan());
 
         // Assert
-        Assert.Equal(expectedSize, result);
+        Assert.Equal(expected, size);
     }
 
     [Theory]
-    [InlineData(LogLevel.Debug)]
-    [InlineData(LogLevel.Information)]
-    [InlineData(LogLevel.Warning)]
-    [InlineData(LogLevel.Error)]
-    public void GetBufferSize_DifferentLogLevels_ReturnsSameSize(LogLevel level)
+    [InlineData("", "Message", 23)]
+    [InlineData("Tag", "", 19)]
+    [InlineData("", "", 16)]
+    [InlineData("LongTagName", "LongMessageContent", 45)]
+    public void GetBufferSize_VariousTagAndMessageLengths_ReturnsCorrectSize(string tag, string message, int expected)
     {
         // Arrange
         var formatter = new FileLogFormatter();
-        var tag = "TEST".AsSpan();
-        var message = "message".AsSpan();
 
         // Act
-        var result = formatter.GetBufferSize(level, tag, message);
+        var size = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
 
         // Assert
-        Assert.Equal(27, result);
+        Assert.Equal(expected, size);
     }
 
     [Fact]
-    public void GetBufferSize_LargeTagAndMessage_ReturnsCorrectSize()
+    public void Format_DebugLevel_FormatsCorrectly()
     {
         // Arrange
-        var formatter = new FileLogFormatter();
-        var tag = new string('A', 100).AsSpan();
-        var message = new string('B', 500).AsSpan();
-
-        // Act
-        var result = formatter.GetBufferSize(LogLevel.Information, tag, message);
-
-        // Assert
-        Assert.Equal(616, result);
-    }
-
-    [Theory]
-    [InlineData(LogLevel.Debug, 'D')]
-    [InlineData(LogLevel.Information, 'I')]
-    [InlineData(LogLevel.Warning, 'W')]
-    [InlineData(LogLevel.Error, 'E')]
-    public void Format_DifferentLogLevels_ProducesCorrectLevelCharacter(LogLevel level, char expectedChar)
-    {
-        // Arrange
-        var formatter = new FileLogFormatter();
-        var tag = "TEST".AsSpan();
-        var message = "msg".AsSpan();
-        var bufferSize = formatter.GetBufferSize(level, tag, message);
+        var timeProvider = new TestTimeProvider();
+        var formatter = new FileLogFormatter(timeProvider);
+        var tag = "Test";
+        var message = "Debug message";
+        var bufferSize = formatter.GetBufferSize(LogLevel.Debug, tag.AsSpan(), message.AsSpan());
         Span<char> buffer = stackalloc char[bufferSize];
 
         // Act
-        formatter.Format(buffer, level, tag, message);
+        formatter.Format(buffer, LogLevel.Debug, tag.AsSpan(), message.AsSpan());
 
         // Assert
-        var formatted = buffer.ToString();
-        Assert.Contains($"[{expectedChar}]", formatted);
+        Assert.Equal("12:34:56 [D] [Test] Debug message", buffer.ToString());
     }
 
     [Fact]
-    public void Format_UnknownLogLevel_ProducesNCharacter()
+    public void Format_InformationLevel_FormatsCorrectly()
     {
         // Arrange
-        var formatter = new FileLogFormatter();
-        var tag = "TEST".AsSpan();
-        var message = "msg".AsSpan();
-        var unknownLevel = (LogLevel)999;
-        var bufferSize = formatter.GetBufferSize(unknownLevel, tag, message);
-        Span<char> buffer = stackalloc char[bufferSize];
-
-        // Act
-        formatter.Format(buffer, unknownLevel, tag, message);
-
-        // Assert
-        var formatted = buffer.ToString();
-        Assert.Contains("[N]", formatted);
-    }
-
-    [Fact]
-    public void Format_ValidInput_ProducesCorrectStructure()
-    {
-        // Arrange
-        var formatter = new FileLogFormatter();
-        var tag = "API".AsSpan();
-        var message = "Request completed".AsSpan();
-        var bufferSize = formatter.GetBufferSize(LogLevel.Information, tag, message);
-        Span<char> buffer = stackalloc char[bufferSize];
-
-        // Act
-        formatter.Format(buffer, LogLevel.Information, tag, message);
-
-        // Assert
-        var formatted = buffer.ToString();
-        Assert.Matches(@"^\d{2}:\d{2}:\d{2} \[I\] \[API\] Request completed$", formatted);
-    }
-
-    [Fact]
-    public void Format_EmptyTag_ProducesCorrectFormat()
-    {
-        // Arrange
-        var formatter = new FileLogFormatter();
-        var tag = ReadOnlySpan<char>.Empty;
-        var message = "Test message".AsSpan();
-        var bufferSize = formatter.GetBufferSize(LogLevel.Warning, tag, message);
-        Span<char> buffer = stackalloc char[bufferSize];
-
-        // Act
-        formatter.Format(buffer, LogLevel.Warning, tag, message);
-
-        // Assert
-        var formatted = buffer.ToString();
-        Assert.Matches(@"^\d{2}:\d{2}:\d{2} \[W\] \[\] Test message$", formatted);
-    }
-
-    [Fact]
-    public void Format_EmptyMessage_ProducesCorrectFormat()
-    {
-        // Arrange
-        var formatter = new FileLogFormatter();
-        var tag = "ERROR".AsSpan();
-        var message = ReadOnlySpan<char>.Empty;
-        var bufferSize = formatter.GetBufferSize(LogLevel.Error, tag, message);
-        Span<char> buffer = stackalloc char[bufferSize];
-
-        // Act
-        formatter.Format(buffer, LogLevel.Error, tag, message);
-
-        // Assert
-        var formatted = buffer.ToString();
-        Assert.Matches(@"^\d{2}:\d{2}:\d{2} \[E\] \[ERROR\] $", formatted);
-    }
-
-    [Fact]
-    public void Format_EmptyTagAndMessage_ProducesCorrectFormat()
-    {
-        // Arrange
-        var formatter = new FileLogFormatter();
-        var tag = ReadOnlySpan<char>.Empty;
-        var message = ReadOnlySpan<char>.Empty;
-        var bufferSize = formatter.GetBufferSize(LogLevel.Debug, tag, message);
-        Span<char> buffer = stackalloc char[bufferSize];
-
-        // Act
-        formatter.Format(buffer, LogLevel.Debug, tag, message);
-
-        // Assert
-        var formatted = buffer.ToString();
-        Assert.Matches(@"^\d{2}:\d{2}:\d{2} \[D\] \[\] $", formatted);
-    }
-
-    [Fact]
-    public void Format_LongTagAndMessage_FormatsCorrectly()
-    {
-        // Arrange
-        var formatter = new FileLogFormatter();
-        var tag = "VeryLongTagName".AsSpan();
-        var message = "This is a very long message that should be formatted correctly".AsSpan();
-        var bufferSize = formatter.GetBufferSize(LogLevel.Information, tag, message);
-        Span<char> buffer = stackalloc char[bufferSize];
-
-        // Act
-        formatter.Format(buffer, LogLevel.Information, tag, message);
-
-        // Assert
-        var formatted = buffer.ToString();
-        Assert.Contains("[VeryLongTagName]", formatted);
-        Assert.Contains("This is a very long message that should be formatted correctly", formatted);
-        Assert.Matches(@"^\d{2}:\d{2}:\d{2} \[I\] \[VeryLongTagName\] This is a very long message that should be formatted correctly$", formatted);
-    }
-
-    [Fact]
-    public void Format_SpecialCharactersInTagAndMessage_FormatsCorrectly()
-    {
-        // Arrange
-        var formatter = new FileLogFormatter();
-        var tag = "HTTP/2".AsSpan();
-        var message = "Status: 200 OK - Content-Type: application/json".AsSpan();
-        var bufferSize = formatter.GetBufferSize(LogLevel.Information, tag, message);
-        Span<char> buffer = stackalloc char[bufferSize];
-
-        // Act
-        formatter.Format(buffer, LogLevel.Information, tag, message);
-
-        // Assert
-        var formatted = buffer.ToString();
-        Assert.Contains("[HTTP/2]", formatted);
-        Assert.Contains("Status: 200 OK - Content-Type: application/json", formatted);
-    }
-
-    [Fact]
-    public void Format_ExactBufferSize_DoesNotOverrun()
-    {
-        // Arrange
-        var formatter = new FileLogFormatter();
-        var tag = "TEST".AsSpan();
-        var message = "message".AsSpan();
-        var bufferSize = formatter.GetBufferSize(LogLevel.Information, tag, message);
-        Span<char> buffer = stackalloc char[bufferSize];
-
-        // Act
-        formatter.Format(buffer, LogLevel.Information, tag, message);
-
-        // Assert
-        var formatted = buffer.ToString();
-        Assert.Equal(bufferSize, formatted.Length);
-        Assert.DoesNotContain('\0', formatted);
-    }
-
-    [Theory]
-    [InlineData("A", "B")]
-    [InlineData("Logger", "Started")]
-    [InlineData("", "Empty tag test")]
-    [InlineData("Tag", "")]
-    public void Format_VariousInputs_TimeFormatIsCorrect(string tag, string message)
-    {
-        // Arrange
-        var formatter = new FileLogFormatter();
+        var timeProvider = new TestTimeProvider();
+        var formatter = new FileLogFormatter(timeProvider);
+        var tag = "Test";
+        var message = "Info message";
         var bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
         Span<char> buffer = stackalloc char[bufferSize];
 
@@ -254,7 +96,150 @@ public sealed class FileLogFormatterTests
         formatter.Format(buffer, LogLevel.Information, tag.AsSpan(), message.AsSpan());
 
         // Assert
-        var formatted = buffer.ToString();
-        Assert.Matches(@"^\d{2}:\d{2}:\d{2} ", formatted);
+        Assert.Equal("12:34:56 [I] [Test] Info message", buffer.ToString());
+    }
+
+    [Fact]
+    public void Format_WarningLevel_FormatsCorrectly()
+    {
+        // Arrange
+        var timeProvider = new TestTimeProvider();
+        var formatter = new FileLogFormatter(timeProvider);
+        var tag = "Test";
+        var message = "Warning message";
+        var bufferSize = formatter.GetBufferSize(LogLevel.Warning, tag.AsSpan(), message.AsSpan());
+        Span<char> buffer = stackalloc char[bufferSize];
+
+        // Act
+        formatter.Format(buffer, LogLevel.Warning, tag.AsSpan(), message.AsSpan());
+
+        // Assert
+        Assert.Equal("12:34:56 [W] [Test] Warning message", buffer.ToString());
+    }
+
+    [Fact]
+    public void Format_ErrorLevel_FormatsCorrectly()
+    {
+        // Arrange
+        var timeProvider = new TestTimeProvider();
+        var formatter = new FileLogFormatter(timeProvider);
+        var tag = "Test";
+        var message = "Error message";
+        var bufferSize = formatter.GetBufferSize(LogLevel.Error, tag.AsSpan(), message.AsSpan());
+        Span<char> buffer = stackalloc char[bufferSize];
+
+        // Act
+        formatter.Format(buffer, LogLevel.Error, tag.AsSpan(), message.AsSpan());
+
+        // Assert
+        Assert.Equal("12:34:56 [E] [Test] Error message", buffer.ToString());
+    }
+
+    [Fact]
+    public void Format_UnknownLevel_FormatsWithN()
+    {
+        // Arrange
+        var timeProvider = new TestTimeProvider();
+        var formatter = new FileLogFormatter(timeProvider);
+        var tag = "Test";
+        var message = "Unknown message";
+        var bufferSize = formatter.GetBufferSize((LogLevel)999, tag.AsSpan(), message.AsSpan());
+        Span<char> buffer = stackalloc char[bufferSize];
+
+        // Act
+        formatter.Format(buffer, (LogLevel)999, tag.AsSpan(), message.AsSpan());
+
+        // Assert
+        Assert.Equal("12:34:56 [N] [Test] Unknown message", buffer.ToString());
+    }
+
+    [Fact]
+    public void Format_EmptyTag_FormatsCorrectly()
+    {
+        // Arrange
+        var timeProvider = new TestTimeProvider();
+        var formatter = new FileLogFormatter(timeProvider);
+        var tag = "";
+        var message = "Message";
+        var bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
+        Span<char> buffer = stackalloc char[bufferSize];
+
+        // Act
+        formatter.Format(buffer, LogLevel.Information, tag.AsSpan(), message.AsSpan());
+
+        // Assert
+        Assert.Equal("12:34:56 [I] [] Message", buffer.ToString());
+    }
+
+    [Fact]
+    public void Format_EmptyMessage_FormatsCorrectly()
+    {
+        // Arrange
+        var timeProvider = new TestTimeProvider();
+        var formatter = new FileLogFormatter(timeProvider);
+        var tag = "Tag";
+        var message = "";
+        var bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
+        Span<char> buffer = stackalloc char[bufferSize];
+
+        // Act
+        formatter.Format(buffer, LogLevel.Information, tag.AsSpan(), message.AsSpan());
+
+        // Assert
+        Assert.Equal("12:34:56 [I] [Tag] ", buffer.ToString());
+    }
+
+    [Fact]
+    public void Format_EmptyTagAndMessage_FormatsCorrectly()
+    {
+        // Arrange
+        var timeProvider = new TestTimeProvider();
+        var formatter = new FileLogFormatter(timeProvider);
+        var tag = "";
+        var message = "";
+        var bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
+        Span<char> buffer = stackalloc char[bufferSize];
+
+        // Act
+        formatter.Format(buffer, LogLevel.Information, tag.AsSpan(), message.AsSpan());
+
+        // Assert
+        Assert.Equal("12:34:56 [I] [] ", buffer.ToString());
+    }
+
+    [Fact]
+    public void Format_LongTagAndMessage_FormatsCorrectly()
+    {
+        // Arrange
+        var timeProvider = new TestTimeProvider();
+        var formatter = new FileLogFormatter(timeProvider);
+        var tag = "VeryLongTagName";
+        var message = "This is a very long message with lots of content";
+        var bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
+        Span<char> buffer = stackalloc char[bufferSize];
+
+        // Act
+        formatter.Format(buffer, LogLevel.Information, tag.AsSpan(), message.AsSpan());
+
+        // Assert
+        Assert.Equal("12:34:56 [I] [VeryLongTagName] This is a very long message with lots of content", buffer.ToString());
+    }
+
+    [Fact]
+    public void Format_ExactBufferSize_FitsExactly()
+    {
+        // Arrange
+        var timeProvider = new TestTimeProvider();
+        var formatter = new FileLogFormatter(timeProvider);
+        var tag = "Tag";
+        var message = "Message";
+        var bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
+        Span<char> buffer = stackalloc char[bufferSize];
+
+        // Act
+        formatter.Format(buffer, LogLevel.Information, tag.AsSpan(), message.AsSpan());
+
+        // Assert
+        Assert.Equal("12:34:56 [I] [Tag] Message", buffer.ToString());
     }
 }
