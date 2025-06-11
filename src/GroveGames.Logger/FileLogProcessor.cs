@@ -2,18 +2,21 @@ namespace GroveGames.Logger;
 
 public sealed class FileLogProcessor : ILogProcessor, IDisposable
 {
-    private readonly IFileWriter _fileWriter;
+    private readonly IStreamWriter _writer;
     private readonly ILogFormatter _formatter;
 
-    public FileLogProcessor(IFileWriter fileWriter, ILogFormatter formatter)
+    public FileLogProcessor(IStreamWriter writer, ILogFormatter formatter)
     {
-        _fileWriter = fileWriter;
+        ArgumentNullException.ThrowIfNull(writer);
+        ArgumentNullException.ThrowIfNull(formatter);
+
+        _writer = writer;
         _formatter = formatter;
     }
 
     public void Dispose()
     {
-        _fileWriter.Dispose();
+        _writer.Dispose();
     }
 
     public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
@@ -21,6 +24,6 @@ public sealed class FileLogProcessor : ILogProcessor, IDisposable
         var bufferSize = _formatter.GetBufferSize(level, tag, message);
         Span<char> buffer = stackalloc char[bufferSize];
         _formatter.Format(buffer, level, tag, message);
-        _fileWriter.AddEntry(buffer);
+        _writer.AddEntry(buffer);
     }
 }

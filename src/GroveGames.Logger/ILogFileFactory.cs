@@ -2,5 +2,5 @@ namespace GroveGames.Logger;
 
 public interface ILogFileFactory
 {
-    StreamWriter CreateFile();
+    Stream CreateFile();
 }

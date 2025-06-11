@@ -6,12 +6,12 @@ public sealed class GodotLogFileFactory : ILogFileFactory
 {
     private readonly LogFileFactory _logFileFactory;
 
-    public GodotLogFileFactory(string fileFolderName, int maxFileCount)
+    public GodotLogFileFactory(string fileFolderName, int maxFileCount, int bufferSize)
     {
-        _logFileFactory = new LogFileFactory(OS.GetUserDataDir(), fileFolderName, maxFileCount);
+        _logFileFactory = new LogFileFactory(OS.GetUserDataDir(), fileFolderName, maxFileCount, bufferSize);
     }
 
-    public StreamWriter CreateFile()
+    public Stream CreateFile()
     {
         return _logFileFactory.CreateFile();
     }

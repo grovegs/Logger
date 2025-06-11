@@ -28,8 +28,8 @@ enabled=PackedStringArray("res://addons/GroveGames.Logger/plugin.cfg")
 logger/min_log_level=1
 logger/max_file_count=10
 logger/file_folder_name="logs"
-logger/file_write_interval=1000
-logger/file_character_queue_size=256
+logger/file_buffer_size=8192
+logger/file_channel_capacity=1000
 
 [rendering]
 

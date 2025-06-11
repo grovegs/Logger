@@ -10,6 +10,18 @@ public sealed class Logger : ILogger, IDisposable
 
     public Logger(ILogProcessor[] logProcessors, LogLevel minimumLevel)
     {
+        ArgumentNullException.ThrowIfNull(logProcessors);
+
+        if (logProcessors.Length == 0)
+        {
+            throw new ArgumentException("At least one log processor is required.", nameof(logProcessors));
+        }
+
+        foreach (var processor in logProcessors)
+        {
+            ArgumentNullException.ThrowIfNull(processor, nameof(logProcessors));
+        }
+
         _logProcessors = logProcessors;
         _minimumLevel = minimumLevel;
         _disposed = false;

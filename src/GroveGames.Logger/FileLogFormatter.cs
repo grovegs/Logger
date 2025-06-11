@@ -8,11 +8,18 @@ public sealed class FileLogFormatter : ILogFormatter
         LogLevel.Information => "I",
         LogLevel.Warning => "W",
         LogLevel.Error => "E",
-        _ => "N" // None
+        _ => "N"
     };
     private static ReadOnlySpan<char> TimeFormat => "HH:mm:ss ";
     private static ReadOnlySpan<char> LeftBracket => "[";
     private static ReadOnlySpan<char> RightBracket => "] ";
+
+    private readonly TimeProvider _timeProvider;
+
+    public FileLogFormatter(TimeProvider? timeProvider = null)
+    {
+        _timeProvider = timeProvider ?? TimeProvider.System;
+    }
 
     public int GetBufferSize(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
@@ -22,14 +29,13 @@ public sealed class FileLogFormatter : ILogFormatter
 
     public void Format(Span<char> buffer, LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        int currentPosition = 0;
-
-        // Format and copy datetime
+        var currentPosition = 0;
         Span<char> timeBuffer = stackalloc char[TimeFormat.Length];
+        var currentTime = _timeProvider.GetUtcNow().DateTime;
 
-        if (!DateTime.UtcNow.TryFormat(timeBuffer, out int charsWritten, TimeFormat))
+        if (!currentTime.TryFormat(timeBuffer, out int charsWritten, TimeFormat))
         {
-            throw new FormatException("Failed to format datetime");
+            "??:??:?? ".AsSpan().CopyTo(timeBuffer);
         }
 
         var leftBracket = LeftBracket;

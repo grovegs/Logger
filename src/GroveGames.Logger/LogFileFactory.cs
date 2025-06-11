@@ -5,34 +5,71 @@ public sealed class LogFileFactory : ILogFileFactory
     private readonly string _root;
     private readonly string _folderName;
     private readonly int _maxFileCount;
+    private readonly int _bufferSize;
+    private readonly IFileSystem _fileSystem;
+    private readonly TimeProvider _timeProvider;
 
-    public LogFileFactory(string root, string folderName, int maxfileCount)
+    public LogFileFactory(string root, string folderName, int maxFileCount, int bufferSize, IFileSystem? fileSystem = null, TimeProvider? timeProvider = null)
     {
+        ArgumentException.ThrowIfNullOrEmpty(root);
+        ArgumentException.ThrowIfNullOrEmpty(folderName);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxFileCount);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(bufferSize);
+
         _root = root;
         _folderName = folderName;
-        _maxFileCount = maxfileCount;
+        _maxFileCount = maxFileCount;
+        _bufferSize = bufferSize;
+        _fileSystem = fileSystem ?? new FileSystem();
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
-    public StreamWriter CreateFile()
+    public Stream CreateFile()
     {
         var path = Path.Combine(_root, _folderName);
-        var fileName = $"{DateTime.UtcNow:yyyyMMdd_HHmmss}.log";
+        var fileName = GenerateFileName();
+        var fullPath = Path.Combine(path, fileName);
 
-        if (!Directory.Exists(path))
+        EnsureDirectoryExists(path);
+        var fileStream = CreateFileStream(fullPath);
+        CleanupOldFiles(path);
+
+        return fileStream;
+    }
+
+    private string GenerateFileName()
+    {
+        return $"{_timeProvider.GetUtcNow():yyyyMMdd_HHmmss_fff}.log";
+    }
+
+    private void EnsureDirectoryExists(string path)
+    {
+        if (!_fileSystem.DirectoryExists(path))
         {
-            Directory.CreateDirectory(path);
+            _fileSystem.CreateDirectory(path);
         }
+    }
 
-        var directoryInfo = new DirectoryInfo(path);
+    private Stream CreateFileStream(string fullPath)
+    {
+        return _fileSystem.CreateFileStream(
+            fullPath,
+            FileMode.Create,
+            FileAccess.Write,
+            FileShare.Read,
+            _bufferSize,
+            true
+        );
+    }
 
-        var files = directoryInfo.GetFiles();
+    private void CleanupOldFiles(string path)
+    {
+        var files = _fileSystem.GetFiles(path, "*.log").ToList();
 
-        if (files.Length >= _maxFileCount)
+        if (files.Count > _maxFileCount)
         {
             var oldestFile = files.OrderBy(file => file.CreationTime).First();
-            oldestFile.Delete();
+            _fileSystem.DeleteFile(oldestFile.FullPath);
         }
-
-        return new StreamWriter(Path.Combine(path, fileName), true);
     }
 }
