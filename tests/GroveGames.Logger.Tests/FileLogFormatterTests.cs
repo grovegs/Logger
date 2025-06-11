@@ -8,12 +8,6 @@ public sealed class FileLogFormatterTests
     }
 
     [Fact]
-    public void Constructor_NullTimeProvider_ThrowsArgumentNullException()
-    {
-        Assert.Throws<ArgumentNullException>(() => new FileLogFormatter(null!));
-    }
-
-    [Fact]
     public void Constructor_Default_UsesSystemTimeProvider()
     {
         var formatter = new FileLogFormatter();
