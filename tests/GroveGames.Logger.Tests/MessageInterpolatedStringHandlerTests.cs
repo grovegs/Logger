@@ -306,7 +306,7 @@ public sealed class MessageInterpolatedStringHandlerTests
     }
 
     [Fact]
-    public void Empty_BufferOperations_AlwaysReturnTrue()
+    public void Empty_BufferOperations_AlwaysReturnFalse()
     {
         // Arrange
         var handler = MessageInterpolatedStringHandler.Empty;
@@ -317,9 +317,9 @@ public sealed class MessageInterpolatedStringHandlerTests
         var result3 = handler.AppendFormatted("test".AsSpan());
 
         // Assert
-        Assert.True(result1);
-        Assert.True(result2);
-        Assert.True(result3);
+        Assert.False(result1);
+        Assert.False(result2);
+        Assert.False(result3);
         Assert.True(handler.Written.IsEmpty);
     }
 
