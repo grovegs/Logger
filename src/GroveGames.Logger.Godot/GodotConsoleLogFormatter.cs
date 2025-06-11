@@ -7,6 +7,13 @@ public sealed class GodotConsoleLogFormatter : ILogFormatter
     private static ReadOnlySpan<char> LeftBracket => "[";
     private static ReadOnlySpan<char> RightBracket => "] ";
 
+    private readonly TimeProvider _timeProvider;
+
+    public GodotConsoleLogFormatter(TimeProvider? timeProvider = null)
+    {
+        _timeProvider = timeProvider ?? TimeProvider.System;
+    }
+
     public int GetBufferSize(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         var bufferSize = 9 + 1 + tag.Length + 2 + message.Length;
@@ -31,10 +38,11 @@ public sealed class GodotConsoleLogFormatter : ILogFormatter
 
         var timeFormat = TimeFormat;
         Span<char> timeBuffer = stackalloc char[timeFormat.Length];
+        var currentTime = _timeProvider.GetUtcNow().DateTime;
 
-        if (!DateTime.UtcNow.TryFormat(timeBuffer, out int charsWritten, timeFormat))
+        if (!currentTime.TryFormat(timeBuffer, out int charsWritten, TimeFormat))
         {
-            throw new FormatException("Failed to format DateTime");
+            "??:??:?? ".AsSpan().CopyTo(timeBuffer);
         }
 
         timeBuffer.CopyTo(buffer[currentPosition..]);
