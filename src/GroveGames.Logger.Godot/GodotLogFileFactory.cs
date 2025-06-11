@@ -11,7 +11,7 @@ public sealed class GodotLogFileFactory : ILogFileFactory
         _logFileFactory = new LogFileFactory(OS.GetUserDataDir(), fileFolderName, maxFileCount, bufferSize);
     }
 
-    public FileStream CreateFile()
+    public Stream CreateFile()
     {
         return _logFileFactory.CreateFile();
     }

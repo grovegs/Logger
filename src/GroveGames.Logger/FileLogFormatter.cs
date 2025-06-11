@@ -16,15 +16,9 @@ public sealed class FileLogFormatter : ILogFormatter
 
     private readonly TimeProvider _timeProvider;
 
-    public FileLogFormatter(TimeProvider timeProvider)
+    public FileLogFormatter(TimeProvider? timeProvider = null)
     {
-        ArgumentNullException.ThrowIfNull(timeProvider);
-
-        _timeProvider = timeProvider;
-    }
-
-    public FileLogFormatter() : this(TimeProvider.System)
-    {
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     public int GetBufferSize(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
