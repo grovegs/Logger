@@ -42,22 +42,22 @@ public ref struct MessageInterpolatedStringHandler
 
     public bool AppendLiteral(ReadOnlySpan<char> value)
     {
-        return !_buffer.IsEmpty && TryWrite(value);
+        return TryWrite(value);
     }
 
     public bool AppendFormatted<T>(T value) where T : ISpanFormattable
     {
-        return !_buffer.IsEmpty && value.TryFormat(_buffer[_position..], out int written, default, CultureInfo.InvariantCulture) && Advance(written);
+        return value.TryFormat(_buffer[_position..], out int written, default, CultureInfo.InvariantCulture) && Advance(written);
     }
 
     public bool AppendFormatted<T>(T value, string? format) where T : ISpanFormattable
     {
-        return !_buffer.IsEmpty && value.TryFormat(_buffer[_position..], out int written, format, CultureInfo.InvariantCulture) && Advance(written);
+        return value.TryFormat(_buffer[_position..], out int written, format, CultureInfo.InvariantCulture) && Advance(written);
     }
 
     public bool AppendFormatted(ReadOnlySpan<char> value)
     {
-        return !_buffer.IsEmpty && TryWrite(value);
+        return TryWrite(value);
     }
 
     private bool TryWrite(ReadOnlySpan<char> value)
