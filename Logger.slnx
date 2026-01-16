@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src\GroveGames.Logger\GroveGames.Logger.csproj" />
+  <Project Path="tests\GroveGames.Logger.Tests\GroveGames.Logger.Tests.csproj" />
+</Solution>

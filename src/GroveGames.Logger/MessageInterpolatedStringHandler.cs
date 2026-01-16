@@ -7,7 +7,7 @@ namespace GroveGames.Logger;
 [InterpolatedStringHandler]
 public ref struct MessageInterpolatedStringHandler
 {
-    public static MessageInterpolatedStringHandler Empty => new([]);
+    public static MessageInterpolatedStringHandler Empty => new(Span<char>.Empty);
 
     private readonly Span<char> _buffer;
     private readonly char[] _rentedArray;
@@ -18,7 +18,7 @@ public ref struct MessageInterpolatedStringHandler
     private MessageInterpolatedStringHandler(Span<char> buffer)
     {
         _buffer = buffer;
-        _rentedArray = [];
+        _rentedArray = Array.Empty<char>();
         _position = 0;
     }
 
@@ -45,6 +45,7 @@ public ref struct MessageInterpolatedStringHandler
         return TryWrite(value);
     }
 
+#if NET6_0_OR_GREATER
     public bool AppendFormatted<T>(T value) where T : ISpanFormattable
     {
         return value.TryFormat(_buffer[_position..], out int written, default, CultureInfo.InvariantCulture) && Advance(written);
@@ -54,6 +55,27 @@ public ref struct MessageInterpolatedStringHandler
     {
         return value.TryFormat(_buffer[_position..], out int written, format, CultureInfo.InvariantCulture) && Advance(written);
     }
+#else
+    public bool AppendFormatted<T>(T value)
+    {
+        var text = value switch
+        {
+            IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+            _ => value?.ToString() ?? string.Empty
+        };
+        return TryWrite(text.AsSpan());
+    }
+
+    public bool AppendFormatted<T>(T value, string? format)
+    {
+        var text = value switch
+        {
+            IFormattable formattable => formattable.ToString(format, CultureInfo.InvariantCulture),
+            _ => value?.ToString() ?? string.Empty
+        };
+        return TryWrite(text.AsSpan());
+    }
+#endif
 
     public bool AppendFormatted(ReadOnlySpan<char> value)
     {
