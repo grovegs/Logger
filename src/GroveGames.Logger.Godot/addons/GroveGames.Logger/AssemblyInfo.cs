@@ -1,5 +1,4 @@
-using System.Reflection;
+using System.Runtime.CompilerServices;
 
-[assembly: AssemblyTitle("GroveGames.Logger.Godot")]
-[assembly: AssemblyProduct("GroveGames.Logger")]
-[assembly: AssemblyCompany("Grove Games")]
+[assembly: InternalsVisibleTo("GroveGames.Logger.Godot.Tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
