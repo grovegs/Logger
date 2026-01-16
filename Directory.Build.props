@@ -1,36 +1,45 @@
 <Project>
-
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <AotCompatible>true</AotCompatible>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <NoWarn>1591;1573</NoWarn>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+
+    <Version>0.1.5</Version>
+    <FileVersion>$(Version)</FileVersion>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
 
     <RootNamespace>GroveGames.Logger</RootNamespace>
     <Title>GroveGames.Logger</Title>
-    <Description>File Logger</Description>
+    <Description>High-performance, zero-allocation logging library for .NET, Unity, and Godot with Native AOT support</Description>
     <Company>Grove Games</Company>
     <Authors>Grove Games</Authors>
-    <Copyright>© Grove Games</Copyright>
-
     <PackageId>$(AssemblyName)</PackageId>
     <PackageVersion>$(Version)</PackageVersion>
-    <PackageTags>godot;logger;grovegames</PackageTags>
+    <PackageTags>logger;logging;performance;zero-allocation</PackageTags>
+    <Copyright>© $(CurrentYear) Grove Games</Copyright>
     <PackageProjectUrl>https://github.com/grovegs/Logger</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageIcon>Icon.png</PackageIcon>
-
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/grovegs/Logger</RepositoryUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="../../README.md" Pack="true" PackagePath="/" />
-    <None Include="../../LICENSE" Pack="true" PackagePath="/" />
-    <None Include="../../Icon.png" Pack="true" PackagePath="/" />
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="/" />
+    <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="/" />
+    <None Include="$(MSBuildThisFileDirectory)Icon.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
+  </ItemGroup>
 </Project>

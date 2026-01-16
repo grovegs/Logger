@@ -1,0 +1,20 @@
+{
+  "name": "com.grovegames.logger",
+  "version": "0.1.5",
+  "displayName": "GroveGames.Logger",
+  "description": "High-performance, zero-allocation logging library for .NET, Unity, and Godot with Native AOT support.",
+  "unity": "2021.3",
+  "documentationUrl": "https://github.com/grovegs/Logger",
+  "changelogUrl": "https://github.com/grovegs/Logger/releases",
+  "licensesUrl": "https://github.com/grovegs/Logger/blob/main/LICENSE",
+  "keywords": [
+    "logger",
+    "logging",
+    "performance",
+    "zero-allocation"
+  ],
+  "author": {
+    "name": "Grove Games",
+    "url": "https://github.com/grovegs"
+  }
+}
