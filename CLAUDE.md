@@ -202,6 +202,39 @@ Note: Custom polyfill extensions in the `System` namespace provide backward comp
 
 This project structure serves as a template for other GroveGames packages. Key patterns to follow:
 
+### Interface Abstraction for External Dependencies
+
+When using types from NuGet packages that are only available in newer .NET versions, wrap them in custom interfaces to avoid exposing them in the public API. This prevents Unity/Godot users from needing to reference those packages directly.
+
+Example with `TimeProvider` (from `Microsoft.Bcl.TimeProvider`):
+
+```csharp
+public interface ITimeProvider
+{
+    DateTimeOffset GetUtcNow();
+}
+
+public sealed class SystemTimeProvider : ITimeProvider
+{
+    public DateTimeOffset GetUtcNow() => TimeProvider.System.GetUtcNow();
+}
+
+public LogFileFactory(..., ITimeProvider? timeProvider = null)
+{
+    _timeProvider = timeProvider ?? new SystemTimeProvider();
+}
+```
+
+Current interface abstractions:
+- `ITimeProvider` / `SystemTimeProvider` - Wraps `TimeProvider` for time operations
+- `IFileSystem` / `FileSystem` - Wraps file system operations for testability
+
+This pattern ensures:
+- Public API only exposes types defined in the library
+- External dependencies are implementation details
+- Unity/Godot projects compile without needing polyfill packages in their project
+- Easy unit testing via mock implementations
+
 ### Backward Compatibility via Static Extensions
 
 Use C# 14 extension members with preprocessor directives for .NET API polyfills:

@@ -49,7 +49,7 @@ public sealed class LogFileFactoryTests
         }
     }
 
-    private sealed class TestTimeProvider : TimeProvider
+    private sealed class TestTimeProvider : ITimeProvider
     {
         private readonly DateTimeOffset _utcNow;
 
@@ -58,7 +58,7 @@ public sealed class LogFileFactoryTests
             _utcNow = utcNow;
         }
 
-        public override DateTimeOffset GetUtcNow() => _utcNow;
+        public DateTimeOffset GetUtcNow() => _utcNow;
     }
 
     private sealed class ConcurrentTestFileSystem : IFileSystem
@@ -78,11 +78,11 @@ public sealed class LogFileFactoryTests
         public void DeleteFile(string path) { }
     }
 
-    private sealed class ConcurrentTestTimeProvider : TimeProvider
+    private sealed class ConcurrentTestTimeProvider : ITimeProvider
     {
         private int _counter;
 
-        public override DateTimeOffset GetUtcNow()
+        public DateTimeOffset GetUtcNow()
         {
             var milliseconds = Interlocked.Increment(ref _counter);
             return new DateTimeOffset(2024, 1, 15, 10, 30, 45, 0, TimeSpan.Zero).AddMilliseconds(milliseconds);

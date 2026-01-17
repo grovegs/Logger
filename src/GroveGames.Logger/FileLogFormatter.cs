@@ -14,11 +14,11 @@ public sealed class FileLogFormatter : ILogFormatter
     private static ReadOnlySpan<char> LeftBracket => "[";
     private static ReadOnlySpan<char> RightBracket => "] ";
 
-    private readonly TimeProvider _timeProvider;
+    private readonly ITimeProvider _timeProvider;
 
-    public FileLogFormatter(TimeProvider? timeProvider = null)
+    public FileLogFormatter(ITimeProvider? timeProvider = null)
     {
-        _timeProvider = timeProvider ?? TimeProvider.System;
+        _timeProvider = timeProvider ?? new SystemTimeProvider();
     }
 
     public int GetBufferSize(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
