@@ -2,9 +2,9 @@ namespace GroveGames.Logger.Tests;
 
 public sealed class FileLogFormatterTests
 {
-    private class TestTimeProvider : TimeProvider
+    private class TestTimeProvider : ITimeProvider
     {
-        public override DateTimeOffset GetUtcNow() => new(2024, 1, 1, 12, 34, 56, TimeSpan.Zero);
+        public DateTimeOffset GetUtcNow() => new(2024, 1, 1, 12, 34, 56, TimeSpan.Zero);
     }
 
     [Fact]

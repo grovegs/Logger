@@ -1,5 +1,31 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <PublishAot>true</PublishAot>
+        <TargetFrameworks>net10.0;net8.0;netstandard2.1</TargetFrameworks>
     </PropertyGroup>
+
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
+        <ImplicitUsings>enable</ImplicitUsings>
+        <IsAotCompatible>true</IsAotCompatible>
+        <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+        <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+        <EnableAotAnalyzer>true</EnableAotAnalyzer>
+        <IsTrimmable>true</IsTrimmable>
+        <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+        <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Deterministic>true</Deterministic>
+        <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+        <PackageReference Include="System.Threading.Channels" Version="9.0.1" />
+        <PackageReference Include="Microsoft.Bcl.TimeProvider" Version="9.0.1" />
+    </ItemGroup>
 </Project>

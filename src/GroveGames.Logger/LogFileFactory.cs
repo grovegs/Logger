@@ -7,9 +7,9 @@ public sealed class LogFileFactory : ILogFileFactory
     private readonly int _maxFileCount;
     private readonly int _bufferSize;
     private readonly IFileSystem _fileSystem;
-    private readonly TimeProvider _timeProvider;
+    private readonly ITimeProvider _timeProvider;
 
-    public LogFileFactory(string root, string folderName, int maxFileCount, int bufferSize, IFileSystem? fileSystem = null, TimeProvider? timeProvider = null)
+    public LogFileFactory(string root, string folderName, int maxFileCount, int bufferSize, IFileSystem? fileSystem = null, ITimeProvider? timeProvider = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(root);
         ArgumentException.ThrowIfNullOrEmpty(folderName);
@@ -21,7 +21,7 @@ public sealed class LogFileFactory : ILogFileFactory
         _maxFileCount = maxFileCount;
         _bufferSize = bufferSize;
         _fileSystem = fileSystem ?? new FileSystem();
-        _timeProvider = timeProvider ?? TimeProvider.System;
+        _timeProvider = timeProvider ?? new SystemTimeProvider();
     }
 
     public Stream CreateFile()

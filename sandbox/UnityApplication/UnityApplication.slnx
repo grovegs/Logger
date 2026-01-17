@@ -1,0 +1,6 @@
+﻿<Solution>
+  <Project Path="GroveGames.Logger.Unity.Editor.csproj" />
+  <Project Path="GroveGames.Logger.Unity.csproj" />
+  <Project Path="PluginBuilder.Editor.csproj" />
+  <Project Path="GroveGames.Logger.Unity.Tests.csproj" />
+</Solution>
