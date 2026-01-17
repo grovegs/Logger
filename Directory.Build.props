@@ -6,7 +6,7 @@
     <NoWarn>1591;1573</NoWarn>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 
-    <Version>0.1.5</Version>
+    <Version>0.1.6</Version>
     <FileVersion>$(Version)</FileVersion>
     <AssemblyVersion>$(Version)</AssemblyVersion>
 
