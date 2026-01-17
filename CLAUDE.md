@@ -35,8 +35,7 @@ dotnet build -c Release               # Release build
 
 ```bash
 dotnet test                           # Run all tests
-dotnet test tests/GroveGames.Logger.Tests/        # Core library tests only
-dotnet test tests/GroveGames.Logger.Godot.Tests/  # Godot-specific tests only
+dotnet test tests/GroveGames.Logger.Tests/        # Core library tests
 ```
 
 ### Formatting
@@ -88,8 +87,11 @@ The project uses a layered configuration approach with platform-specific setting
 - **Polyfills via Extension Members**: Custom polyfills using C# 14 extension members (`extension(Type)` syntax) in `Polyfills/` folder provide backward compatibility for netstandard2.1. These use `#if !NET6_0_OR_GREATER` preprocessor directives and are placed in the `System` namespace for seamless usage:
   - `CallerArgumentExpressionAttribute` for parameter name capture
   - `ArgumentNullException.ThrowIfNull` static method
+  - `ArgumentException.ThrowIfNullOrEmpty` static method
   - `ArgumentOutOfRangeException.ThrowIfNegative`, `ThrowIfNegativeOrZero`, `ThrowIfGreaterThan` static methods
   - `ObjectDisposedException.ThrowIf` static method
+  - `Lock` class for thread synchronization
+  - `InterpolatedStringHandlerAttribute` and `InterpolatedStringHandlerArgumentAttribute` for interpolated string handlers
 - **Code Formatting**:
   - Automatic formatting on save configured in VS Code settings
   - `dotnet format` command respects all `.editorconfig` settings
@@ -109,6 +111,13 @@ Standard Unity Package Manager (UPM) layout:
 - `LICENSE` → symlink to root LICENSE
 - `README.md` → symlink to root README.md
 
+Unity-specific components:
+
+- `UnityConsoleLogFormatter` - Formatter for Unity console output (format: `[Tag] Message`)
+- `UnityConsoleLogProcessor` - Processor that routes logs to Unity's `Debug.Log`, `Debug.LogWarning`, `Debug.LogError`
+- `UnityLogFileFactory` - File factory using `Application.persistentDataPath` for log file location
+- `UnityLogHandler` - Subscribes to `Application.logMessageReceived` to capture Unity's internal logs and forward them to file logging
+
 The Unity package requires the core NuGet package (`GroveGames.Logger`) installed via NuGetForUnity, then the Unity package via git URL.
 
 ### Godot Addon Structure (`src/GroveGames.Logger.Godot/addons/GroveGames.Logger/`)
@@ -127,7 +136,6 @@ The Godot addon requires the NuGet package (`GroveGames.Logger.Godot`) plus the 
 - **Test Framework**: xUnit v3
 - **Test Projects**:
   - `GroveGames.Logger.Tests` (core functionality)
-  - `GroveGames.Logger.Godot.Tests` (Godot-specific tests)
 - **Test Configuration**: Uses `xunit.runner.json` for xUnit configuration
 
 ## Build Configuration
