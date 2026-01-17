@@ -113,6 +113,10 @@ Standard Unity Package Manager (UPM) layout:
 
 Unity-specific components:
 
+- `UnityLoggerSettings` - Settings class with JSON persistence in `ProjectSettings/GroveGamesLoggerSettings.json`
+- `UnityLoggerSettingsProvider` - SettingsProvider for Edit > Project Settings > Grove Games > Logger
+- `UnityLoggerFactory` - Factory that reads settings and creates loggers
+- `UnityLoggerBuilderExtensions` - Extension methods (`AddUnityFileLogProcessor`, `AddUnityConsoleLogProcessor`)
 - `UnityConsoleLogFormatter` - Formatter for Unity console output (format: `[Tag] Message`)
 - `UnityConsoleLogProcessor` - Processor that routes logs to Unity's `Debug.Log`, `Debug.LogWarning`, `Debug.LogError`
 - `UnityLogFileFactory` - File factory using `Application.persistentDataPath` for log file location
@@ -230,10 +234,28 @@ Current interface abstractions:
 - `IFileSystem` / `FileSystem` - Wraps file system operations for testability
 
 This pattern ensures:
+
 - Public API only exposes types defined in the library
 - External dependencies are implementation details
 - Unity/Godot projects compile without needing polyfill packages in their project
 - Easy unit testing via mock implementations
+
+### Platform-Specific Project Settings
+
+Both Unity and Godot integrations provide project settings for configuration:
+
+**Unity** (via `SettingsProvider`):
+- Settings stored in `ProjectSettings/GroveGamesLoggerSettings.json`
+- UI at Edit > Project Settings > Grove Games > Logger
+- `UnityLoggerSettings` class with `Load()` and `Save()` methods
+- `UnityLoggerSettingsProvider` for Editor UI
+
+**Godot** (via `ProjectSettings`):
+- Settings stored in Godot's project settings under `grove_games/logger/`
+- `GodotSettings` static class with `GodotSetting<T>` typed accessors
+- `CreateIfNotExist()` to initialize defaults
+
+Both provide factory classes (`UnityLoggerFactory`, `GodotLoggerFactory`) and builder extensions for easy setup.
 
 ### Backward Compatibility via Static Extensions
 

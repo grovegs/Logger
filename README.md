@@ -134,10 +134,54 @@ https://github.com/grovegs/Logger.git?path=src/GroveGames.Logger.Unity/Packages/
 
 With the Unity package, Unity-specific formatters and processors become available for logging in Unity projects.
 
+### Setting Up Unity Logger
+
+```csharp
+using GroveGames.Logger.Unity;
+using UnityEngine;
+
+public class GameManager : MonoBehaviour
+{
+    private Logger _logger;
+
+    private void Awake()
+    {
+        _logger = UnityLoggerFactory.CreateLogger(builder =>
+        {
+            builder.AddUnityConsoleLogProcessor();
+            builder.AddUnityFileLogProcessor();
+        });
+
+        _logger.LogInformation("Game", $"Unity {Application.unityVersion} initialized");
+    }
+
+    private void OnDestroy()
+    {
+        _logger?.Dispose();
+    }
+}
+```
+
+### Project Settings Configuration
+
+Configure logger settings via Edit → Project Settings → Grove Games → Logger. Settings are stored in `ProjectSettings/GroveGamesLoggerSettings.json`.
+
+| Setting                | Type       | Default       | Description                               |
+| ---------------------- | ---------- | ------------- | ----------------------------------------- |
+| `Min Log Level`        | `LogLevel` | `Information` | Minimum level for log output              |
+| `Max File Count`       | `int`      | `10`          | Maximum number of log files to retain     |
+| `File Folder Name`     | `string`   | `"logs"`      | Folder name for log files                 |
+| `File Buffer Size`     | `int`      | `8192`        | Buffer size in bytes for file operations  |
+| `File Channel Capacity`| `int`      | `1000`        | Channel capacity for async log processing |
+
 ### Unity Components
 
-- **Unity-specific formatters**: Optimized for Unity's console output
-- **Unity-specific processors**: Integration with Unity's logging system
+- **`UnityLoggerFactory`**: Factory that reads configuration from Unity project settings
+- **`UnityLoggerSettings`**: Integration with Unity's project settings system
+- **`UnityConsoleLogFormatter`**: Formatter for Unity console output (format: `[Tag] Message`)
+- **`UnityConsoleLogProcessor`**: Routes logs to `Debug.Log`, `Debug.LogWarning`, `Debug.LogError`
+- **`UnityLogFileFactory`**: File factory using `Application.persistentDataPath`
+- **`UnityLogHandler`**: Captures Unity's internal logs and forwards them to file logging
 
 ## Godot
 
