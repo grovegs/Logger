@@ -18,7 +18,7 @@ A high-performance, zero-allocation logging library for .NET, Unity, and Godot w
 - **Flexible Log Processing**: Extensible processor system for custom log handling
 - **Custom Formatting**: Full control over log output format via `ILogFormatter` interface
 - **Unity Integration**: Available as a Unity package
-- **Godot Integration**: Available as a Godot addon with project settings integration
+- **Godot Integration**: Available as a Godot addon
 
 ## .NET
 

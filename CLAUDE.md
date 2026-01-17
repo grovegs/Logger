@@ -168,6 +168,15 @@ The `sandbox/` directory contains sample applications for testing and developmen
 - **GodotApplication**: Godot project with the logger addon for testing Godot integration
 - **Benchmark**: Performance benchmarking application
 
+### Unity Sandbox Setup
+
+The Unity sandbox project uses a symlink to reference the Unity package locally:
+
+- `Packages/com.grovegames.logger` → symlink to `src/GroveGames.Logger.Unity/Packages/com.grovegames.logger`
+- `Assets/Editor/PluginBuilder.cs` → automatically builds `GroveGames.Logger.dll` to `Assets/Plugins` when entering Play Mode
+- `Packages/manifest.json` → includes NuGetForUnity via OpenUPM scoped registry
+- `Assets/packages.config` → NuGet package dependencies
+
 These sandbox projects are useful for:
 
 - Testing changes across different platforms
@@ -225,6 +234,6 @@ Consistent platform sections with installation + usage + components:
 Always include sandbox projects for testing:
 
 - `sandbox/ConsoleApplication/` - Basic .NET testing
-- `sandbox/UnityApplication/` - Unity integration testing (references Unity package locally)
+- `sandbox/UnityApplication/` - Unity integration testing (symlink to Unity package, PluginBuilder for DLL)
 - `sandbox/GodotApplication/` - Godot integration testing (references Godot addon locally)
 - `sandbox/Benchmark/` - Performance benchmarking
