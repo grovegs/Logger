@@ -5,7 +5,7 @@ namespace GroveGames.Logger;
 [GlobalClass]
 public partial class GodotLoggerSettingsResource : Resource
 {
-    private const string ResourcePath = "res://addons/GroveGames.Logger/logger_settings.tres";
+    private const string ResourcePath = "res://addons/GroveGames.Logger/LoggerSettings.tres";
 
     [Export] public LogLevel MinLogLevel { get; set; } = LogLevel.Information;
     [Export] public int MaxFileCount { get; set; } = 10;
