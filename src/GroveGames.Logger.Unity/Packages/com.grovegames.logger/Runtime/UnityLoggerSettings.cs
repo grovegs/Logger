@@ -1,76 +1,33 @@
-using System;
-using System.IO;
 using UnityEngine;
 
 namespace GroveGames.Logger.Unity
 {
-    [Serializable]
-    public sealed class UnityLoggerSettings
+    public sealed class UnityLoggerSettings : ScriptableObject
     {
-        private const string SettingsPath = "ProjectSettings/GroveGamesLoggerSettings.json";
+        private const string ConfigName = "com.grovegames.logger.settings";
 
-        [SerializeField]
-        private LogLevel _minLogLevel = LogLevel.Information;
+        [SerializeField] private LogLevel _minLogLevel = LogLevel.Information;
+        [SerializeField] private int _maxFileCount = 10;
+        [SerializeField] private string _fileFolderName = "logs";
+        [SerializeField] private int _fileBufferSize = 8192;
+        [SerializeField] private int _fileChannelCapacity = 1000;
 
-        [SerializeField]
-        private int _maxFileCount = 10;
+        public LogLevel MinLogLevel => _minLogLevel;
+        public int MaxFileCount => _maxFileCount;
+        public string FileFolderName => _fileFolderName;
+        public int FileBufferSize => _fileBufferSize;
+        public int FileChannelCapacity => _fileChannelCapacity;
 
-        [SerializeField]
-        private string _fileFolderName = "logs";
-
-        [SerializeField]
-        private int _fileBufferSize = 8192;
-
-        [SerializeField]
-        private int _fileChannelCapacity = 1000;
-
-        public LogLevel MinLogLevel
+        public static UnityLoggerSettings GetOrCreate()
         {
-            get => _minLogLevel;
-            set => _minLogLevel = value;
-        }
-
-        public int MaxFileCount
-        {
-            get => _maxFileCount;
-            set => _maxFileCount = value;
-        }
-
-        public string FileFolderName
-        {
-            get => _fileFolderName;
-            set => _fileFolderName = value;
-        }
-
-        public int FileBufferSize
-        {
-            get => _fileBufferSize;
-            set => _fileBufferSize = value;
-        }
-
-        public int FileChannelCapacity
-        {
-            get => _fileChannelCapacity;
-            set => _fileChannelCapacity = value;
-        }
-
-        public static string GetSettingsPath() => SettingsPath;
-
-        public static UnityLoggerSettings Load()
-        {
-            if (!File.Exists(SettingsPath))
+            if (EditorBuildSettings.TryGetConfigObject(ConfigName, out UnityLoggerSettings settings))
             {
-                return new UnityLoggerSettings();
+                return settings;
             }
 
-            var json = File.ReadAllText(SettingsPath);
-            return JsonUtility.FromJson<UnityLoggerSettings>(json) ?? new UnityLoggerSettings();
+            return CreateInstance<UnityLoggerSettings>();
         }
 
-        public void Save()
-        {
-            var json = JsonUtility.ToJson(this, true);
-            File.WriteAllText(SettingsPath, json);
-        }
+        internal static string GetConfigName() => ConfigName;
     }
 }

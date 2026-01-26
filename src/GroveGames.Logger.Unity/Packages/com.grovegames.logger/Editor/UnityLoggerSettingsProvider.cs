@@ -1,45 +1,76 @@
 using UnityEditor;
+using UnityEngine;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 
 namespace GroveGames.Logger.Unity.Editor
 {
-    public sealed class UnityLoggerSettingsProvider : SettingsProvider
+    internal static class UnityLoggerSettingsProvider
     {
-        private static readonly string[] s_keywords = { "Logger", "Log", "Grove Games", "File", "Console" };
-
-        private UnityLoggerSettings _settings;
-
-        private UnityLoggerSettingsProvider(string path, SettingsScope scopes)
-            : base(path, scopes, s_keywords)
-        {
-        }
-
-        public override void OnActivate(string searchContext, UnityEngine.UIElements.VisualElement rootElement)
-        {
-            _settings = UnityLoggerSettings.Load();
-        }
-
-        public override void OnGUI(string searchContext)
-        {
-            EditorGUILayout.Space(10);
-
-            EditorGUI.BeginChangeCheck();
-
-            _settings.MinLogLevel = (LogLevel)EditorGUILayout.EnumPopup("Min Log Level", _settings.MinLogLevel);
-            _settings.MaxFileCount = EditorGUILayout.IntField("Max File Count", _settings.MaxFileCount);
-            _settings.FileFolderName = EditorGUILayout.TextField("File Folder Name", _settings.FileFolderName);
-            _settings.FileBufferSize = EditorGUILayout.IntField("File Buffer Size", _settings.FileBufferSize);
-            _settings.FileChannelCapacity = EditorGUILayout.IntField("File Channel Capacity", _settings.FileChannelCapacity);
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                _settings.Save();
-            }
-        }
+        private const string AssetPath = "ProjectSettings/GroveGamesLoggerSettings.asset";
 
         [SettingsProvider]
-        public static SettingsProvider CreateSettingsProvider()
+        public static SettingsProvider CreateProvider()
         {
-            return new UnityLoggerSettingsProvider("Project/Grove Games/Logger", SettingsScope.Project);
+            return new SettingsProvider("Project/GroveGames/Logger", SettingsScope.Project)
+            {
+                label = "Logger",
+                activateHandler = (searchContext, rootElement) =>
+                {
+                    SerializedObject serializedObject = GetSerializedSettings();
+
+                    VisualElement container = new VisualElement
+                    {
+                        style =
+                        {
+                            paddingLeft = 10,
+                            paddingRight = 10,
+                            paddingTop = 10,
+                            paddingBottom = 10
+                        }
+                    };
+
+                    Label title = new Label("Logger Settings")
+                    {
+                        style =
+                        {
+                            fontSize = 19,
+                            unityFontStyleAndWeight = FontStyle.Bold,
+                            marginBottom = 10
+                        }
+                    };
+                    container.Add(title);
+
+                    container.Add(new PropertyField(serializedObject.FindProperty("_minLogLevel"), "Min Log Level"));
+                    container.Add(new PropertyField(serializedObject.FindProperty("_maxFileCount"), "Max File Count"));
+                    container.Add(new PropertyField(serializedObject.FindProperty("_fileFolderName"), "File Folder Name"));
+                    container.Add(new PropertyField(serializedObject.FindProperty("_fileBufferSize"), "File Buffer Size"));
+                    container.Add(new PropertyField(serializedObject.FindProperty("_fileChannelCapacity"), "File Channel Capacity"));
+
+                    rootElement.Add(container);
+                    rootElement.Bind(serializedObject);
+                },
+                keywords = new System.Collections.Generic.HashSet<string>(new[] { "Logger", "Log", "Level", "File", "Buffer", "Channel", "Grove Games" })
+            };
+        }
+
+        private static UnityLoggerSettings GetOrCreateSettings()
+        {
+            UnityLoggerSettings settings = AssetDatabase.LoadAssetAtPath<UnityLoggerSettings>(AssetPath);
+            if (settings == null)
+            {
+                settings = ScriptableObject.CreateInstance<UnityLoggerSettings>();
+                AssetDatabase.CreateAsset(settings, AssetPath);
+                AssetDatabase.SaveAssets();
+            }
+
+            EditorBuildSettings.AddConfigObject(UnityLoggerSettings.GetConfigName(), settings, true);
+            return settings;
+        }
+
+        private static SerializedObject GetSerializedSettings()
+        {
+            return new SerializedObject(GetOrCreateSettings());
         }
     }
 }
