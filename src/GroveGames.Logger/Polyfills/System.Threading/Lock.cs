@@ -4,11 +4,26 @@ namespace System.Threading;
 
 internal sealed class Lock
 {
-    private readonly object _syncRoot = new();
+    private readonly object _lock;
+
+    public Lock()
+    {
+        _lock = new object();
+    }
+
+    public void Enter()
+    {
+        Monitor.Enter(_lock);
+    }
+
+    public void Exit()
+    {
+        Monitor.Exit(_lock);
+    }
 
     public Scope EnterScope()
     {
-        Monitor.Enter(_syncRoot);
+        Monitor.Enter(_lock);
         return new Scope(this);
     }
 
@@ -23,12 +38,8 @@ internal sealed class Lock
 
         public void Dispose()
         {
-            var @lock = _lock;
-            if (@lock is not null)
-            {
-                _lock = null;
-                Monitor.Exit(@lock._syncRoot);
-            }
+            _lock?.Exit();
+            _lock = null;
         }
     }
 }
