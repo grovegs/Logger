@@ -6,7 +6,7 @@ namespace GroveGames.Logger;
 
 public sealed class StreamWriter : IStreamWriter
 {
-    private static readonly byte[] NewLine;
+    private static readonly byte[] NewLine = [.. Encoding.UTF8.GetBytes(Environment.NewLine)];
 
     private readonly Stream _stream;
     private readonly int _bufferSize;
@@ -15,11 +15,6 @@ public sealed class StreamWriter : IStreamWriter
     private readonly Lock _flushLock;
     private readonly Task _writeTask;
     private volatile bool _disposed;
-
-    static StreamWriter()
-    {
-        NewLine = [.. Encoding.UTF8.GetBytes(Environment.NewLine)];
-    }
 
     public StreamWriter(Stream stream, int bufferSize, int channelCapacity)
     {
