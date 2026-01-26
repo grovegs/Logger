@@ -6,12 +6,7 @@ public sealed class GodotLoggerFactory
 {
     public static Logger CreateLogger(Action<ILoggerBuilder> configure)
     {
-        GodotSettings.CreateIfNotExist();
-        var minLevel = GodotSettings.MinLogLevel.Value;
-        var builder = new LoggerBuilder();
-        builder.SetMinimumLevel(minLevel);
-        configure(builder);
-        return builder.Build();
+        return CreateLogger(GodotLoggerSettingsResource.GetOrCreate(), configure);
     }
 
     public static Logger CreateLogger(GodotLoggerSettingsResource settings, Action<ILoggerBuilder> configure)
