@@ -222,24 +222,18 @@ public partial class Main : Node
 
     public override void _Ready()
     {
-        GodotSettings.CreateIfNotExist();
-
         _logger = GodotLoggerFactory.CreateLogger(builder =>
         {
-            builder.AddLogProcessor(new GodotConsoleLogProcessor(
-                text => GD.Print(text),
-                new GodotConsoleLogFormatter()
-            ));
-
-            var fileStream = CreateLogFileStream();
-            var streamWriter = new StreamWriter(fileStream, 8192, 1000);
-            builder.AddLogProcessor(new FileLogProcessor(
-                streamWriter,
-                new FileLogFormatter()
-            ));
+            builder.AddGodotConsoleLogProcessor();
+            builder.AddGodotFileLogProcessor();
         });
 
         _logger.LogInformation("Game", $"Godot {Engine.GetVersionInfo()} initialized");
+    }
+
+    public override void _ExitTree()
+    {
+        _logger?.Dispose();
     }
 }
 ```
@@ -254,17 +248,17 @@ The `GodotConsoleLogFormatter` provides rich formatting for the Godot editor con
 
 ### Project Settings Configuration
 
-The addon automatically adds settings to your Godot project settings under `grove_games/logger/`:
+Configure logger settings via a Resource stored at `res://addons/GroveGames.Logger/LoggerSettings.tres`. The resource path is registered in project settings and automatically included in builds.
 
 | Setting                 | Type       | Default       | Description                               |
 | ----------------------- | ---------- | ------------- | ----------------------------------------- |
-| `min_log_level`         | `LogLevel` | `Information` | Minimum level for log output              |
-| `max_file_count`        | `int`      | `10`          | Maximum number of log files to retain     |
-| `file_folder_name`      | `string`   | `"logs"`      | Folder name for log files                 |
-| `file_buffer_size`      | `int`      | `8192`        | Buffer size in bytes for file operations  |
-| `file_channel_capacity` | `int`      | `1000`        | Channel capacity for async log processing |
+| `Min Log Level`         | `LogLevel` | `Information` | Minimum level for log output              |
+| `Max File Count`        | `int`      | `10`          | Maximum number of log files to retain     |
+| `File Folder Name`      | `string`   | `"logs"`      | Folder name for log files                 |
+| `File Buffer Size`      | `int`      | `8192`        | Buffer size in bytes for file operations  |
+| `File Channel Capacity` | `int`      | `1000`        | Channel capacity for async log processing |
 
-Alternatively, create a Resource-based configuration at `res://addons/GroveGames.Logger/LoggerSettings.tres` and reference it via `[Export]`:
+For custom configurations or DI scenarios, reference the settings resource:
 
 ```csharp
 public partial class GameManager : Node
@@ -281,10 +275,10 @@ public partial class GameManager : Node
 ### Godot Components
 
 - **`GodotLoggerFactory`**: Factory with GetOrCreate() pattern for DI-friendly architecture
-- **`GodotLoggerSettingsResource`**: Optional Resource-based settings for asset-based configuration
+- **`GodotLoggerSettingsResource`**: Resource with ProjectSettings integration
 - **`GodotConsoleLogFormatter`**: Rich formatting for Godot's editor console
-- **`GodotSettings`**: Integration with Godot's project settings system
 - **`GodotConsoleLogProcessor`**: Processor optimized for Godot's output methods
+- **`GodotLogFileFactory`**: File factory using `OS.GetUserDataDir()`
 
 ## Architecture
 

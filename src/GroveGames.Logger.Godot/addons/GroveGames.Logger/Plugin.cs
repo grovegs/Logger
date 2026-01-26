@@ -8,7 +8,14 @@ public partial class Plugin : EditorPlugin
 {
     public override void _EnterTree()
     {
-        GodotSettings.CreateIfNotExist();
+        var resourcePath = GodotLoggerSettingsResource.GetDefaultResourcePath();
+
+        if (!ProjectSettings.HasSetting(GodotLoggerSettingsResource.GetProjectSettingsKey()))
+        {
+            ProjectSettings.SetSetting(GodotLoggerSettingsResource.GetProjectSettingsKey(), resourcePath);
+            ProjectSettings.SetInitialValue(GodotLoggerSettingsResource.GetProjectSettingsKey(), resourcePath);
+            ProjectSettings.Save();
+        }
     }
 
     public override void _ExitTree()
