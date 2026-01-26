@@ -164,7 +164,7 @@ public class GameManager : MonoBehaviour
 
 ### Project Settings Configuration
 
-Configure logger settings via Edit → Project Settings → Grove Games → Logger. Settings are stored in `ProjectSettings/GroveGamesLoggerSettings.json`.
+Configure logger settings via Edit → Project Settings → GroveGames → Logger. Settings are stored as a ScriptableObject in `ProjectSettings/GroveGamesLoggerSettings.asset` and automatically included in builds via `EditorBuildSettings`.
 
 | Setting                | Type       | Default       | Description                               |
 | ---------------------- | ---------- | ------------- | ----------------------------------------- |
@@ -174,10 +174,18 @@ Configure logger settings via Edit → Project Settings → Grove Games → Logg
 | `File Buffer Size`     | `int`      | `8192`        | Buffer size in bytes for file operations  |
 | `File Channel Capacity`| `int`      | `1000`        | Channel capacity for async log processing |
 
+For custom configurations or DI scenarios, pass settings directly:
+
+```csharp
+var settings = UnityLoggerSettings.GetOrCreate();
+var logger = UnityLoggerFactory.CreateLogger(settings, builder => { ... });
+```
+
 ### Unity Components
 
-- **`UnityLoggerFactory`**: Factory that reads configuration from Unity project settings
-- **`UnityLoggerSettings`**: Integration with Unity's project settings system
+- **`UnityLoggerFactory`**: Factory with GetOrCreate() pattern for DI-friendly architecture
+- **`UnityLoggerSettings`**: ScriptableObject with EditorBuildSettings integration
+- **`UnityLoggerSettingsProvider`**: Project Settings UI using UI Toolkit
 - **`UnityConsoleLogFormatter`**: Formatter for Unity console output (format: `[Tag] Message`)
 - **`UnityConsoleLogProcessor`**: Routes logs to `Debug.Log`, `Debug.LogWarning`, `Debug.LogError`
 - **`UnityLogFileFactory`**: File factory using `Application.persistentDataPath`
@@ -256,9 +264,24 @@ The addon automatically adds settings to your Godot project settings under `grov
 | `file_buffer_size`      | `int`      | `8192`        | Buffer size in bytes for file operations  |
 | `file_channel_capacity` | `int`      | `1000`        | Channel capacity for async log processing |
 
+Alternatively, create a Resource-based configuration at `res://addons/GroveGames.Logger/LoggerSettings.tres` and reference it via `[Export]`:
+
+```csharp
+public partial class GameManager : Node
+{
+    [Export] private GodotLoggerSettingsResource _loggerSettings;
+
+    public override void _Ready()
+    {
+        var logger = GodotLoggerFactory.CreateLogger(_loggerSettings, builder => { ... });
+    }
+}
+```
+
 ### Godot Components
 
-- **`GodotLoggerFactory`**: Factory that reads configuration from Godot project settings
+- **`GodotLoggerFactory`**: Factory with GetOrCreate() pattern for DI-friendly architecture
+- **`GodotLoggerSettingsResource`**: Optional Resource-based settings for asset-based configuration
 - **`GodotConsoleLogFormatter`**: Rich formatting for Godot's editor console
 - **`GodotSettings`**: Integration with Godot's project settings system
 - **`GodotConsoleLogProcessor`**: Processor optimized for Godot's output methods
