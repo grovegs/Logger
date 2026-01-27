@@ -18,7 +18,7 @@ namespace GroveGames.Logger.Unity
                 settings = ScriptableObject.CreateInstance<UnityLoggerSettings>();
             }
 
-            LoggerBuilder builder = new();
+            var builder = new LoggerBuilder();
             builder.SetMinimumLevel(settings.MinLogLevel);
             configure(builder);
             return builder.Build();

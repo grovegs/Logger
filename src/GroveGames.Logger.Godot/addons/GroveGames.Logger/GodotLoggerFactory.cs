@@ -18,7 +18,7 @@ public sealed class GodotLoggerFactory
             settings = new();
         }
 
-        LoggerBuilder builder = new();
+        var builder = new LoggerBuilder();
         builder.SetMinimumLevel(settings.MinLogLevel);
         configure(builder);
         return builder.Build();

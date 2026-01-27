@@ -17,10 +17,10 @@ namespace GroveGames.Logger.Unity.Editor
                 label = "Logger",
                 activateHandler = (searchContext, rootElement) =>
                 {
-                    UnityLoggerSettings settings = GetCurrentSettings();
-                    SerializedObject serializedObject = new SerializedObject(settings);
+                    var settings = GetCurrentSettings();
+                    var serializedObject = new SerializedObject(settings);
 
-                    VisualElement container = new VisualElement
+                    var container = new VisualElement
                     {
                         style =
                         {
@@ -31,7 +31,7 @@ namespace GroveGames.Logger.Unity.Editor
                         }
                     };
 
-                    Label title = new Label("Logger Settings")
+                    var title = new Label("Logger Settings")
                     {
                         style =
                         {
@@ -42,7 +42,7 @@ namespace GroveGames.Logger.Unity.Editor
                     };
                     container.Add(title);
 
-                    ObjectField assetField = new ObjectField("Settings Asset")
+                    var assetField = new ObjectField("Settings Asset")
                     {
                         objectType = typeof(UnityLoggerSettings),
                         value = settings,
@@ -75,7 +75,7 @@ namespace GroveGames.Logger.Unity.Editor
 
         private static UnityLoggerSettings GetCurrentSettings()
         {
-            if (EditorBuildSettings.TryGetConfigObject(UnityLoggerSettings.GetConfigName(), out UnityLoggerSettings existingSettings))
+            if (EditorBuildSettings.TryGetConfigObject(UnityLoggerSettings.GetConfigName(), out var existingSettings))
             {
                 if (existingSettings != null)
                 {
@@ -83,7 +83,7 @@ namespace GroveGames.Logger.Unity.Editor
                 }
             }
 
-            UnityLoggerSettings settings = AssetDatabase.LoadAssetAtPath<UnityLoggerSettings>(AssetPath);
+            var settings = AssetDatabase.LoadAssetAtPath<UnityLoggerSettings>(AssetPath);
             if (settings == null)
             {
                 settings = ScriptableObject.CreateInstance<UnityLoggerSettings>();
