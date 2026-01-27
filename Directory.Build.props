@@ -26,8 +26,7 @@
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageIcon>Icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Description>High-performance, zero-allocation logging library for .NET, Unity, and Godot
-      with Native AOT support</Description>
+    <Description>High-performance, zero-allocation logging library for .NET, Unity, and Godot</Description>
     <PackageTags>logger;logging;performance;zero-allocation;unity;godot;aot</PackageTags>
   </PropertyGroup>
 
