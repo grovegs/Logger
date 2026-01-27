@@ -49,7 +49,7 @@ public sealed class StreamWriterTests
         }
 
         // Assert
-        var result = Encoding.UTF8.GetString(stream.ToArray());
+        string result = Encoding.UTF8.GetString(stream.ToArray());
         Assert.Equal($"{testEntry}{Environment.NewLine}", result);
     }
 
@@ -58,20 +58,20 @@ public sealed class StreamWriterTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        var entries = new[] { "Entry1", "Entry2", "Entry3" };
+        string[] entries = new[] { "Entry1", "Entry2", "Entry3" };
 
         // Act
         using (var writer = new StreamWriter(stream, 1024, 100))
         {
-            foreach (var entry in entries)
+            foreach (string? entry in entries)
             {
                 writer.AddEntry(entry);
             }
         }
 
         // Assert
-        var result = Encoding.UTF8.GetString(stream.ToArray());
-        var expected = string.Join(Environment.NewLine, entries) + Environment.NewLine;
+        string result = Encoding.UTF8.GetString(stream.ToArray());
+        string expected = string.Join(Environment.NewLine, entries) + Environment.NewLine;
         Assert.Equal(expected, result);
     }
 
@@ -80,7 +80,7 @@ public sealed class StreamWriterTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        var largeEntry = new string('X', 100);
+        string largeEntry = new string('X', 100);
 
         // Act
         using (var writer = new StreamWriter(stream, 50, 10))
@@ -89,7 +89,7 @@ public sealed class StreamWriterTests
         }
 
         // Assert
-        var result = Encoding.UTF8.GetString(stream.ToArray());
+        string result = Encoding.UTF8.GetString(stream.ToArray());
         Assert.Equal($"{largeEntry}{Environment.NewLine}", result);
     }
 
@@ -107,7 +107,7 @@ public sealed class StreamWriterTests
         }
 
         // Assert
-        var result = Encoding.UTF8.GetString(stream.ToArray());
+        string result = Encoding.UTF8.GetString(stream.ToArray());
         Assert.Equal($"{unicodeEntry}{Environment.NewLine}", result);
     }
 
@@ -116,20 +116,20 @@ public sealed class StreamWriterTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        var entries = Enumerable.Range(1, 10).Select(i => $"Entry{i}").ToArray();
+        string[] entries = Enumerable.Range(1, 10).Select(i => $"Entry{i}").ToArray();
 
         // Act
         using (var writer = new StreamWriter(stream, 1024, 100))
         {
-            foreach (var entry in entries)
+            foreach (string? entry in entries)
             {
                 writer.AddEntry(entry);
             }
         }
 
         // Assert
-        var result = Encoding.UTF8.GetString(stream.ToArray());
-        var expected = string.Join(Environment.NewLine, entries) + Environment.NewLine;
+        string result = Encoding.UTF8.GetString(stream.ToArray());
+        string expected = string.Join(Environment.NewLine, entries) + Environment.NewLine;
         Assert.Equal(expected, result);
     }
 
@@ -187,21 +187,21 @@ public sealed class StreamWriterTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        var entries = Enumerable.Range(1, 100).Select(i => $"Entry{i}").ToArray();
+        string[] entries = Enumerable.Range(1, 100).Select(i => $"Entry{i}").ToArray();
 
         // Act
         using (var writer = new StreamWriter(stream, 1024, 10))
         {
-            foreach (var entry in entries)
+            foreach (string? entry in entries)
             {
                 writer.AddEntry(entry);
             }
         }
 
         // Assert
-        var result = Encoding.UTF8.GetString(stream.ToArray());
+        string result = Encoding.UTF8.GetString(stream.ToArray());
         Assert.NotEmpty(result);
-        var lines = result.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        string[] lines = result.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         Assert.True(lines.Length <= entries.Length);
     }
 
@@ -220,8 +220,8 @@ public sealed class StreamWriterTests
         }
 
         // Assert
-        var result = Encoding.UTF8.GetString(stream.ToArray());
-        var expected = $"{Environment.NewLine}NonEmpty{Environment.NewLine}{Environment.NewLine}";
+        string result = Encoding.UTF8.GetString(stream.ToArray());
+        string expected = $"{Environment.NewLine}NonEmpty{Environment.NewLine}{Environment.NewLine}";
         Assert.Equal(expected, result);
     }
 
@@ -236,7 +236,7 @@ public sealed class StreamWriterTests
         // Act
         using (var writer = new StreamWriter(stream, 1024, 100))
         {
-            var tasks = Enumerable.Range(0, threadCount).Select(threadId => Task.Run(() =>
+            Task[] tasks = Enumerable.Range(0, threadCount).Select(threadId => Task.Run(() =>
             {
                 for (int j = 0; j < entriesPerThread; j++)
                 {
@@ -248,11 +248,11 @@ public sealed class StreamWriterTests
         }
 
         // Assert
-        var result = Encoding.UTF8.GetString(stream.ToArray());
-        var lines = result.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        string result = Encoding.UTF8.GetString(stream.ToArray());
+        string[] lines = result.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
         Assert.NotEmpty(lines);
-        foreach (var line in lines)
+        foreach (string line in lines)
         {
             Assert.Matches(@"Thread\d+-Entry\d+", line);
         }
@@ -263,7 +263,7 @@ public sealed class StreamWriterTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        var entry = new string('X', 20);
+        string entry = new string('X', 20);
 
         // Act
         using (var writer = new StreamWriter(stream, 100, 50))
@@ -275,8 +275,8 @@ public sealed class StreamWriterTests
         }
 
         // Assert
-        var result = Encoding.UTF8.GetString(stream.ToArray());
-        var lines = result.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        string result = Encoding.UTF8.GetString(stream.ToArray());
+        string[] lines = result.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         Assert.Equal(4, lines.Length);
     }
 
@@ -285,7 +285,7 @@ public sealed class StreamWriterTests
     {
         // Arrange
         using var stream = new MemoryStream();
-        var expectedEntries = 10;
+        int expectedEntries = 10;
 
         // Act
         using (var writer = new StreamWriter(stream, 1024, 100))
@@ -297,8 +297,8 @@ public sealed class StreamWriterTests
         }
 
         // Assert
-        var result = Encoding.UTF8.GetString(stream.ToArray());
-        var lines = result.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        string result = Encoding.UTF8.GetString(stream.ToArray());
+        string[] lines = result.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         Assert.Equal(expectedEntries, lines.Length);
     }
 }

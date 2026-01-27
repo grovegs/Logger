@@ -24,9 +24,9 @@ public ref struct MessageInterpolatedStringHandler
 
     public MessageInterpolatedStringHandler(int literalLength, int formattedCount)
     {
-        var formattedLength = formattedCount * 16;
-        var bufferSize = literalLength + formattedLength;
-        var rentedArray = ArrayPool<char>.Shared.Rent(bufferSize);
+        int formattedLength = formattedCount * 16;
+        int bufferSize = literalLength + formattedLength;
+        char[] rentedArray = ArrayPool<char>.Shared.Rent(bufferSize);
         _buffer = rentedArray.AsSpan(0, bufferSize);
         _rentedArray = rentedArray;
         _position = 0;
@@ -58,7 +58,7 @@ public ref struct MessageInterpolatedStringHandler
 #else
     public bool AppendFormatted<T>(T value)
     {
-        var text = value switch
+        string text = value switch
         {
             IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
             _ => value?.ToString() ?? string.Empty
@@ -68,7 +68,7 @@ public ref struct MessageInterpolatedStringHandler
 
     public bool AppendFormatted<T>(T value, string? format)
     {
-        var text = value switch
+        string text = value switch
         {
             IFormattable formattable => formattable.ToString(format, CultureInfo.InvariantCulture),
             _ => value?.ToString() ?? string.Empty

@@ -34,7 +34,7 @@ public sealed class FileLogFormatterTests
         var formatter = new FileLogFormatter();
 
         // Act
-        var size = formatter.GetBufferSize(level, tag.AsSpan(), message.AsSpan());
+        int size = formatter.GetBufferSize(level, tag.AsSpan(), message.AsSpan());
 
         // Assert
         Assert.Equal(expected, size);
@@ -51,7 +51,7 @@ public sealed class FileLogFormatterTests
         var formatter = new FileLogFormatter();
 
         // Act
-        var size = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
+        int size = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
 
         // Assert
         Assert.Equal(expected, size);
@@ -63,9 +63,9 @@ public sealed class FileLogFormatterTests
         // Arrange
         var timeProvider = new TestTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
-        var tag = "Test";
-        var message = "Debug message";
-        var bufferSize = formatter.GetBufferSize(LogLevel.Debug, tag.AsSpan(), message.AsSpan());
+        string tag = "Test";
+        string message = "Debug message";
+        int bufferSize = formatter.GetBufferSize(LogLevel.Debug, tag.AsSpan(), message.AsSpan());
         Span<char> buffer = stackalloc char[bufferSize];
 
         // Act
@@ -81,9 +81,9 @@ public sealed class FileLogFormatterTests
         // Arrange
         var timeProvider = new TestTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
-        var tag = "Test";
-        var message = "Info message";
-        var bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
+        string tag = "Test";
+        string message = "Info message";
+        int bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
         Span<char> buffer = stackalloc char[bufferSize];
 
         // Act
@@ -99,9 +99,9 @@ public sealed class FileLogFormatterTests
         // Arrange
         var timeProvider = new TestTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
-        var tag = "Test";
-        var message = "Warning message";
-        var bufferSize = formatter.GetBufferSize(LogLevel.Warning, tag.AsSpan(), message.AsSpan());
+        string tag = "Test";
+        string message = "Warning message";
+        int bufferSize = formatter.GetBufferSize(LogLevel.Warning, tag.AsSpan(), message.AsSpan());
         Span<char> buffer = stackalloc char[bufferSize];
 
         // Act
@@ -117,9 +117,9 @@ public sealed class FileLogFormatterTests
         // Arrange
         var timeProvider = new TestTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
-        var tag = "Test";
-        var message = "Error message";
-        var bufferSize = formatter.GetBufferSize(LogLevel.Error, tag.AsSpan(), message.AsSpan());
+        string tag = "Test";
+        string message = "Error message";
+        int bufferSize = formatter.GetBufferSize(LogLevel.Error, tag.AsSpan(), message.AsSpan());
         Span<char> buffer = stackalloc char[bufferSize];
 
         // Act
@@ -135,9 +135,9 @@ public sealed class FileLogFormatterTests
         // Arrange
         var timeProvider = new TestTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
-        var tag = "Test";
-        var message = "Unknown message";
-        var bufferSize = formatter.GetBufferSize((LogLevel)999, tag.AsSpan(), message.AsSpan());
+        string tag = "Test";
+        string message = "Unknown message";
+        int bufferSize = formatter.GetBufferSize((LogLevel)999, tag.AsSpan(), message.AsSpan());
         Span<char> buffer = stackalloc char[bufferSize];
 
         // Act
@@ -153,9 +153,9 @@ public sealed class FileLogFormatterTests
         // Arrange
         var timeProvider = new TestTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
-        var tag = "";
-        var message = "Message";
-        var bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
+        string tag = "";
+        string message = "Message";
+        int bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
         Span<char> buffer = stackalloc char[bufferSize];
 
         // Act
@@ -171,9 +171,9 @@ public sealed class FileLogFormatterTests
         // Arrange
         var timeProvider = new TestTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
-        var tag = "Tag";
-        var message = "";
-        var bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
+        string tag = "Tag";
+        string message = "";
+        int bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
         Span<char> buffer = stackalloc char[bufferSize];
 
         // Act
@@ -189,9 +189,9 @@ public sealed class FileLogFormatterTests
         // Arrange
         var timeProvider = new TestTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
-        var tag = "";
-        var message = "";
-        var bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
+        string tag = "";
+        string message = "";
+        int bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
         Span<char> buffer = stackalloc char[bufferSize];
 
         // Act
@@ -207,9 +207,9 @@ public sealed class FileLogFormatterTests
         // Arrange
         var timeProvider = new TestTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
-        var tag = "VeryLongTagName";
-        var message = "This is a very long message with lots of content";
-        var bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
+        string tag = "VeryLongTagName";
+        string message = "This is a very long message with lots of content";
+        int bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
         Span<char> buffer = stackalloc char[bufferSize];
 
         // Act
@@ -225,9 +225,9 @@ public sealed class FileLogFormatterTests
         // Arrange
         var timeProvider = new TestTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
-        var tag = "Tag";
-        var message = "Message";
-        var bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
+        string tag = "Tag";
+        string message = "Message";
+        int bufferSize = formatter.GetBufferSize(LogLevel.Information, tag.AsSpan(), message.AsSpan());
         Span<char> buffer = stackalloc char[bufferSize];
 
         // Act

@@ -23,23 +23,23 @@ public sealed class FileLogFormatter : ILogFormatter
 
     public int GetBufferSize(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        var bufferSize = 9 + 1 + 1 + 2 + 1 + tag.Length + 2 + message.Length;
+        int bufferSize = 9 + 1 + 1 + 2 + 1 + tag.Length + 2 + message.Length;
         return bufferSize;
     }
 
     public void Format(Span<char> buffer, LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        var currentPosition = 0;
+        int currentPosition = 0;
         Span<char> timeBuffer = stackalloc char[TimeFormat.Length];
-        var currentTime = _timeProvider.GetUtcNow().DateTime;
+        DateTime currentTime = _timeProvider.GetUtcNow().DateTime;
 
         if (!currentTime.TryFormat(timeBuffer, out int charsWritten, TimeFormat))
         {
             "??:??:?? ".AsSpan().CopyTo(timeBuffer);
         }
 
-        var leftBracket = LeftBracket;
-        var rightBracket = RightBracket;
+        ReadOnlySpan<char> leftBracket = LeftBracket;
+        ReadOnlySpan<char> rightBracket = RightBracket;
 
         timeBuffer.CopyTo(buffer[currentPosition..]);
         currentPosition += TimeFormat.Length;
@@ -47,7 +47,7 @@ public sealed class FileLogFormatter : ILogFormatter
         leftBracket.CopyTo(buffer[currentPosition..]);
         currentPosition += leftBracket.Length;
 
-        var levelCharacter = LevelCharacter(level);
+        ReadOnlySpan<char> levelCharacter = LevelCharacter(level);
         levelCharacter.CopyTo(buffer[currentPosition..]);
         currentPosition += levelCharacter.Length;
 

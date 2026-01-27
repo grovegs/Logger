@@ -32,14 +32,14 @@ public sealed class FileLogProcessorTests
         public int GetBufferSize(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
         {
             GetBufferSizeCalls.Add((level, tag.ToString(), message.ToString()));
-            var formatted = $"{level}|{tag.ToString()}|{message.ToString()}";
+            string formatted = $"{level}|{tag.ToString()}|{message.ToString()}";
             return formatted.Length;
         }
 
         public void Format(Span<char> buffer, LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
         {
             FormatCalls.Add((level, tag.ToString(), message.ToString()));
-            var formatted = $"{level}|{tag.ToString()}|{message.ToString()}";
+            string formatted = $"{level}|{tag.ToString()}|{message.ToString()}";
             formatted.AsSpan().CopyTo(buffer[..formatted.Length]);
         }
     }
@@ -210,8 +210,8 @@ public sealed class FileLogProcessorTests
         var writer = new TestStreamWriter();
         var formatter = new TestLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
-        var longTag = new string('A', 50);
-        var longMessage = new string('B', 200);
+        string longTag = new string('A', 50);
+        string longMessage = new string('B', 200);
 
         // Act
         processor.ProcessLog(LogLevel.Information, longTag.AsSpan(), longMessage.AsSpan());
@@ -309,7 +309,7 @@ public sealed class FileLogProcessorTests
 
         // Assert
         Assert.Single(writer.Entries);
-        var entry = writer.Entries[0];
+        string entry = writer.Entries[0];
         Assert.Equal("Information|TEST|message", entry);
     }
 }

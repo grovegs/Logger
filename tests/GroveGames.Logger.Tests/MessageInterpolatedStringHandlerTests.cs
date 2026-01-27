@@ -8,7 +8,7 @@ public sealed class MessageInterpolatedStringHandlerTests
     public void Empty_ReturnsEmptyHandler()
     {
         // Act
-        var handler = MessageInterpolatedStringHandler.Empty;
+        MessageInterpolatedStringHandler handler = MessageInterpolatedStringHandler.Empty;
 
         // Assert
         Assert.True(handler.Written.IsEmpty);
@@ -41,7 +41,7 @@ public sealed class MessageInterpolatedStringHandlerTests
         using var handler = new MessageInterpolatedStringHandler(10, 1);
 
         // Act
-        var result = handler.Written;
+        ReadOnlySpan<char> result = handler.Written;
 
         // Assert
         Assert.True(result.IsEmpty);
@@ -54,7 +54,7 @@ public sealed class MessageInterpolatedStringHandlerTests
         using var handler = new MessageInterpolatedStringHandler(10, 0);
 
         // Act
-        var result = handler.AppendLiteral("Hello");
+        bool result = handler.AppendLiteral("Hello");
 
         // Assert
         Assert.True(result);
@@ -68,7 +68,7 @@ public sealed class MessageInterpolatedStringHandlerTests
         using var handler = new MessageInterpolatedStringHandler(10, 0);
 
         // Act
-        var result = handler.AppendLiteral("");
+        bool result = handler.AppendLiteral("");
 
         // Assert
         Assert.True(result);
@@ -80,10 +80,10 @@ public sealed class MessageInterpolatedStringHandlerTests
     {
         // Arrange
         using var handler = new MessageInterpolatedStringHandler(5, 0);
-        var longString = "This string is longer than 5 characters";
+        string longString = "This string is longer than 5 characters";
 
         // Act
-        var result = handler.AppendLiteral(longString);
+        bool result = handler.AppendLiteral(longString);
 
         // Assert
         Assert.False(result);
@@ -96,9 +96,9 @@ public sealed class MessageInterpolatedStringHandlerTests
         using var handler = new MessageInterpolatedStringHandler(20, 0);
 
         // Act
-        var result1 = handler.AppendLiteral("Hello");
-        var result2 = handler.AppendLiteral(" ");
-        var result3 = handler.AppendLiteral("World");
+        bool result1 = handler.AppendLiteral("Hello");
+        bool result2 = handler.AppendLiteral(" ");
+        bool result3 = handler.AppendLiteral("World");
 
         // Assert
         Assert.True(result1);
@@ -117,7 +117,7 @@ public sealed class MessageInterpolatedStringHandlerTests
         using var handler = new MessageInterpolatedStringHandler(20, 1);
 
         // Act
-        var result = handler.AppendFormatted(value);
+        bool result = handler.AppendFormatted(value);
 
         // Assert
         Assert.True(result);
@@ -134,7 +134,7 @@ public sealed class MessageInterpolatedStringHandlerTests
         using var handler = new MessageInterpolatedStringHandler(30, 1);
 
         // Act
-        var result = handler.AppendFormatted(value);
+        bool result = handler.AppendFormatted(value);
 
         // Assert
         Assert.True(result);
@@ -148,7 +148,7 @@ public sealed class MessageInterpolatedStringHandlerTests
         using var handler = new MessageInterpolatedStringHandler(20, 1);
 
         // Act
-        var result = handler.AppendFormatted(42, "X");
+        bool result = handler.AppendFormatted(42, "X");
 
         // Assert
         Assert.True(result);
@@ -162,7 +162,7 @@ public sealed class MessageInterpolatedStringHandlerTests
         using var handler = new MessageInterpolatedStringHandler(20, 1);
 
         // Act
-        var result = handler.AppendFormatted(3.14159, "F2");
+        bool result = handler.AppendFormatted(3.14159, "F2");
 
         // Assert
         Assert.True(result);
@@ -177,7 +177,7 @@ public sealed class MessageInterpolatedStringHandlerTests
         ReadOnlySpan<char> span = "Test".AsSpan();
 
         // Act
-        var result = handler.AppendFormatted(span);
+        bool result = handler.AppendFormatted(span);
 
         // Assert
         Assert.True(result);
@@ -192,7 +192,7 @@ public sealed class MessageInterpolatedStringHandlerTests
         ReadOnlySpan<char> span = [];
 
         // Act
-        var result = handler.AppendFormatted(span);
+        bool result = handler.AppendFormatted(span);
 
         // Assert
         Assert.True(result);
@@ -204,10 +204,10 @@ public sealed class MessageInterpolatedStringHandlerTests
     {
         // Arrange
         using var handler = new MessageInterpolatedStringHandler(1, 0);
-        var value = 12345;
+        int value = 12345;
 
         // Act
-        var result = handler.AppendFormatted(value);
+        bool result = handler.AppendFormatted(value);
 
         // Assert
         Assert.False(result);
@@ -220,10 +220,10 @@ public sealed class MessageInterpolatedStringHandlerTests
         using var handler = new MessageInterpolatedStringHandler(50, 2);
 
         // Act
-        var result1 = handler.AppendLiteral("Value: ");
-        var result2 = handler.AppendFormatted(42);
-        var result3 = handler.AppendLiteral(", Double: ");
-        var result4 = handler.AppendFormatted(3.14, "F1");
+        bool result1 = handler.AppendLiteral("Value: ");
+        bool result2 = handler.AppendFormatted(42);
+        bool result3 = handler.AppendLiteral(", Double: ");
+        bool result4 = handler.AppendFormatted(3.14, "F1");
 
         // Assert
         Assert.True(result1);
@@ -240,8 +240,8 @@ public sealed class MessageInterpolatedStringHandlerTests
         using var handler = new MessageInterpolatedStringHandler(5, 0);
 
         // Act
-        var result1 = handler.AppendLiteral("Hello");
-        var result2 = handler.AppendLiteral("X");
+        bool result1 = handler.AppendLiteral("Hello");
+        bool result2 = handler.AppendLiteral("X");
 
         // Assert
         Assert.True(result1);
@@ -258,7 +258,7 @@ public sealed class MessageInterpolatedStringHandlerTests
         // Act
         handler.AppendLiteral("Hello ");
         handler.AppendFormatted(123);
-        var written = handler.Written;
+        ReadOnlySpan<char> written = handler.Written;
 
         // Assert
         Assert.Equal("Hello 123", written.ToString());
@@ -270,11 +270,11 @@ public sealed class MessageInterpolatedStringHandlerTests
     {
         // Arrange
         using var handler = new MessageInterpolatedStringHandler(10, 3);
-        var testString58 = new string('A', 58);
+        string testString58 = new string('A', 58);
 
         // Act
-        var result58 = handler.AppendLiteral(testString58);
-        var result59 = handler.AppendLiteral("B");
+        bool result58 = handler.AppendLiteral(testString58);
+        bool result59 = handler.AppendLiteral("B");
 
         // Assert
         Assert.True(result58);
@@ -309,12 +309,12 @@ public sealed class MessageInterpolatedStringHandlerTests
     public void Empty_BufferOperations_AlwaysReturnFalse()
     {
         // Arrange
-        var handler = MessageInterpolatedStringHandler.Empty;
+        MessageInterpolatedStringHandler handler = MessageInterpolatedStringHandler.Empty;
 
         // Act
-        var result1 = handler.AppendLiteral("Any text");
-        var result2 = handler.AppendFormatted(12345);
-        var result3 = handler.AppendFormatted("test".AsSpan());
+        bool result1 = handler.AppendLiteral("Any text");
+        bool result2 = handler.AppendFormatted(12345);
+        bool result3 = handler.AppendFormatted("test".AsSpan());
 
         // Assert
         Assert.False(result1);
@@ -328,18 +328,18 @@ public sealed class MessageInterpolatedStringHandlerTests
     {
         // Arrange
         using var handler = new MessageInterpolatedStringHandler(1000, 10);
-        var largeString = new string('X', 500);
+        string largeString = new string('X', 500);
 
         // Act
-        var result1 = handler.AppendLiteral(largeString);
-        var result2 = handler.AppendFormatted(999999);
-        var result3 = handler.AppendLiteral("End");
+        bool result1 = handler.AppendLiteral(largeString);
+        bool result2 = handler.AppendFormatted(999999);
+        bool result3 = handler.AppendLiteral("End");
 
         // Assert
         Assert.True(result1);
         Assert.True(result2);
         Assert.True(result3);
-        var written = handler.Written.ToString();
+        string written = handler.Written.ToString();
         Assert.StartsWith(largeString, written);
         Assert.Contains("999999", written);
         Assert.EndsWith("End", written);
@@ -354,7 +354,7 @@ public sealed class MessageInterpolatedStringHandlerTests
         using var handler = new MessageInterpolatedStringHandler(20, 1);
 
         // Act
-        var result = handler.AppendFormatted(value.ToString().AsSpan());
+        bool result = handler.AppendFormatted(value.ToString().AsSpan());
 
         // Assert
         Assert.True(result);
@@ -369,7 +369,7 @@ public sealed class MessageInterpolatedStringHandlerTests
         var guid = Guid.NewGuid();
 
         // Act
-        var result = handler.AppendFormatted(guid);
+        bool result = handler.AppendFormatted(guid);
 
         // Assert
         Assert.True(result);
@@ -381,10 +381,10 @@ public sealed class MessageInterpolatedStringHandlerTests
     {
         // Arrange
         using var handler = new MessageInterpolatedStringHandler(20, 1);
-        var value = 1234.56;
+        double value = 1234.56;
 
         // Act
-        var result = handler.AppendFormatted(value);
+        bool result = handler.AppendFormatted(value);
 
         // Assert
         Assert.True(result);

@@ -26,12 +26,12 @@ public sealed class LogFileFactory : ILogFileFactory
 
     public Stream CreateFile()
     {
-        var path = Path.Combine(_root, _folderName);
-        var fileName = GenerateFileName();
-        var fullPath = Path.Combine(path, fileName);
+        string path = Path.Combine(_root, _folderName);
+        string fileName = GenerateFileName();
+        string fullPath = Path.Combine(path, fileName);
 
         EnsureDirectoryExists(path);
-        var fileStream = CreateFileStream(fullPath);
+        Stream fileStream = CreateFileStream(fullPath);
         CleanupOldFiles(path);
 
         return fileStream;
@@ -68,7 +68,7 @@ public sealed class LogFileFactory : ILogFileFactory
 
         if (files.Count > _maxFileCount)
         {
-            var oldestFile = files.OrderBy(file => file.CreationTime).First();
+            FileInfo oldestFile = files.OrderBy(file => file.CreationTime).First();
             _fileSystem.DeleteFile(oldestFile.FullPath);
         }
     }

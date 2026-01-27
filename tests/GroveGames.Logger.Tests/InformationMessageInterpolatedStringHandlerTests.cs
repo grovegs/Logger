@@ -215,7 +215,7 @@ public class InformationMessageInterpolatedStringHandlerTests
         // Arrange
         var logger = new TestLogger(LogLevel.Information);
         var handler = new InformationMessageInterpolatedStringHandler(30, 1, logger);
-        var value = 123.456789;
+        double value = 123.456789;
 
         // Act
         handler.AppendFormatted(value, "F3");
@@ -246,7 +246,7 @@ public class InformationMessageInterpolatedStringHandlerTests
         // Arrange
         var logger = new TestLogger(LogLevel.Information);
         var handler = new InformationMessageInterpolatedStringHandler(30, 1, logger);
-        var value = 1234567890L;
+        long value = 1234567890L;
 
         // Act
         handler.AppendFormatted(value, "N0");

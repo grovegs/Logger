@@ -17,7 +17,7 @@ public sealed class Logger : ILogger, IDisposable
             throw new ArgumentException("At least one log processor is required.", nameof(logProcessors));
         }
 
-        foreach (var processor in logProcessors)
+        foreach (ILogProcessor processor in logProcessors)
         {
             ArgumentNullException.ThrowIfNull(processor, nameof(logProcessors));
         }
@@ -36,7 +36,7 @@ public sealed class Logger : ILogger, IDisposable
             return;
         }
 
-        foreach (var logProcessor in _logProcessors)
+        foreach (ILogProcessor logProcessor in _logProcessors)
         {
             logProcessor.ProcessLog(level, tag, message);
         }
@@ -49,7 +49,7 @@ public sealed class Logger : ILogger, IDisposable
             return;
         }
 
-        foreach (var logProcessor in _logProcessors)
+        foreach (ILogProcessor logProcessor in _logProcessors)
         {
             if (logProcessor is IDisposable disposable)
             {

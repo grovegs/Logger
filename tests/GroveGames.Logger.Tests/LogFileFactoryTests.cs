@@ -84,7 +84,7 @@ public sealed class LogFileFactoryTests
 
         public DateTimeOffset GetUtcNow()
         {
-            var milliseconds = Interlocked.Increment(ref _counter);
+            int milliseconds = Interlocked.Increment(ref _counter);
             return new DateTimeOffset(2024, 1, 15, 10, 30, 45, 0, TimeSpan.Zero).AddMilliseconds(milliseconds);
         }
     }
@@ -152,7 +152,7 @@ public sealed class LogFileFactoryTests
         var factory = new LogFileFactory("/root", "logs", 10, 1024, fileSystem, timeProvider);
 
         // Act
-        using var stream = factory.CreateFile();
+        using Stream stream = factory.CreateFile();
 
         // Assert
         Assert.True(fileSystem.CreateDirectoryCalled);
@@ -172,7 +172,7 @@ public sealed class LogFileFactoryTests
         var factory = new LogFileFactory("/root", "logs", 10, 1024, fileSystem, timeProvider);
 
         // Act
-        using var stream = factory.CreateFile();
+        using Stream stream = factory.CreateFile();
 
         // Assert
         Assert.False(fileSystem.CreateDirectoryCalled);
@@ -191,7 +191,7 @@ public sealed class LogFileFactoryTests
         var factory = new LogFileFactory("/root", "logs", 10, 1024, fileSystem, timeProvider);
 
         // Act
-        using var stream = factory.CreateFile();
+        using Stream stream = factory.CreateFile();
 
         // Assert
         Assert.Equal("/root/logs/20240115_103045_123.log", fileSystem.CreateFileStreamPath);
@@ -206,7 +206,7 @@ public sealed class LogFileFactoryTests
     public void CreateFile_FileCountBelowMax_DoesNotDeleteFiles()
     {
         // Arrange
-        var existingFiles = new[]
+        FileInfo[] existingFiles = new[]
         {
             new FileInfo("/root/logs/20240101_120000_000.log", new DateTime(2024, 1, 1)),
             new FileInfo("/root/logs/20240102_120000_000.log", new DateTime(2024, 1, 2))
@@ -220,7 +220,7 @@ public sealed class LogFileFactoryTests
         var factory = new LogFileFactory("/root", "logs", 5, 1024, fileSystem, timeProvider);
 
         // Act
-        using var stream = factory.CreateFile();
+        using Stream stream = factory.CreateFile();
 
         // Assert
         Assert.False(fileSystem.DeleteFileCalled);
@@ -230,7 +230,7 @@ public sealed class LogFileFactoryTests
     public void CreateFile_FileCountExceedsMax_DeletesOldestFile()
     {
         // Arrange
-        var existingFiles = new[]
+        FileInfo[] existingFiles = new[]
         {
             new FileInfo("/root/logs/20240101_120000_000.log", new DateTime(2024, 1, 1)),
             new FileInfo("/root/logs/20240103_120000_000.log", new DateTime(2024, 1, 3)),
@@ -245,7 +245,7 @@ public sealed class LogFileFactoryTests
         var factory = new LogFileFactory("/root", "logs", 2, 1024, fileSystem, timeProvider);
 
         // Act
-        using var stream = factory.CreateFile();
+        using Stream stream = factory.CreateFile();
 
         // Assert
         Assert.True(fileSystem.DeleteFileCalled);
@@ -267,7 +267,7 @@ public sealed class LogFileFactoryTests
         var factory = new LogFileFactory("/root", "logs", 10, 1024, fileSystem, timeProvider);
 
         // Act
-        var stream = factory.CreateFile();
+        Stream stream = factory.CreateFile();
 
         // Assert
         Assert.Same(expectedStream, stream);
@@ -283,9 +283,9 @@ public sealed class LogFileFactoryTests
         var factory = new LogFileFactory("/root", "logs", 100, 1024, fileSystem, timeProvider);
 
         // Act
-        var tasks = Enumerable.Range(0, 10).Select(_ => Task.Run(() =>
+        Task[] tasks = Enumerable.Range(0, 10).Select(_ => Task.Run(() =>
         {
-            using var stream = factory.CreateFile();
+            using Stream stream = factory.CreateFile();
         })).ToArray();
 
         await Task.WhenAll(tasks);

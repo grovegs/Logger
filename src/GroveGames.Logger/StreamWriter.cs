@@ -6,7 +6,7 @@ namespace GroveGames.Logger;
 
 public sealed class StreamWriter : IStreamWriter
 {
-    private static readonly byte[] NewLine = [.. Encoding.UTF8.GetBytes(Environment.NewLine)];
+    private static readonly byte[] s_newLine = [.. Encoding.UTF8.GetBytes(Environment.NewLine)];
 
     private readonly Stream _stream;
     private readonly int _bufferSize;
@@ -40,11 +40,11 @@ public sealed class StreamWriter : IStreamWriter
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var byteCount = Encoding.UTF8.GetByteCount(entry);
-        var totalLength = byteCount + NewLine.Length;
-        var buffer = ArrayPool<byte>.Shared.Rent(totalLength);
-        var bytesWritten = Encoding.UTF8.GetBytes(entry, buffer);
-        NewLine.CopyTo(buffer.AsSpan(bytesWritten));
+        int byteCount = Encoding.UTF8.GetByteCount(entry);
+        int totalLength = byteCount + s_newLine.Length;
+        byte[] buffer = ArrayPool<byte>.Shared.Rent(totalLength);
+        int bytesWritten = Encoding.UTF8.GetBytes(entry, buffer);
+        s_newLine.CopyTo(buffer.AsSpan(bytesWritten));
 
         if (!_channel.Writer.TryWrite(new ArraySegment<byte>(buffer, 0, totalLength)))
         {
@@ -54,16 +54,16 @@ public sealed class StreamWriter : IStreamWriter
 
     private async Task ProcessEntriesAsync(CancellationToken cancellationToken)
     {
-        var batchBuffer = ArrayPool<byte>.Shared.Rent(_bufferSize);
-        var batchPosition = 0;
-        var reader = _channel.Reader;
+        byte[] batchBuffer = ArrayPool<byte>.Shared.Rent(_bufferSize);
+        int batchPosition = 0;
+        ChannelReader<ArraySegment<byte>> reader = _channel.Reader;
 
         while (await reader.WaitToReadAsync(cancellationToken))
         {
-            while (reader.TryRead(out var segment))
+            while (reader.TryRead(out ArraySegment<byte> segment))
             {
-                var entryBuffer = segment.Array!;
-                var entryLength = segment.Count;
+                byte[] entryBuffer = segment.Array!;
+                int entryLength = segment.Count;
 
                 if (batchPosition + entryLength > _bufferSize)
                 {
