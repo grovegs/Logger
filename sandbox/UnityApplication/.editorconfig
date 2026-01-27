@@ -66,6 +66,12 @@ dotnet_code_quality_unused_parameters = all:suggestion
 # Suppression preferences
 dotnet_remove_unnecessary_suppression_exclusions = none
 
+# Disable XML documentation warnings
+dotnet_diagnostic.CS1591.severity = none
+
+# Disable namespace/folder structure mismatch warnings
+dotnet_diagnostic.IDE0130.severity = none
+
 #### C# Coding Conventions ####
 [*.cs]
 

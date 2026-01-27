@@ -4,7 +4,7 @@ namespace GroveGames.Logger.Unity
     {
         public static void AddUnityFileLogProcessor(this ILoggerBuilder builder)
         {
-            var settings = UnityLoggerSettings.Load();
+            var settings = UnityLoggerSettings.GetOrCreate();
             AddUnityFileLogProcessor(builder, settings);
         }
 

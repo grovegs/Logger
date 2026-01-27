@@ -11,7 +11,6 @@ namespace GroveGames.Logger.Unity
 
         public static Logger CreateLogger(UnityLoggerSettings settings, Action<ILoggerBuilder> configure)
         {
-            ArgumentNullException.ThrowIfNull(settings);
             var builder = new LoggerBuilder();
             builder.SetMinimumLevel(settings.MinLogLevel);
             configure(builder);

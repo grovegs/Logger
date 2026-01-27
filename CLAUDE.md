@@ -60,7 +60,7 @@ dotnet pack -c Release
 
 **Unity Settings:**
 
-- Use ScriptableObject for project-wide settings (stored in ProjectSettings/)
+- Use ScriptableObject for project-wide settings (stored in Assets/Settings/)
 - Use EditorBuildSettings.AddConfigObject() for runtime access
 - Settings provider in Editor/ folder using UI Toolkit (PropertyField, VisualElement)
 - No singletons - settings accessed via GetOrCreate()

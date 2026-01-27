@@ -10,9 +10,9 @@
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
+    "overrideReferences": true,
     "precompiledReferences": [
-        "nunit.framework.dll"
+        "GroveGames.Logger.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [

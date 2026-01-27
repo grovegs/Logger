@@ -1,4 +1,7 @@
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace GroveGames.Logger.Unity
 {
@@ -20,12 +23,24 @@ namespace GroveGames.Logger.Unity
 
         public static UnityLoggerSettings GetOrCreate()
         {
-            if (EditorBuildSettings.TryGetConfigObject(ConfigName, out UnityLoggerSettings settings))
+#if UNITY_EDITOR
+            if (EditorBuildSettings.TryGetConfigObject<UnityLoggerSettings>(ConfigName, out var settings))
+            {
+                return settings;
+            }
+
+            var newSettings = CreateInstance<UnityLoggerSettings>();
+            newSettings.name = ConfigName;
+            return newSettings;
+#else
+            var settings = FindObjectOfType<UnityLoggerSettings>();
+            if (settings != null)
             {
                 return settings;
             }
 
             return CreateInstance<UnityLoggerSettings>();
+#endif
         }
 
         internal static string GetConfigName() => ConfigName;

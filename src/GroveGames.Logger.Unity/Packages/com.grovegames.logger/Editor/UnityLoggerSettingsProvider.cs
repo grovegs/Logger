@@ -7,7 +7,7 @@ namespace GroveGames.Logger.Unity.Editor
 {
     internal static class UnityLoggerSettingsProvider
     {
-        private const string AssetPath = "ProjectSettings/GroveGamesLoggerSettings.asset";
+        private const string AssetPath = "Assets/Settings/GroveGamesLoggerSettings.asset";
 
         [SettingsProvider]
         public static SettingsProvider CreateProvider()
@@ -60,6 +60,14 @@ namespace GroveGames.Logger.Unity.Editor
             if (settings == null)
             {
                 settings = ScriptableObject.CreateInstance<UnityLoggerSettings>();
+
+                string directory = System.IO.Path.GetDirectoryName(AssetPath);
+                if (!AssetDatabase.IsValidFolder(directory))
+                {
+                    System.IO.Directory.CreateDirectory(directory);
+                    AssetDatabase.Refresh();
+                }
+
                 AssetDatabase.CreateAsset(settings, AssetPath);
                 AssetDatabase.SaveAssets();
             }
