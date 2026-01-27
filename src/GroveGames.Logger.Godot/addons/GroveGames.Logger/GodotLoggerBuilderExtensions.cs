@@ -6,16 +6,16 @@ public static class GodotLoggerBuilderExtensions
 {
     public static void AddGodotFileLogProcessor(this ILoggerBuilder builder)
     {
-        var settings = GodotLoggerSettingsResource.GetOrCreate();
-        var godotFileFactory = new GodotLogFileFactory(settings.FileFolderName, settings.MaxFileCount, settings.FileBufferSize);
-        var streamWriter = new StreamWriter(godotFileFactory.CreateFile(), settings.FileBufferSize, settings.FileChannelCapacity);
-        var fileLogFormatter = new FileLogFormatter();
+        GodotLoggerSettingsResource settings = GodotLoggerSettingsResource.GetOrCreate();
+        GodotLogFileFactory godotFileFactory = new(settings.FileFolderName, settings.MaxFileCount, settings.FileBufferSize);
+        StreamWriter streamWriter = new(godotFileFactory.CreateFile(), settings.FileBufferSize, settings.FileChannelCapacity);
+        FileLogFormatter fileLogFormatter = new();
         builder.AddLogProcessor(new FileLogProcessor(streamWriter, fileLogFormatter));
     }
 
     public static void AddGodotConsoleLogProcessor(this ILoggerBuilder builder)
     {
-        var godotConsoleLogFormatter = new GodotConsoleLogFormatter();
+        GodotConsoleLogFormatter godotConsoleLogFormatter = new();
         builder.AddLogProcessor(new GodotConsoleLogProcessor(godotConsoleLogFormatter));
     }
 }

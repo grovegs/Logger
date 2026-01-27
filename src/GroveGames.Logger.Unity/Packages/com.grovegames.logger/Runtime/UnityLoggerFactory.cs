@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace GroveGames.Logger.Unity
 {
@@ -11,7 +12,13 @@ namespace GroveGames.Logger.Unity
 
         public static Logger CreateLogger(UnityLoggerSettings settings, Action<ILoggerBuilder> configure)
         {
-            var builder = new LoggerBuilder();
+            if (settings == null)
+            {
+                Debug.LogError("UnityLoggerSettings cannot be null");
+                settings = ScriptableObject.CreateInstance<UnityLoggerSettings>();
+            }
+
+            LoggerBuilder builder = new();
             builder.SetMinimumLevel(settings.MinLogLevel);
             configure(builder);
             return builder.Build();

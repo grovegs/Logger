@@ -30,7 +30,7 @@ public partial class GodotLoggerSettingsResource : Resource
             return ResourceLoader.Load<GodotLoggerSettingsResource>(DefaultResourcePath);
         }
 
-        return new GodotLoggerSettingsResource();
+        return new();
     }
 
     internal static string GetProjectSettingsKey() => ProjectSettingsKey;

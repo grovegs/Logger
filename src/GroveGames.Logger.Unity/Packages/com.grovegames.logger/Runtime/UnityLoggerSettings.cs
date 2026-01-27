@@ -34,12 +34,13 @@ namespace GroveGames.Logger.Unity
             return newSettings;
 #else
             var settings = FindObjectOfType<UnityLoggerSettings>();
-            if (settings != null)
+
+            if (settings == null)
             {
-                return settings;
+                settings = CreateInstance<UnityLoggerSettings>();
             }
 
-            return CreateInstance<UnityLoggerSettings>();
+            return settings;
 #endif
         }
 

@@ -7,7 +7,7 @@ namespace GroveGames.Logger.Unity.Editor
 {
     internal static class UnityLoggerSettingsProvider
     {
-        private const string AssetPath = "Assets/Settings/GroveGamesLoggerSettings.asset";
+        private const string AssetPath = "Assets/Settings/LoggerSettings.asset";
 
         [SettingsProvider]
         public static SettingsProvider CreateProvider()
@@ -17,7 +17,8 @@ namespace GroveGames.Logger.Unity.Editor
                 label = "Logger",
                 activateHandler = (searchContext, rootElement) =>
                 {
-                    SerializedObject serializedObject = GetSerializedSettings();
+                    UnityLoggerSettings settings = GetCurrentSettings();
+                    SerializedObject serializedObject = new SerializedObject(settings);
 
                     VisualElement container = new VisualElement
                     {
@@ -41,6 +42,24 @@ namespace GroveGames.Logger.Unity.Editor
                     };
                     container.Add(title);
 
+                    ObjectField assetField = new ObjectField("Settings Asset")
+                    {
+                        objectType = typeof(UnityLoggerSettings),
+                        value = settings,
+                        style = { marginBottom = 10 }
+                    };
+                    assetField.RegisterValueChangedCallback(evt =>
+                    {
+                        if (evt.newValue is UnityLoggerSettings newSettings)
+                        {
+                            EditorBuildSettings.AddConfigObject(UnityLoggerSettings.GetConfigName(), newSettings, true);
+                            serializedObject.Dispose();
+                            serializedObject = new SerializedObject(newSettings);
+                            rootElement.Bind(serializedObject);
+                        }
+                    });
+                    container.Add(assetField);
+
                     container.Add(new PropertyField(serializedObject.FindProperty("_minLogLevel"), "Min Log Level"));
                     container.Add(new PropertyField(serializedObject.FindProperty("_maxFileCount"), "Max File Count"));
                     container.Add(new PropertyField(serializedObject.FindProperty("_fileFolderName"), "File Folder Name"));
@@ -54,8 +73,16 @@ namespace GroveGames.Logger.Unity.Editor
             };
         }
 
-        private static UnityLoggerSettings GetOrCreateSettings()
+        private static UnityLoggerSettings GetCurrentSettings()
         {
+            if (EditorBuildSettings.TryGetConfigObject(UnityLoggerSettings.GetConfigName(), out UnityLoggerSettings existingSettings))
+            {
+                if (existingSettings != null)
+                {
+                    return existingSettings;
+                }
+            }
+
             UnityLoggerSettings settings = AssetDatabase.LoadAssetAtPath<UnityLoggerSettings>(AssetPath);
             if (settings == null)
             {
@@ -74,11 +101,6 @@ namespace GroveGames.Logger.Unity.Editor
 
             EditorBuildSettings.AddConfigObject(UnityLoggerSettings.GetConfigName(), settings, true);
             return settings;
-        }
-
-        private static SerializedObject GetSerializedSettings()
-        {
-            return new SerializedObject(GetOrCreateSettings());
         }
     }
 }
