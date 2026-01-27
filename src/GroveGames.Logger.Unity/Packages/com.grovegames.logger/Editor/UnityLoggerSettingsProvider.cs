@@ -75,7 +75,7 @@ namespace GroveGames.Logger.Unity.Editor
 
         private static UnityLoggerSettings GetCurrentSettings()
         {
-            if (EditorBuildSettings.TryGetConfigObject(UnityLoggerSettings.GetConfigName(), out var existingSettings))
+            if (EditorBuildSettings.TryGetConfigObject<UnityLoggerSettings>(UnityLoggerSettings.GetConfigName(), out var existingSettings))
             {
                 if (existingSettings != null)
                 {
