@@ -49,13 +49,13 @@ public sealed class LoggerTests
     [Fact]
     public void Constructor_NullProcessors_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new Logger(null!, LogLevel.Information));
+        Assert.Throws<ArgumentNullException>(() => new Logger(null!, [], LogLevel.Information));
     }
 
     [Fact]
     public void Constructor_EmptyProcessors_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => new Logger([], LogLevel.Information));
+        Assert.Throws<ArgumentException>(() => new Logger([], [], LogLevel.Information));
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public sealed class LoggerTests
         var processors = new ILogProcessor[] { new TestLogProcessor(), null!, new TestLogProcessor() };
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new Logger(processors, LogLevel.Information));
+        Assert.Throws<ArgumentNullException>(() => new Logger(processors, [], LogLevel.Information));
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public sealed class LoggerTests
         var processors = new ILogProcessor[] { new TestLogProcessor() };
 
         // Act
-        using var logger = new Logger(processors, LogLevel.Information);
+        using var logger = new Logger(processors, [], LogLevel.Information);
 
         // Assert
         Assert.NotNull(logger);
@@ -88,7 +88,7 @@ public sealed class LoggerTests
         var processors = new ILogProcessor[] { new TestLogProcessor() };
 
         // Act
-        using var logger = new Logger(processors, LogLevel.Warning);
+        using var logger = new Logger(processors, [], LogLevel.Warning);
 
         // Assert
         Assert.Equal(LogLevel.Warning, logger.MinimumLevel);
@@ -99,7 +99,7 @@ public sealed class LoggerTests
     {
         // Arrange
         var processors = new ILogProcessor[] { new TestLogProcessor() };
-        var logger = new Logger(processors, LogLevel.Information);
+        var logger = new Logger(processors, [], LogLevel.Information);
         logger.Dispose();
 
         // Act & Assert
@@ -112,7 +112,7 @@ public sealed class LoggerTests
         // Arrange
         var processor = new TestLogProcessor();
         var processors = new ILogProcessor[] { processor };
-        using var logger = new Logger(processors, LogLevel.Warning);
+        using var logger = new Logger(processors, [], LogLevel.Warning);
 
         // Act
         logger.Log(LogLevel.Information, "tag", "message");
@@ -127,7 +127,7 @@ public sealed class LoggerTests
         // Arrange
         var processor = new TestLogProcessor();
         var processors = new ILogProcessor[] { processor };
-        using var logger = new Logger(processors, LogLevel.Warning);
+        using var logger = new Logger(processors, [], LogLevel.Warning);
 
         // Act
         logger.Log(LogLevel.Warning, "tag", "message");
@@ -145,7 +145,7 @@ public sealed class LoggerTests
         // Arrange
         var processor = new TestLogProcessor();
         var processors = new ILogProcessor[] { processor };
-        using var logger = new Logger(processors, LogLevel.Information);
+        using var logger = new Logger(processors, [], LogLevel.Information);
 
         // Act
         logger.Log(LogLevel.Error, "tag", "message");
@@ -163,7 +163,7 @@ public sealed class LoggerTests
         var processor2 = new TestLogProcessor();
         var processor3 = new TestLogProcessor();
         var processors = new ILogProcessor[] { processor1, processor2, processor3 };
-        using var logger = new Logger(processors, LogLevel.Debug);
+        using var logger = new Logger(processors, [], LogLevel.Debug);
 
         // Act
         logger.Log(LogLevel.Information, "tag", "message");
@@ -180,7 +180,7 @@ public sealed class LoggerTests
         // Arrange
         var processor = new TestLogProcessor();
         var processors = new ILogProcessor[] { processor };
-        using var logger = new Logger(processors, LogLevel.Debug);
+        using var logger = new Logger(processors, [], LogLevel.Debug);
 
         // Act
         logger.Log(LogLevel.Information, ReadOnlySpan<char>.Empty, ReadOnlySpan<char>.Empty);
@@ -199,7 +199,7 @@ public sealed class LoggerTests
         var processor2 = new TestLogProcessor(); // Not disposable
         var processor3 = new DisposableTestLogProcessor();
         var processors = new ILogProcessor[] { processor1, processor2, processor3 };
-        var logger = new Logger(processors, LogLevel.Information);
+        var logger = new Logger(processors, [], LogLevel.Information);
 
         // Act
         logger.Dispose();
@@ -215,7 +215,7 @@ public sealed class LoggerTests
         // Arrange
         var processor = new DisposableTestLogProcessor();
         var processors = new ILogProcessor[] { processor };
-        var logger = new Logger(processors, LogLevel.Information);
+        var logger = new Logger(processors, [], LogLevel.Information);
 
         // Act
         logger.Dispose();
@@ -231,7 +231,7 @@ public sealed class LoggerTests
     {
         // Arrange
         var processors = new ILogProcessor[] { new TestLogProcessor(), new TestLogProcessor() };
-        var logger = new Logger(processors, LogLevel.Information);
+        var logger = new Logger(processors, [], LogLevel.Information);
 
         // Act
         logger.Dispose();
@@ -250,7 +250,7 @@ public sealed class LoggerTests
         // Arrange
         var processor = new TestLogProcessor();
         var processors = new ILogProcessor[] { processor };
-        using var logger = new Logger(processors, LogLevel.Debug);
+        using var logger = new Logger(processors, [], LogLevel.Debug);
 
         // Act
         logger.Log(level, "tag", "message");
@@ -266,7 +266,7 @@ public sealed class LoggerTests
         // Arrange
         var processor = new ConcurrentTestLogProcessor();
         var processors = new ILogProcessor[] { processor };
-        using var logger = new Logger(processors, LogLevel.Debug);
+        using var logger = new Logger(processors, [], LogLevel.Debug);
 
         // Act
         Task[] tasks = Enumerable.Range(0, 100).Select(i => Task.Run(() =>

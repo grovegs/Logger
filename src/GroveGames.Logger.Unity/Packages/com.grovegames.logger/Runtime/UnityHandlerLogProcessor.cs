@@ -1,0 +1,39 @@
+using System;
+
+namespace GroveGames.Logger.Unity
+{
+    internal sealed class UnityHandlerLogProcessor : ILogProcessor
+    {
+        private readonly ILogProcessor[] _processors;
+
+        public UnityHandlerLogProcessor(ILogProcessor[] processors)
+        {
+            int count = 0;
+            for (int i = 0; i < processors.Length; i++)
+            {
+                if (processors[i] is not UnityConsoleLogProcessor)
+                {
+                    count++;
+                }
+            }
+
+            _processors = new ILogProcessor[count];
+            int index = 0;
+            for (int i = 0; i < processors.Length; i++)
+            {
+                if (processors[i] is not UnityConsoleLogProcessor)
+                {
+                    _processors[index++] = processors[i];
+                }
+            }
+        }
+
+        public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+        {
+            for (int i = 0; i < _processors.Length; i++)
+            {
+                _processors[i].ProcessLog(level, tag, message);
+            }
+        }
+    }
+}

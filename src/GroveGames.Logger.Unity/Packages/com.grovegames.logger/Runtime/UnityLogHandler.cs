@@ -3,16 +3,20 @@ using UnityEngine;
 
 namespace GroveGames.Logger.Unity
 {
-    public sealed class UnityLogHandler : IDisposable
+    public sealed class UnityLogHandler : ILogHandler
     {
-        private readonly ILogProcessor _logProcessor;
+        private ILogProcessor _logProcessor;
         private readonly string _tag;
         private bool _disposed;
 
-        public UnityLogHandler(ILogProcessor logProcessor, string tag = "Unity")
+        public UnityLogHandler(string tag = "Unity")
         {
-            _logProcessor = logProcessor;
             _tag = tag;
+        }
+
+        public void Initialize(ILogProcessor[] processors)
+        {
+            _logProcessor = new UnityHandlerLogProcessor(processors);
             Application.logMessageReceived += OnLogMessageReceived;
         }
 
