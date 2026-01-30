@@ -1,10 +1,10 @@
 namespace GroveGames.Logger.Unity;
 
-internal sealed class UnityHandlerLogProcessor : ILogProcessor
+internal sealed class UnitySourceLogProcessor : ILogProcessor
 {
     private readonly ILogProcessor[] _processors;
 
-    public UnityHandlerLogProcessor(ILogProcessor[] processors)
+    public UnitySourceLogProcessor(ILogProcessor[] processors)
     {
         int count = 0;
         for (int i = 0; i < processors.Length; i++)

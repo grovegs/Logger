@@ -22,8 +22,8 @@ public static class UnityLoggerBuilderExtensions
         builder.AddLogProcessor(new UnityConsoleLogProcessor(unityConsoleLogFormatter));
     }
 
-    public static void AddUnityLogHandler(this ILoggerBuilder builder, string tag = "Unity")
+    public static void AddUnityLogSource(this ILoggerBuilder builder, string tag = "Unity")
     {
-        builder.AddLogHandler(new UnityLogHandler(tag));
+        builder.AddLogSource(processors => new UnityLogSource(processors, tag));
     }
 }

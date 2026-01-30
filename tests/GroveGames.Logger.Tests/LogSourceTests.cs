@@ -1,6 +1,6 @@
 namespace GroveGames.Logger.Tests;
 
-public sealed class LogHandlerTests
+public sealed class LogSourceTests
 {
     private sealed class TestLogProcessor : ILogProcessor
     {
@@ -18,17 +18,15 @@ public sealed class LogHandlerTests
         }
     }
 
-    private sealed class TestLogHandler : ILogHandler
+    private sealed class TestLogSource : ILogSource
     {
-        private ILogProcessor[] _processors = [];
-        public bool IsInitialized { get; private set; }
+        private readonly ILogProcessor[] _processors;
         public bool IsDisposed { get; private set; }
         public int ProcessorCount => _processors.Length;
 
-        public void Initialize(ILogProcessor[] processors)
+        public TestLogSource(ILogProcessor[] processors)
         {
             _processors = processors;
-            IsInitialized = true;
         }
 
         public void ProcessLog(LogLevel level, string tag, string message)
@@ -46,45 +44,45 @@ public sealed class LogHandlerTests
     }
 
     [Fact]
-    public void LoggerBuilder_AddLogHandler_InitializesHandler()
+    public void LoggerBuilder_AddLogSource_InitializesSource()
     {
         var processor = new TestLogProcessor();
-        var handler = new TestLogHandler();
+        TestLogSource? source = null;
         var builder = new LoggerBuilder();
 
         builder.AddLogProcessor(processor);
-        builder.AddLogHandler(handler);
+        builder.AddLogSource(processors => source = new TestLogSource(processors));
         var logger = builder.Build();
 
-        Assert.True(handler.IsInitialized);
-        Assert.Equal(1, handler.ProcessorCount);
+        Assert.NotNull(source);
+        Assert.Equal(1, source.ProcessorCount);
 
         logger.Dispose();
     }
 
     [Fact]
-    public void LoggerBuilder_MultipleHandlers_InitializesAll()
+    public void LoggerBuilder_MultipleSources_InitializesAll()
     {
         var processor = new TestLogProcessor();
-        var handler1 = new TestLogHandler();
-        var handler2 = new TestLogHandler();
+        TestLogSource? source1 = null;
+        TestLogSource? source2 = null;
         var builder = new LoggerBuilder();
 
         builder.AddLogProcessor(processor);
-        builder.AddLogHandler(handler1);
-        builder.AddLogHandler(handler2);
+        builder.AddLogSource(processors => source1 = new TestLogSource(processors));
+        builder.AddLogSource(processors => source2 = new TestLogSource(processors));
         var logger = builder.Build();
 
-        Assert.True(handler1.IsInitialized);
-        Assert.True(handler2.IsInitialized);
-        Assert.Equal(1, handler1.ProcessorCount);
-        Assert.Equal(1, handler2.ProcessorCount);
+        Assert.NotNull(source1);
+        Assert.NotNull(source2);
+        Assert.Equal(1, source1.ProcessorCount);
+        Assert.Equal(1, source2.ProcessorCount);
 
         logger.Dispose();
     }
 
     [Fact]
-    public void LoggerBuilder_NoHandlers_DoesNotInitialize()
+    public void LoggerBuilder_NoSources_DoesNotInitialize()
     {
         var processor = new TestLogProcessor();
         var builder = new LoggerBuilder();
@@ -98,50 +96,52 @@ public sealed class LogHandlerTests
     }
 
     [Fact]
-    public void Logger_Dispose_DisposesHandlers()
+    public void Logger_Dispose_DisposesSources()
     {
         var processor = new TestLogProcessor();
-        var handler = new TestLogHandler();
+        TestLogSource? source = null;
         var builder = new LoggerBuilder();
 
         builder.AddLogProcessor(processor);
-        builder.AddLogHandler(handler);
+        builder.AddLogSource(processors => source = new TestLogSource(processors));
         var logger = builder.Build();
 
         logger.Dispose();
 
-        Assert.True(handler.IsDisposed);
+        Assert.NotNull(source);
+        Assert.True(source.IsDisposed);
     }
 
     [Fact]
-    public void Logger_Constructor_NullHandler_ThrowsArgumentNullException()
+    public void Logger_Constructor_NullSource_ThrowsArgumentNullException()
     {
         var processors = new ILogProcessor[] { new TestLogProcessor() };
-        var handlers = new ILogHandler[] { null! };
+        var sources = new ILogSource[] { null! };
 
-        Assert.Throws<ArgumentNullException>(() => new Logger(processors, handlers, LogLevel.Information));
+        Assert.Throws<ArgumentNullException>(() => new Logger(processors, sources, LogLevel.Information));
     }
 
     [Fact]
-    public void LoggerBuilder_AddLogHandler_NullHandler_ThrowsArgumentNullException()
+    public void LoggerBuilder_AddLogSource_NullSource_ThrowsArgumentNullException()
     {
         var builder = new LoggerBuilder();
 
-        Assert.Throws<ArgumentNullException>(() => builder.AddLogHandler(null!));
+        Assert.Throws<ArgumentNullException>(() => builder.AddLogSource(null!));
     }
 
     [Fact]
-    public void Handler_CanProcessLogs_ThroughProcessors()
+    public void Source_CanProcessLogs_ThroughProcessors()
     {
         var processor = new TestLogProcessor();
-        var handler = new TestLogHandler();
+        TestLogSource? source = null;
         var builder = new LoggerBuilder();
 
         builder.AddLogProcessor(processor);
-        builder.AddLogHandler(handler);
+        builder.AddLogSource(processors => source = new TestLogSource(processors));
         var logger = builder.Build();
 
-        handler.ProcessLog(LogLevel.Information, "Test", "Message");
+        Assert.NotNull(source);
+        source.ProcessLog(LogLevel.Information, "Test", "Message");
 
         Assert.Equal(1, processor.ProcessLogCallCount);
         Assert.Equal(LogLevel.Information, processor.LastLogLevel);

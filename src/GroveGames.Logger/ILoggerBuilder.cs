@@ -4,5 +4,5 @@ public interface ILoggerBuilder
 {
     ILoggerBuilder AddLogProcessor(ILogProcessor processor);
     ILoggerBuilder SetMinimumLevel(LogLevel level);
-    ILoggerBuilder AddLogHandler(ILogHandler handler);
+    ILoggerBuilder AddLogSource(System.Func<ILogProcessor[], ILogSource> sourceFactory);
 }

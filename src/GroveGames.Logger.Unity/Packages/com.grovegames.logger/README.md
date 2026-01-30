@@ -128,9 +128,16 @@ There are two installation steps required to use it in Unity.
 
 2. Install the `GroveGames.Logger.Unity` package by referencing the git URL:
 
-```
-https://github.com/grovegs/Logger.git?path=src/GroveGames.Logger.Unity/Packages/com.grovegames.logger
-```
+   ```text
+   https://github.com/grovegs/Logger.git?path=src/GroveGames.Logger.Unity/Packages/com.grovegames.logger
+   ```
+
+3. Create a `csc.rsp` file in your `Assets/` directory with the following content to enable C# 10 features:
+
+   ```text
+   -langversion:10
+   -nullable:enable
+   ```
 
 With the Unity package, Unity-specific formatters and processors become available for logging in Unity projects.
 

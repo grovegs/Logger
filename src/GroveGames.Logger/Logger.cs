@@ -3,16 +3,16 @@ namespace GroveGames.Logger;
 public sealed class Logger : ILogger, IDisposable
 {
     private readonly ILogProcessor[] _logProcessors;
-    private readonly ILogHandler[] _logHandlers;
+    private readonly ILogSource[] _logSources;
     private readonly LogLevel _minimumLevel;
     private bool _disposed;
 
     public LogLevel MinimumLevel => _minimumLevel;
 
-    public Logger(ILogProcessor[] logProcessors, ILogHandler[] logHandlers, LogLevel minimumLevel)
+    public Logger(ILogProcessor[] logProcessors, ILogSource[] logSources, LogLevel minimumLevel)
     {
         ArgumentNullException.ThrowIfNull(logProcessors);
-        ArgumentNullException.ThrowIfNull(logHandlers);
+        ArgumentNullException.ThrowIfNull(logSources);
 
         if (logProcessors.Length == 0)
         {
@@ -24,15 +24,14 @@ public sealed class Logger : ILogger, IDisposable
             ArgumentNullException.ThrowIfNull(processor, nameof(logProcessors));
         }
 
-        foreach (ILogHandler handler in logHandlers)
+        foreach (ILogSource source in logSources)
         {
-            ArgumentNullException.ThrowIfNull(handler, nameof(logHandlers));
+            ArgumentNullException.ThrowIfNull(source, nameof(logSources));
         }
 
         _logProcessors = logProcessors;
-        _logHandlers = logHandlers;
+        _logSources = logSources;
         _minimumLevel = minimumLevel;
-        _disposed = false;
     }
 
     public void Log(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
@@ -57,9 +56,9 @@ public sealed class Logger : ILogger, IDisposable
             return;
         }
 
-        foreach (ILogHandler handler in _logHandlers)
+        foreach (ILogSource source in _logSources)
         {
-            handler.Dispose();
+            source.Dispose();
         }
 
         foreach (ILogProcessor logProcessor in _logProcessors)

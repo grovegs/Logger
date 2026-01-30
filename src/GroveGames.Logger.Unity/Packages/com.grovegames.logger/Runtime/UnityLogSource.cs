@@ -1,33 +1,30 @@
+using System.Threading;
 using UnityEngine;
 
 namespace GroveGames.Logger.Unity;
 
-public sealed class UnityLogHandler : ILogHandler
+public sealed class UnityLogSource : ILogSource
 {
-    private ILogProcessor? _logProcessor;
+    private readonly ILogProcessor _logProcessor;
     private readonly string _tag;
-    private bool _disposed;
+    private volatile int _disposed;
 
-    public UnityLogHandler(string tag = "Unity")
+    public UnityLogSource(ILogProcessor[] processors, string tag = "Unity")
     {
+        _logProcessor = new UnitySourceLogProcessor(processors);
         _tag = tag;
-    }
-
-    public void Initialize(ILogProcessor[] processors)
-    {
-        _logProcessor = new UnityHandlerLogProcessor(processors);
         Application.logMessageReceived += OnLogMessageReceived;
     }
 
     private void OnLogMessageReceived(string condition, string stackTrace, LogType type)
     {
-        if (_disposed)
+        if (_disposed == 1)
         {
             return;
         }
 
         var level = ConvertLogType(type);
-        _logProcessor?.ProcessLog(level, _tag.AsSpan(), condition.AsSpan());
+        _logProcessor.ProcessLog(level, _tag.AsSpan(), condition.AsSpan());
     }
 
     private static LogLevel ConvertLogType(LogType type)
@@ -45,12 +42,11 @@ public sealed class UnityLogHandler : ILogHandler
 
     public void Dispose()
     {
-        if (_disposed)
+        if (Interlocked.Exchange(ref _disposed, 1) == 1)
         {
             return;
         }
 
-        _disposed = true;
         Application.logMessageReceived -= OnLogMessageReceived;
     }
 }

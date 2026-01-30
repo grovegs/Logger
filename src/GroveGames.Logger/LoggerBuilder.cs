@@ -3,13 +3,13 @@ namespace GroveGames.Logger;
 public sealed class LoggerBuilder : ILoggerBuilder
 {
     private readonly List<ILogProcessor> _logProcessors;
-    private readonly List<ILogHandler> _logHandlers;
+    private readonly List<System.Func<ILogProcessor[], ILogSource>> _logSourceFactories;
     private LogLevel _minimumLevel;
 
     public LoggerBuilder()
     {
         _logProcessors = [];
-        _logHandlers = [];
+        _logSourceFactories = [];
     }
 
     public ILoggerBuilder AddLogProcessor(ILogProcessor processor)
@@ -24,24 +24,21 @@ public sealed class LoggerBuilder : ILoggerBuilder
         return this;
     }
 
-    public ILoggerBuilder AddLogHandler(ILogHandler handler)
+    public ILoggerBuilder AddLogSource(System.Func<ILogProcessor[], ILogSource> handlerFactory)
     {
-        ArgumentNullException.ThrowIfNull(handler);
-        _logHandlers.Add(handler);
+        ArgumentNullException.ThrowIfNull(handlerFactory);
+        _logSourceFactories.Add(handlerFactory);
         return this;
     }
 
     public Logger Build()
     {
         ILogProcessor[] processors = [.. _logProcessors];
-        ILogHandler[] handlers = [.. _logHandlers];
 
-        if (handlers.Length > 0)
+        ILogSource[] handlers = new ILogSource[_logSourceFactories.Count];
+        for (int i = 0; i < _logSourceFactories.Count; i++)
         {
-            foreach (ILogHandler handler in handlers)
-            {
-                handler.Initialize(processors);
-            }
+            handlers[i] = _logSourceFactories[i](processors);
         }
 
         return new Logger(processors, handlers, _minimumLevel);
