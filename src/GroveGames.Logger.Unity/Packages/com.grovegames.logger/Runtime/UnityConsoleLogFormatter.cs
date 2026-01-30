@@ -1,3 +1,5 @@
+using System;
+
 namespace GroveGames.Logger.Unity;
 
 public sealed class UnityConsoleLogFormatter : ILogFormatter

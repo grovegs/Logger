@@ -1,3 +1,5 @@
+using System;
+
 namespace GroveGames.Logger.Unity;
 
 internal sealed class UnitySourceLogProcessor : ILogProcessor

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace GroveGames.Logger.Unity;
