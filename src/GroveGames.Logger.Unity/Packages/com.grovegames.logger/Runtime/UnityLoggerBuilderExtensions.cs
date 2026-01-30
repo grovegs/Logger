@@ -21,5 +21,10 @@ namespace GroveGames.Logger.Unity
             var unityConsoleLogFormatter = new UnityConsoleLogFormatter();
             builder.AddLogProcessor(new UnityConsoleLogProcessor(unityConsoleLogFormatter));
         }
+
+        public static void AddUnityLogHandler(this ILoggerBuilder builder, string tag = "Unity")
+        {
+            builder.AddLogHandler(new UnityLogHandler(tag));
+        }
     }
 }

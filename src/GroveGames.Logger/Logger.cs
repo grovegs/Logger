@@ -3,14 +3,16 @@ namespace GroveGames.Logger;
 public sealed class Logger : ILogger, IDisposable
 {
     private readonly ILogProcessor[] _logProcessors;
+    private readonly ILogHandler[] _logHandlers;
     private readonly LogLevel _minimumLevel;
     private bool _disposed;
 
     public LogLevel MinimumLevel => _minimumLevel;
 
-    public Logger(ILogProcessor[] logProcessors, LogLevel minimumLevel)
+    public Logger(ILogProcessor[] logProcessors, ILogHandler[] logHandlers, LogLevel minimumLevel)
     {
         ArgumentNullException.ThrowIfNull(logProcessors);
+        ArgumentNullException.ThrowIfNull(logHandlers);
 
         if (logProcessors.Length == 0)
         {
@@ -22,7 +24,13 @@ public sealed class Logger : ILogger, IDisposable
             ArgumentNullException.ThrowIfNull(processor, nameof(logProcessors));
         }
 
+        foreach (ILogHandler handler in logHandlers)
+        {
+            ArgumentNullException.ThrowIfNull(handler, nameof(logHandlers));
+        }
+
         _logProcessors = logProcessors;
+        _logHandlers = logHandlers;
         _minimumLevel = minimumLevel;
         _disposed = false;
     }
@@ -47,6 +55,11 @@ public sealed class Logger : ILogger, IDisposable
         if (_disposed)
         {
             return;
+        }
+
+        foreach (ILogHandler handler in _logHandlers)
+        {
+            handler.Dispose();
         }
 
         foreach (ILogProcessor logProcessor in _logProcessors)
