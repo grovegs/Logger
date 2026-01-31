@@ -136,6 +136,18 @@ csharp_style_pattern_local_over_anonymous_function = false:none
 dotnet_diagnostic.IDE0071.severity = silent
 dotnet_diagnostic.IDE0031.severity = silent
 
+# XML documentation warnings
+dotnet_diagnostic.CS1591.severity = none
+dotnet_diagnostic.CS1573.severity = none
+dotnet_diagnostic.CS1572.severity = none
+dotnet_diagnostic.CS1571.severity = none
+dotnet_diagnostic.CS1570.severity = none
+dotnet_diagnostic.CS1587.severity = none
+dotnet_diagnostic.CS1574.severity = none
+dotnet_diagnostic.CS1580.severity = none
+dotnet_diagnostic.CS1584.severity = none
+dotnet_diagnostic.CS1658.severity = none
+
 # Space preferences
 csharp_space_after_cast = false
 csharp_space_after_colon_in_inheritance_clause = true
