@@ -2,5 +2,5 @@ namespace GroveGames.Logger;
 
 public interface ITimeProvider
 {
-    DateTimeOffset GetUtcNow();
+    public DateTimeOffset GetUtcNow();
 }
