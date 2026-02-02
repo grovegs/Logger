@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace GroveGames.Logger.Unity;
 
@@ -14,7 +14,7 @@ public sealed class UnityConsoleLogFormatter : ILogFormatter
 
     public void Format(Span<char> buffer, LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        int currentPosition = 0;
+        var currentPosition = 0;
 
         LeftBracket.CopyTo(buffer[currentPosition..]);
         currentPosition += LeftBracket.Length;

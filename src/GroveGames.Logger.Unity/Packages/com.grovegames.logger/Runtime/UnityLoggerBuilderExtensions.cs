@@ -1,4 +1,4 @@
-namespace GroveGames.Logger.Unity;
+﻿namespace GroveGames.Logger.Unity;
 
 public static class UnityLoggerBuilderExtensions
 {

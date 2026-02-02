@@ -1,7 +1,7 @@
-using UnityEngine;
-using UnityEditor;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
+using UnityEditor;
+using UnityEngine;
 
 namespace UnityApplication.Editor
 {
@@ -14,8 +14,8 @@ namespace UnityApplication.Editor
 
         static PluginBuilder()
         {
-            string projectRoot = Path.Combine(Application.dataPath, "..");
-            string pluginFullPath = Path.Combine(projectRoot, PluginPath);
+            var projectRoot = Path.Combine(Application.dataPath, "..");
+            var pluginFullPath = Path.Combine(projectRoot, PluginPath);
 
             if (!File.Exists(pluginFullPath))
             {
@@ -28,15 +28,15 @@ namespace UnityApplication.Editor
         {
             UnityEngine.Debug.Log($"Building {PluginFileName}...");
 
-            string dotnetPath = GetDotNetPath();
+            var dotnetPath = GetDotNetPath();
             if (string.IsNullOrEmpty(dotnetPath))
             {
                 UnityEngine.Debug.LogError("dotnet CLI not found. Please ensure .NET SDK is installed.");
                 return;
             }
 
-            string projectRoot = Path.Combine(Application.dataPath, "..");
-            string pluginsDir = Path.Combine(projectRoot, "Assets/Plugins");
+            var projectRoot = Path.Combine(Application.dataPath, "..");
+            var pluginsDir = Path.Combine(projectRoot, "Assets/Plugins");
             if (!Directory.Exists(pluginsDir))
             {
                 Directory.CreateDirectory(pluginsDir);
@@ -63,7 +63,7 @@ namespace UnityApplication.Editor
                 }
                 else
                 {
-                    string error = process.StandardError.ReadToEnd();
+                    var error = process.StandardError.ReadToEnd();
                     UnityEngine.Debug.LogError($"Plugin build failed: {error}");
                 }
             }
@@ -101,7 +101,7 @@ namespace UnityApplication.Editor
                 };
             }
 
-            foreach (string path in commonPaths)
+            foreach (var path in commonPaths)
             {
                 if (TryExecuteDotNet(path))
                 {

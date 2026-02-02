@@ -1,7 +1,7 @@
-using UnityEditor;
+﻿using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
 
 namespace GroveGames.Logger.Unity.Editor;
 
@@ -88,7 +88,7 @@ internal static class UnityLoggerSettingsProvider
         {
             settings = ScriptableObject.CreateInstance<UnityLoggerSettings>();
 
-            string directory = System.IO.Path.GetDirectoryName(AssetPath);
+            var directory = System.IO.Path.GetDirectoryName(AssetPath);
             if (!AssetDatabase.IsValidFolder(directory))
             {
                 System.IO.Directory.CreateDirectory(directory);
