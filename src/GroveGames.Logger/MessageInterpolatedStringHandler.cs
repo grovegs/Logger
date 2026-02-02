@@ -55,6 +55,17 @@ public ref struct MessageInterpolatedStringHandler
     {
         return value.TryFormat(_buffer[_position..], out int written, format, CultureInfo.InvariantCulture) && Advance(written);
     }
+
+    private bool Advance(int count)
+    {
+        if (_buffer.Length - _position < count)
+        {
+            return false;
+        }
+
+        _position += count;
+        return true;
+    }
 #else
     public bool AppendFormatted<T>(T value)
     {
@@ -91,17 +102,6 @@ public ref struct MessageInterpolatedStringHandler
 
         value.CopyTo(_buffer[_position..]);
         _position += value.Length;
-        return true;
-    }
-
-    private bool Advance(int count)
-    {
-        if (_buffer.Length - _position < count)
-        {
-            return false;
-        }
-
-        _position += count;
         return true;
     }
 }
