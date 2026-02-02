@@ -31,7 +31,7 @@ public sealed class LogSourceTests
 
         public void ProcessLog(LogLevel level, string tag, string message)
         {
-            foreach (ILogProcessor processor in _processors)
+            foreach (var processor in _processors)
             {
                 processor.ProcessLog(level, tag.AsSpan(), message.AsSpan());
             }

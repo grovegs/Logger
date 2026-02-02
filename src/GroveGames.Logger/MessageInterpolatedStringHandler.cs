@@ -24,9 +24,9 @@ public ref struct MessageInterpolatedStringHandler
 
     public MessageInterpolatedStringHandler(int literalLength, int formattedCount)
     {
-        int formattedLength = formattedCount * 16;
-        int bufferSize = literalLength + formattedLength;
-        char[] rentedArray = ArrayPool<char>.Shared.Rent(bufferSize);
+        var formattedLength = formattedCount * 16;
+        var bufferSize = literalLength + formattedLength;
+        var rentedArray = ArrayPool<char>.Shared.Rent(bufferSize);
         _buffer = rentedArray.AsSpan(0, bufferSize);
         _rentedArray = rentedArray;
         _position = 0;
@@ -48,12 +48,12 @@ public ref struct MessageInterpolatedStringHandler
 #if NET6_0_OR_GREATER
     public bool AppendFormatted<T>(T value) where T : ISpanFormattable
     {
-        return value.TryFormat(_buffer[_position..], out int written, default, CultureInfo.InvariantCulture) && Advance(written);
+        return value.TryFormat(_buffer[_position..], out var written, default, CultureInfo.InvariantCulture) && Advance(written);
     }
 
     public bool AppendFormatted<T>(T value, string? format) where T : ISpanFormattable
     {
-        return value.TryFormat(_buffer[_position..], out int written, format, CultureInfo.InvariantCulture) && Advance(written);
+        return value.TryFormat(_buffer[_position..], out var written, format, CultureInfo.InvariantCulture) && Advance(written);
     }
 
     private bool Advance(int count)
@@ -69,7 +69,7 @@ public ref struct MessageInterpolatedStringHandler
 #else
     public bool AppendFormatted<T>(T value)
     {
-        string text = value switch
+        var text = value switch
         {
             IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
             _ => value?.ToString() ?? string.Empty
@@ -79,7 +79,7 @@ public ref struct MessageInterpolatedStringHandler
 
     public bool AppendFormatted<T>(T value, string? format)
     {
-        string text = value switch
+        var text = value switch
         {
             IFormattable formattable => formattable.ToString(format, CultureInfo.InvariantCulture),
             _ => value?.ToString() ?? string.Empty

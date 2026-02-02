@@ -3,7 +3,7 @@
 public sealed class LoggerBuilder : ILoggerBuilder
 {
     private readonly List<ILogProcessor> _logProcessors;
-    private readonly List<System.Func<ILogProcessor[], ILogSource>> _logSourceFactories;
+    private readonly List<Func<ILogProcessor[], ILogSource>> _logSourceFactories;
     private LogLevel _minimumLevel;
 
     public LoggerBuilder()
@@ -24,7 +24,7 @@ public sealed class LoggerBuilder : ILoggerBuilder
         return this;
     }
 
-    public ILoggerBuilder AddLogSource(System.Func<ILogProcessor[], ILogSource> handlerFactory)
+    public ILoggerBuilder AddLogSource(Func<ILogProcessor[], ILogSource> handlerFactory)
     {
         ArgumentNullException.ThrowIfNull(handlerFactory);
         _logSourceFactories.Add(handlerFactory);
@@ -35,8 +35,8 @@ public sealed class LoggerBuilder : ILoggerBuilder
     {
         ILogProcessor[] processors = [.. _logProcessors];
 
-        ILogSource[] handlers = new ILogSource[_logSourceFactories.Count];
-        for (int i = 0; i < _logSourceFactories.Count; i++)
+        var handlers = new ILogSource[_logSourceFactories.Count];
+        for (var i = 0; i < _logSourceFactories.Count; i++)
         {
             handlers[i] = _logSourceFactories[i](processors);
         }

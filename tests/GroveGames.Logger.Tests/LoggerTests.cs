@@ -269,7 +269,7 @@ public sealed class LoggerTests
         using var logger = new Logger(processors, [], LogLevel.Debug);
 
         // Act
-        Task[] tasks = Enumerable.Range(0, 100).Select(i => Task.Run(() =>
+        var tasks = Enumerable.Range(0, 100).Select(i => Task.Run(() =>
             logger.Log(LogLevel.Information, $"tag{i}", $"message{i}")
         )).ToArray();
 

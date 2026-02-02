@@ -40,10 +40,10 @@ public sealed class StreamWriter : IStreamWriter
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        int byteCount = Encoding.UTF8.GetByteCount(entry);
-        int totalLength = byteCount + s_newLine.Length;
-        byte[] buffer = ArrayPool<byte>.Shared.Rent(totalLength);
-        int bytesWritten = Encoding.UTF8.GetBytes(entry, buffer);
+        var byteCount = Encoding.UTF8.GetByteCount(entry);
+        var totalLength = byteCount + s_newLine.Length;
+        var buffer = ArrayPool<byte>.Shared.Rent(totalLength);
+        var bytesWritten = Encoding.UTF8.GetBytes(entry, buffer);
         s_newLine.CopyTo(buffer.AsSpan(bytesWritten));
 
         if (!_channel.Writer.TryWrite(new ArraySegment<byte>(buffer, 0, totalLength)))
@@ -54,16 +54,16 @@ public sealed class StreamWriter : IStreamWriter
 
     private async Task ProcessEntriesAsync(CancellationToken cancellationToken)
     {
-        byte[] batchBuffer = ArrayPool<byte>.Shared.Rent(_bufferSize);
-        int batchPosition = 0;
-        ChannelReader<ArraySegment<byte>> reader = _channel.Reader;
+        var batchBuffer = ArrayPool<byte>.Shared.Rent(_bufferSize);
+        var batchPosition = 0;
+        var reader = _channel.Reader;
 
         while (await reader.WaitToReadAsync(cancellationToken))
         {
-            while (reader.TryRead(out ArraySegment<byte> segment))
+            while (reader.TryRead(out var segment))
             {
-                byte[] entryBuffer = segment.Array!;
-                int entryLength = segment.Count;
+                var entryBuffer = segment.Array!;
+                var entryLength = segment.Count;
 
                 if (batchPosition + entryLength > _bufferSize)
                 {
