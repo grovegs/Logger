@@ -1,6 +1,4 @@
-#if !NET9_0_OR_GREATER
-
-namespace System.Threading;
+﻿#if !NET9_0_OR_GREATER
 
 internal sealed class Lock
 {

@@ -1,4 +1,4 @@
-namespace GroveGames.Logger;
+﻿namespace GroveGames.Logger;
 
 public sealed class FileLogFormatter : ILogFormatter
 {

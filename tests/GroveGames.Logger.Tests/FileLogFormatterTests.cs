@@ -1,4 +1,4 @@
-namespace GroveGames.Logger.Tests;
+﻿namespace GroveGames.Logger.Tests;
 
 public sealed class FileLogFormatterTests
 {

@@ -1,4 +1,4 @@
-namespace GroveGames.Logger;
+﻿namespace GroveGames.Logger;
 
 public readonly struct FileInfo
 {
