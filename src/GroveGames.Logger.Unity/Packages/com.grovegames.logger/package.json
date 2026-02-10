@@ -1,6 +1,6 @@
 {
   "name": "com.grovegames.logger",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "displayName": "GroveGames.Logger",
   "description": "High-performance, zero-allocation logging library for .NET, Unity, and Godot",
   "unity": "2021.3",
