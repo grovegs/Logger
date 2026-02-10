@@ -2,7 +2,7 @@
     "name": "GroveGames.Logger.Unity.Editor",
     "rootNamespace": "GroveGames.Logger.Unity.Editor",
     "references": [
-        "GUID:dea41e7a19cf34cbd9538887b672eed4"
+        "GUID:f5d3867fef86483f8076c2a0f9a822ec"
     ],
     "includePlatforms": [
         "Editor"
