@@ -1,4 +1,4 @@
-﻿<Solution>
+<Solution>
   <Project Path="GroveGames.Logger.Unity.Editor.csproj" />
   <Project Path="GroveGames.Logger.Unity.csproj" />
   <Project Path="Test.csproj" />

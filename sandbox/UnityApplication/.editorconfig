@@ -169,9 +169,9 @@ csharp_preferred_modifier_order = public,private,protected,internal,file,static,
 # Code-block preferences
 csharp_prefer_braces = true:silent
 csharp_prefer_simple_using_statement = true:suggestion
-csharp_style_namespace_declarations = file_scoped:suggestion
+csharp_style_namespace_declarations = block_scoped:error
 csharp_style_prefer_method_group_conversion = true:silent
-csharp_style_prefer_top_level_statements = false:warning
+csharp_style_prefer_top_level_statements = false:error
 csharp_style_prefer_primary_constructors = false:none
 
 # Expression-level preferences
@@ -181,7 +181,7 @@ csharp_style_prefer_index_operator = true:suggestion
 csharp_style_prefer_range_operator = true:suggestion
 csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
 csharp_style_prefer_tuple_swap = true:suggestion
-csharp_style_prefer_utf8_string_literals = true:suggestion
+csharp_style_prefer_utf8_string_literals = false:none
 csharp_style_inlined_variable_declaration = true:suggestion
 csharp_style_deconstructed_variable_declaration = true:suggestion
 csharp_style_unused_value_assignment_preference = discard_variable:suggestion
