@@ -1,26 +1,27 @@
 ﻿using System;
 using UnityEngine;
 
-namespace GroveGames.Logger.Unity;
-
-public static class UnityLoggerFactory
+namespace GroveGames.Logger.Unity
 {
-    public static Logger CreateLogger(Action<ILoggerBuilder> configure)
+    public static class UnityLoggerFactory
     {
-        return CreateLogger(UnityLoggerSettings.GetOrCreate(), configure);
-    }
-
-    public static Logger CreateLogger(UnityLoggerSettings settings, Action<ILoggerBuilder> configure)
-    {
-        if (settings == null)
+        public static Logger CreateLogger(Action<ILoggerBuilder> configure)
         {
-            Debug.LogError("UnityLoggerSettings cannot be null");
-            settings = ScriptableObject.CreateInstance<UnityLoggerSettings>();
+            return CreateLogger(LoggerSettings.GetOrCreate(), configure);
         }
 
-        var builder = new LoggerBuilder();
-        builder.SetMinimumLevel(settings.MinLogLevel);
-        configure(builder);
-        return builder.Build();
+        public static Logger CreateLogger(LoggerSettings settings, Action<ILoggerBuilder> configure)
+        {
+            if (settings == null)
+            {
+                Debug.LogError("LoggerSettings cannot be null");
+                settings = ScriptableObject.CreateInstance<LoggerSettings>();
+            }
+
+            var builder = new LoggerBuilder();
+            builder.SetMinimumLevel(settings.MinLogLevel);
+            configure(builder);
+            return builder.Build();
+        }
     }
 }

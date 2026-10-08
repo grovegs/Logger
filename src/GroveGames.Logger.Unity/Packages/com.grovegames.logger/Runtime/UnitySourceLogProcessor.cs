@@ -1,38 +1,39 @@
 ﻿using System;
 
-namespace GroveGames.Logger.Unity;
-
-internal sealed class UnitySourceLogProcessor : ILogProcessor
+namespace GroveGames.Logger.Unity
 {
-    private readonly ILogProcessor[] _processors;
-
-    public UnitySourceLogProcessor(ILogProcessor[] processors)
+    internal sealed class UnitySourceLogProcessor : ILogProcessor
     {
-        var count = 0;
-        for (var i = 0; i < processors.Length; i++)
+        private readonly ILogProcessor[] _processors;
+
+        public UnitySourceLogProcessor(ILogProcessor[] processors)
         {
-            if (processors[i] is not UnityConsoleLogProcessor)
+            var count = 0;
+            for (var i = 0; i < processors.Length; i++)
             {
-                count++;
+                if (processors[i] is not UnityConsoleLogProcessor)
+                {
+                    count++;
+                }
+            }
+
+            _processors = new ILogProcessor[count];
+            var index = 0;
+            for (var i = 0; i < processors.Length; i++)
+            {
+                if (processors[i] is not UnityConsoleLogProcessor)
+                {
+                    _processors[index++] = processors[i];
+                }
             }
         }
 
-        _processors = new ILogProcessor[count];
-        var index = 0;
-        for (var i = 0; i < processors.Length; i++)
+        public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
         {
-            if (processors[i] is not UnityConsoleLogProcessor)
+            for (var i = 0; i < _processors.Length; i++)
             {
-                _processors[index++] = processors[i];
+                _processors[i].ProcessLog(level, tag, message);
             }
-        }
-    }
-
-    public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
-    {
-        for (var i = 0; i < _processors.Length; i++)
-        {
-            _processors[i].ProcessLog(level, tag, message);
         }
     }
 }

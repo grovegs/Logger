@@ -1,19 +1,20 @@
 ﻿using System.IO;
 using UnityEngine;
 
-namespace GroveGames.Logger.Unity;
-
-public sealed class UnityLogFileFactory : ILogFileFactory
+namespace GroveGames.Logger.Unity
 {
-    private readonly LogFileFactory _logFileFactory;
-
-    public UnityLogFileFactory(string fileFolderName, int maxFileCount, int bufferSize)
+    public sealed class UnityLogFileFactory : ILogFileFactory
     {
-        _logFileFactory = new LogFileFactory(Application.persistentDataPath, fileFolderName, maxFileCount, bufferSize);
-    }
+        private readonly LogFileFactory _logFileFactory;
 
-    public Stream CreateFile()
-    {
-        return _logFileFactory.CreateFile();
+        public UnityLogFileFactory(string fileFolderName, int maxFileCount, int bufferSize)
+        {
+            _logFileFactory = new LogFileFactory(Application.persistentDataPath, fileFolderName, maxFileCount, bufferSize);
+        }
+
+        public Stream CreateFile()
+        {
+            return _logFileFactory.CreateFile();
+        }
     }
 }
