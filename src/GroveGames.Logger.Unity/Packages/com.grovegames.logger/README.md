@@ -128,16 +128,16 @@ There are two installation steps required to use it in Unity.
 
 2. Install the `GroveGames.Logger.Unity` package by referencing the git URL:
 
-   ```text
-   https://github.com/grovegs/Logger.git?path=src/GroveGames.Logger.Unity/Packages/com.grovegames.logger
-   ```
+    ```text
+    https://github.com/grovegs/Logger.git?path=src/GroveGames.Logger.Unity/Packages/com.grovegames.logger
+    ```
 
 3. Create a `csc.rsp` file in your `Assets/` directory with the following content to enable C# 10 features:
 
-   ```text
-   -langversion:10
-   -nullable:enable
-   ```
+    ```text
+    -langversion:10
+    -nullable:enable
+    ```
 
 With the Unity package, Unity-specific formatters and processors become available for logging in Unity projects.
 
@@ -169,17 +169,32 @@ public class GameManager : MonoBehaviour
 }
 ```
 
+### Dependency Injection
+
+When [GroveGames.DependencyInjection](https://github.com/grovegs/DependencyInjection) 0.6.0 or newer is installed, the optional `GroveGames.Logger.Unity.DependencyInjection` assembly is compiled and adds `AddLogger` to `IContainerBuilder`. It registers `ILogger` as a singleton, and the container disposes it, flushing file output, when it is disposed. Without the dependency injection package the assembly is skipped.
+
+```csharp
+using GroveGames.Logger;
+using GroveGames.Logger.Unity;
+
+builder.AddLogger(logger =>
+{
+    logger.AddUnityConsoleLogProcessor();
+    logger.AddUnityFileLogProcessor();
+});
+```
+
 ### Project Settings Configuration
 
 Configure logger settings via Edit → Project Settings → GroveGames → Logger. Settings are stored as a ScriptableObject in `Assets/Settings/GroveGamesLoggerSettings.asset` and automatically included in builds via `EditorBuildSettings`.
 
-| Setting                | Type       | Default       | Description                               |
-| ---------------------- | ---------- | ------------- | ----------------------------------------- |
-| `Min Log Level`        | `LogLevel` | `Information` | Minimum level for log output              |
-| `Max File Count`       | `int`      | `10`          | Maximum number of log files to retain     |
-| `File Folder Name`     | `string`   | `"logs"`      | Folder name for log files                 |
-| `File Buffer Size`     | `int`      | `8192`        | Buffer size in bytes for file operations  |
-| `File Channel Capacity`| `int`      | `1000`        | Channel capacity for async log processing |
+| Setting                 | Type       | Default       | Description                               |
+| ----------------------- | ---------- | ------------- | ----------------------------------------- |
+| `Min Log Level`         | `LogLevel` | `Information` | Minimum level for log output              |
+| `Max File Count`        | `int`      | `10`          | Maximum number of log files to retain     |
+| `File Folder Name`      | `string`   | `"logs"`      | Folder name for log files                 |
+| `File Buffer Size`      | `int`      | `8192`        | Buffer size in bytes for file operations  |
+| `File Channel Capacity` | `int`      | `1000`        | Channel capacity for async log processing |
 
 For custom configurations or DI scenarios, pass settings directly:
 
