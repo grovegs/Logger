@@ -169,21 +169,6 @@ public class GameManager : MonoBehaviour
 }
 ```
 
-### Dependency Injection
-
-When [GroveGames.DependencyInjection](https://github.com/grovegs/DependencyInjection) 0.6.0 or newer is installed, the optional `GroveGames.Logger.Unity.DependencyInjection` assembly is compiled and adds `AddLogger` to `IContainerBuilder`. It registers `ILogger` as a singleton, and the container disposes it, flushing file output, when it is disposed. Without the dependency injection package the assembly is skipped.
-
-```csharp
-using GroveGames.Logger;
-using GroveGames.Logger.Unity;
-
-builder.AddLogger(logger =>
-{
-    logger.AddUnityConsoleLogProcessor();
-    logger.AddUnityFileLogProcessor();
-});
-```
-
 ### Project Settings Configuration
 
 Configure logger settings via Edit → Project Settings → GroveGames → Logger. Settings are stored as a ScriptableObject in `Assets/Settings/GroveGamesLoggerSettings.asset` and automatically included in builds via `EditorBuildSettings`.
