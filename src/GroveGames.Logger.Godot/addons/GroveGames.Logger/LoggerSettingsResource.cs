@@ -3,7 +3,7 @@ using Godot;
 namespace GroveGames.Logger;
 
 [GlobalClass]
-public partial class GodotLoggerSettingsResource : Resource
+public partial class LoggerSettingsResource : Resource
 {
     private const string ProjectSettingsKey = "grove_games/logger/settings_resource";
     private const string DefaultResourcePath = "res://addons/GroveGames.Logger/LoggerSettings.tres";
@@ -14,20 +14,20 @@ public partial class GodotLoggerSettingsResource : Resource
     [Export] public int FileBufferSize { get; set; } = 8192;
     [Export] public int FileChannelCapacity { get; set; } = 1000;
 
-    public static GodotLoggerSettingsResource GetOrCreate()
+    public static LoggerSettingsResource GetOrCreate()
     {
         if (ProjectSettings.HasSetting(ProjectSettingsKey))
         {
             var resourcePath = ProjectSettings.GetSetting(ProjectSettingsKey).AsString();
             if (ResourceLoader.Exists(resourcePath))
             {
-                return ResourceLoader.Load<GodotLoggerSettingsResource>(resourcePath);
+                return ResourceLoader.Load<LoggerSettingsResource>(resourcePath);
             }
         }
 
         if (ResourceLoader.Exists(DefaultResourcePath))
         {
-            return ResourceLoader.Load<GodotLoggerSettingsResource>(DefaultResourcePath);
+            return ResourceLoader.Load<LoggerSettingsResource>(DefaultResourcePath);
         }
 
         return new();

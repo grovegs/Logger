@@ -270,7 +270,7 @@ For custom configurations or DI scenarios, reference the settings resource:
 ```csharp
 public partial class GameManager : Node
 {
-    [Export] private GodotLoggerSettingsResource _loggerSettings;
+    [Export] private LoggerSettingsResource _loggerSettings;
 
     public override void _Ready()
     {
@@ -282,7 +282,7 @@ public partial class GameManager : Node
 ### Godot Components
 
 - **`GodotLoggerFactory`**: Factory with GetOrCreate() pattern for DI-friendly architecture
-- **`GodotLoggerSettingsResource`**: Resource with ProjectSettings integration
+- **`LoggerSettingsResource`**: Resource with ProjectSettings integration
 - **`GodotConsoleLogFormatter`**: Rich formatting for Godot's editor console
 - **`GodotConsoleLogProcessor`**: Processor optimized for Godot's output methods
 - **`GodotLogFileFactory`**: File factory using `OS.GetUserDataDir()`
