@@ -1,10 +1,10 @@
 using Godot;
 
-namespace GroveGames.Logger;
+namespace GroveGames.Logger.Godot;
 
-public static class GodotLoggerBuilderExtensions
+public static class LoggerBuilderExtensions
 {
-    public static void AddGodotFileLogProcessor(this ILoggerBuilder builder)
+    public static void AddFileLogProcessor(this ILoggerBuilder builder)
     {
         var settings = LoggerSettingsResource.GetOrCreate();
         var godotFileFactory = new GodotLogFileFactory(settings.FileFolderName, settings.MaxFileCount, settings.FileBufferSize);
@@ -13,9 +13,9 @@ public static class GodotLoggerBuilderExtensions
         builder.AddLogProcessor(new FileLogProcessor(streamWriter, fileLogFormatter));
     }
 
-    public static void AddGodotConsoleLogProcessor(this ILoggerBuilder builder)
+    public static void AddConsoleLogProcessor(this ILoggerBuilder builder)
     {
-        var godotConsoleLogFormatter = new GodotConsoleLogFormatter();
-        builder.AddLogProcessor(new GodotConsoleLogProcessor(godotConsoleLogFormatter));
+        var godotConsoleLogFormatter = new ConsoleLogFormatter();
+        builder.AddLogProcessor(new ConsoleLogProcessor(godotConsoleLogFormatter));
     }
 }

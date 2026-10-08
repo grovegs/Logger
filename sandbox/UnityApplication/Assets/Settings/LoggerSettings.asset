@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9f8ea9470e6f4c3082be41057f49e271, type: 3}
   m_Name: LoggerSettings
-  m_EditorClassIdentifier: GroveGames.Logger.Unity::GroveGames.Logger.Unity.UnityLoggerSettings
+  m_EditorClassIdentifier: GroveGames.Logger.Unity::GroveGames.Logger.Unity.LoggerSettings
   _minLogLevel: 1
   _maxFileCount: 10
   _fileFolderName: logs

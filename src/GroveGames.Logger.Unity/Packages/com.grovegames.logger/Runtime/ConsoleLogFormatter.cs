@@ -2,7 +2,7 @@
 
 namespace GroveGames.Logger.Unity
 {
-    public sealed class UnityConsoleLogFormatter : ILogFormatter
+    public sealed class ConsoleLogFormatter : ILogFormatter
     {
         private static ReadOnlySpan<char> LeftBracket => "[";
         private static ReadOnlySpan<char> RightBracket => "] ";

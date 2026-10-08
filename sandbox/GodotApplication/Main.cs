@@ -3,6 +3,7 @@ using System;
 using Godot;
 
 using GroveGames.Logger;
+using GroveGames.Logger.Godot;
 
 public partial class Main : Node2D
 {
@@ -14,8 +15,8 @@ public partial class Main : Node2D
 
         _logger = GodotLoggerFactory.CreateLogger(builder =>
         {
-            builder.AddGodotFileLogProcessor();
-            builder.AddGodotConsoleLogProcessor();
+            builder.AddFileLogProcessor();
+            builder.AddConsoleLogProcessor();
         });
     }
 

@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace GroveGames.Logger.Unity.Editor
 {
-    internal static class UnityLoggerSettingsProvider
+    internal static class LoggerSettingsProvider
     {
         private const string AssetPath = "Assets/Settings/LoggerSettings.asset";
 
@@ -44,15 +44,15 @@ namespace GroveGames.Logger.Unity.Editor
 
                     var assetField = new ObjectField("Settings Asset")
                     {
-                        objectType = typeof(UnityLoggerSettings),
+                        objectType = typeof(LoggerSettings),
                         value = settings,
                         style = { marginBottom = 10 }
                     };
                     assetField.RegisterValueChangedCallback(evt =>
                     {
-                        if (evt.newValue is UnityLoggerSettings newSettings)
+                        if (evt.newValue is LoggerSettings newSettings)
                         {
-                            EditorBuildSettings.AddConfigObject(UnityLoggerSettings.GetConfigName(), newSettings, true);
+                            EditorBuildSettings.AddConfigObject(LoggerSettings.GetConfigName(), newSettings, true);
                             AddToPreloadedAssets(newSettings);
                             serializedObject.Dispose();
                             serializedObject = new SerializedObject(newSettings);
@@ -74,9 +74,9 @@ namespace GroveGames.Logger.Unity.Editor
             };
         }
 
-        private static UnityLoggerSettings GetCurrentSettings()
+        private static LoggerSettings GetCurrentSettings()
         {
-            if (EditorBuildSettings.TryGetConfigObject<UnityLoggerSettings>(UnityLoggerSettings.GetConfigName(), out var existingSettings))
+            if (EditorBuildSettings.TryGetConfigObject<LoggerSettings>(LoggerSettings.GetConfigName(), out var existingSettings))
             {
                 if (existingSettings != null)
                 {
@@ -85,10 +85,10 @@ namespace GroveGames.Logger.Unity.Editor
                 }
             }
 
-            var settings = AssetDatabase.LoadAssetAtPath<UnityLoggerSettings>(AssetPath);
+            var settings = AssetDatabase.LoadAssetAtPath<LoggerSettings>(AssetPath);
             if (settings == null)
             {
-                settings = ScriptableObject.CreateInstance<UnityLoggerSettings>();
+                settings = ScriptableObject.CreateInstance<LoggerSettings>();
 
                 var directory = System.IO.Path.GetDirectoryName(AssetPath);
                 if (!AssetDatabase.IsValidFolder(directory))
@@ -101,12 +101,12 @@ namespace GroveGames.Logger.Unity.Editor
                 AssetDatabase.SaveAssets();
             }
 
-            EditorBuildSettings.AddConfigObject(UnityLoggerSettings.GetConfigName(), settings, true);
+            EditorBuildSettings.AddConfigObject(LoggerSettings.GetConfigName(), settings, true);
             AddToPreloadedAssets(settings);
             return settings;
         }
 
-        internal static void AddToPreloadedAssets(UnityLoggerSettings settings)
+        internal static void AddToPreloadedAssets(LoggerSettings settings)
         {
             var preloadedAssets = new System.Collections.Generic.List<Object>(PlayerSettings.GetPreloadedAssets());
 
@@ -115,7 +115,7 @@ namespace GroveGames.Logger.Unity.Editor
                 return;
             }
 
-            preloadedAssets.RemoveAll(asset => asset is UnityLoggerSettings);
+            preloadedAssets.RemoveAll(asset => asset is LoggerSettings);
             preloadedAssets.Add(settings);
             PlayerSettings.SetPreloadedAssets(preloadedAssets.ToArray());
         }

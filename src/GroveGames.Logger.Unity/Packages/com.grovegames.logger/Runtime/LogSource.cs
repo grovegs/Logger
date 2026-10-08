@@ -4,15 +4,15 @@ using UnityEngine;
 
 namespace GroveGames.Logger.Unity
 {
-    public sealed class UnityLogSource : ILogSource
+    public sealed class LogSource : ILogSource
     {
         private readonly ILogProcessor _logProcessor;
         private readonly string _tag;
         private volatile int _disposed;
 
-        public UnityLogSource(ILogProcessor[] processors, string tag = "Unity")
+        public LogSource(ILogProcessor[] processors, string tag = "Unity")
         {
-            _logProcessor = new UnitySourceLogProcessor(processors);
+            _logProcessor = new SourceLogProcessor(processors);
             _tag = tag;
             Application.logMessageReceived += OnLogMessageReceived;
         }

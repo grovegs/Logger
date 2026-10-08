@@ -1,12 +1,12 @@
 using Godot;
 
-namespace GroveGames.Logger;
+namespace GroveGames.Logger.Godot;
 
-public sealed class GodotConsoleLogProcessor : ILogProcessor
+public sealed class ConsoleLogProcessor : ILogProcessor
 {
     private readonly ILogFormatter _logFormatter;
 
-    public GodotConsoleLogProcessor(ILogFormatter logFormatter)
+    public ConsoleLogProcessor(ILogFormatter logFormatter)
     {
         _logFormatter = logFormatter;
     }

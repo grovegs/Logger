@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace GroveGames.Logger;
+namespace GroveGames.Logger.Godot;
 
 public sealed class GodotLoggerFactory
 {

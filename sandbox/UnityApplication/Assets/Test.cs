@@ -14,8 +14,8 @@ public class Test : MonoBehaviour
     {
         _logger = UnityLoggerFactory.CreateLogger(builder =>
         {
-            builder.AddUnityConsoleLogProcessor();
-            builder.AddUnityFileLogProcessor();
+            builder.AddConsoleLogProcessor();
+            builder.AddFileLogProcessor();
         });
         _logger.LogInformation("Test log message from Unity Logger", $"Awake");
     }

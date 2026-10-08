@@ -1,6 +1,6 @@
-namespace GroveGames.Logger;
+namespace GroveGames.Logger.Godot;
 
-public sealed class GodotConsoleLogFormatter : ILogFormatter
+public sealed class ConsoleLogFormatter : ILogFormatter
 {
     private static ReadOnlySpan<char> WarningTag => "[color=yellow]⚠️ ";
     private static ReadOnlySpan<char> TimeFormat => "HH:mm:ss ";
@@ -9,7 +9,7 @@ public sealed class GodotConsoleLogFormatter : ILogFormatter
 
     private readonly TimeProvider _timeProvider;
 
-    public GodotConsoleLogFormatter(TimeProvider? timeProvider = null)
+    public ConsoleLogFormatter(TimeProvider? timeProvider = null)
     {
         _timeProvider = timeProvider ?? TimeProvider.System;
     }

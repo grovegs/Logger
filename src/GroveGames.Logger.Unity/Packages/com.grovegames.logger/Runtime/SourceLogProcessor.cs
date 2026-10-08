@@ -2,16 +2,16 @@
 
 namespace GroveGames.Logger.Unity
 {
-    internal sealed class UnitySourceLogProcessor : ILogProcessor
+    internal sealed class SourceLogProcessor : ILogProcessor
     {
         private readonly ILogProcessor[] _processors;
 
-        public UnitySourceLogProcessor(ILogProcessor[] processors)
+        public SourceLogProcessor(ILogProcessor[] processors)
         {
             var count = 0;
             for (var i = 0; i < processors.Length; i++)
             {
-                if (processors[i] is not UnityConsoleLogProcessor)
+                if (processors[i] is not ConsoleLogProcessor)
                 {
                     count++;
                 }
@@ -21,7 +21,7 @@ namespace GroveGames.Logger.Unity
             var index = 0;
             for (var i = 0; i < processors.Length; i++)
             {
-                if (processors[i] is not UnityConsoleLogProcessor)
+                if (processors[i] is not ConsoleLogProcessor)
                 {
                     _processors[index++] = processors[i];
                 }

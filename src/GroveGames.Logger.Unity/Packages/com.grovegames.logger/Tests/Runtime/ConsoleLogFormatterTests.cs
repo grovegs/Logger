@@ -3,12 +3,12 @@ using NUnit.Framework;
 
 namespace GroveGames.Logger.Unity.Tests
 {
-    public sealed class UnityConsoleLogFormatterTests
+    public sealed class ConsoleLogFormatterTests
     {
         [Test]
         public void GetBufferSize_ReturnsCorrectSize()
         {
-            var formatter = new UnityConsoleLogFormatter();
+            var formatter = new ConsoleLogFormatter();
 
             var size = formatter.GetBufferSize(LogLevel.Information, "TestTag", "Test message");
 
@@ -18,7 +18,7 @@ namespace GroveGames.Logger.Unity.Tests
         [Test]
         public void GetBufferSize_EmptyTagAndMessage_ReturnsMinimumSize()
         {
-            var formatter = new UnityConsoleLogFormatter();
+            var formatter = new ConsoleLogFormatter();
 
             var size = formatter.GetBufferSize(LogLevel.Information, ReadOnlySpan<char>.Empty, ReadOnlySpan<char>.Empty);
 
@@ -28,7 +28,7 @@ namespace GroveGames.Logger.Unity.Tests
         [Test]
         public void Format_FormatsCorrectly()
         {
-            var formatter = new UnityConsoleLogFormatter();
+            var formatter = new ConsoleLogFormatter();
             var buffer = new char[50];
 
             formatter.Format(buffer, LogLevel.Information, "TestTag", "Test message");
@@ -40,7 +40,7 @@ namespace GroveGames.Logger.Unity.Tests
         [Test]
         public void Format_AllLevels_SameFormat()
         {
-            var formatter = new UnityConsoleLogFormatter();
+            var formatter = new ConsoleLogFormatter();
             var levels = new[] { LogLevel.Debug, LogLevel.Information, LogLevel.Warning, LogLevel.Error };
 
             foreach (var level in levels)
@@ -56,7 +56,7 @@ namespace GroveGames.Logger.Unity.Tests
         [Test]
         public void Format_EmptyTag_FormatsWithEmptyBrackets()
         {
-            var formatter = new UnityConsoleLogFormatter();
+            var formatter = new ConsoleLogFormatter();
             var buffer = new char[30];
 
             formatter.Format(buffer, LogLevel.Information, ReadOnlySpan<char>.Empty, "Message");
@@ -68,7 +68,7 @@ namespace GroveGames.Logger.Unity.Tests
         [Test]
         public void Format_EmptyMessage_FormatsWithoutMessage()
         {
-            var formatter = new UnityConsoleLogFormatter();
+            var formatter = new ConsoleLogFormatter();
             var buffer = new char[30];
 
             formatter.Format(buffer, LogLevel.Information, "Tag", ReadOnlySpan<char>.Empty);
@@ -80,7 +80,7 @@ namespace GroveGames.Logger.Unity.Tests
         [Test]
         public void GetBufferSize_MatchesActualFormattedLength()
         {
-            var formatter = new UnityConsoleLogFormatter();
+            var formatter = new ConsoleLogFormatter();
             var testCases = new[]
             {
                 (LogLevel.Information, "Short", "Quick test"),

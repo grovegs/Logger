@@ -1,6 +1,6 @@
 using Godot;
 
-namespace GroveGames.Logger;
+namespace GroveGames.Logger.Godot;
 
 [GlobalClass]
 public partial class LoggerSettingsResource : Resource

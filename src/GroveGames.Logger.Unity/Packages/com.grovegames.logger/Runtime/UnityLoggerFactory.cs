@@ -7,15 +7,15 @@ namespace GroveGames.Logger.Unity
     {
         public static Logger CreateLogger(Action<ILoggerBuilder> configure)
         {
-            return CreateLogger(UnityLoggerSettings.GetOrCreate(), configure);
+            return CreateLogger(LoggerSettings.GetOrCreate(), configure);
         }
 
-        public static Logger CreateLogger(UnityLoggerSettings settings, Action<ILoggerBuilder> configure)
+        public static Logger CreateLogger(LoggerSettings settings, Action<ILoggerBuilder> configure)
         {
             if (settings == null)
             {
-                Debug.LogError("UnityLoggerSettings cannot be null");
-                settings = ScriptableObject.CreateInstance<UnityLoggerSettings>();
+                Debug.LogError("LoggerSettings cannot be null");
+                settings = ScriptableObject.CreateInstance<LoggerSettings>();
             }
 
             var builder = new LoggerBuilder();

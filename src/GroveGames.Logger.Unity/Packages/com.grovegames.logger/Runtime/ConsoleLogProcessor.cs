@@ -3,11 +3,11 @@ using UnityEngine;
 
 namespace GroveGames.Logger.Unity
 {
-    public sealed class UnityConsoleLogProcessor : ILogProcessor
+    public sealed class ConsoleLogProcessor : ILogProcessor
     {
         private readonly ILogFormatter _logFormatter;
 
-        public UnityConsoleLogProcessor(ILogFormatter logFormatter)
+        public ConsoleLogProcessor(ILogFormatter logFormatter)
         {
             _logFormatter = logFormatter;
         }

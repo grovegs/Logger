@@ -155,8 +155,8 @@ public class GameManager : MonoBehaviour
     {
         _logger = UnityLoggerFactory.CreateLogger(builder =>
         {
-            builder.AddUnityConsoleLogProcessor();
-            builder.AddUnityFileLogProcessor();
+            builder.AddConsoleLogProcessor();
+            builder.AddFileLogProcessor();
         });
 
         _logger.LogInformation("Game", $"Unity {Application.unityVersion} initialized");
@@ -184,17 +184,17 @@ Configure logger settings via Edit → Project Settings → GroveGames → Logge
 For custom configurations or DI scenarios, pass settings directly:
 
 ```csharp
-var settings = UnityLoggerSettings.GetOrCreate();
+var settings = LoggerSettings.GetOrCreate();
 var logger = UnityLoggerFactory.CreateLogger(settings, builder => { ... });
 ```
 
 ### Unity Components
 
 - **`UnityLoggerFactory`**: Factory with GetOrCreate() pattern for DI-friendly architecture
-- **`UnityLoggerSettings`**: ScriptableObject with EditorBuildSettings integration
-- **`UnityLoggerSettingsProvider`**: Project Settings UI using UI Toolkit
-- **`UnityConsoleLogFormatter`**: Formatter for Unity console output (format: `[Tag] Message`)
-- **`UnityConsoleLogProcessor`**: Routes logs to `Debug.Log`, `Debug.LogWarning`, `Debug.LogError`
+- **`LoggerSettings`**: ScriptableObject with EditorBuildSettings integration
+- **`LoggerSettingsProvider`**: Project Settings UI using UI Toolkit
+- **`ConsoleLogFormatter`**: Formatter for Unity console output (format: `[Tag] Message`)
+- **`ConsoleLogProcessor`**: Routes logs to `Debug.Log`, `Debug.LogWarning`, `Debug.LogError`
 - **`UnityLogFileFactory`**: File factory using `Application.persistentDataPath`
 - **`UnityLogHandler`**: Captures Unity's internal logs and forwards them to file logging
 
@@ -231,8 +231,8 @@ public partial class Main : Node
     {
         _logger = GodotLoggerFactory.CreateLogger(builder =>
         {
-            builder.AddGodotConsoleLogProcessor();
-            builder.AddGodotFileLogProcessor();
+            builder.AddConsoleLogProcessor();
+            builder.AddFileLogProcessor();
         });
 
         _logger.LogInformation("Game", $"Godot {Engine.GetVersionInfo()} initialized");
@@ -247,7 +247,7 @@ public partial class Main : Node
 
 ### Godot Console Formatter
 
-The `GodotConsoleLogFormatter` provides rich formatting for the Godot editor console:
+The `ConsoleLogFormatter` provides rich formatting for the Godot editor console:
 
 - Warning messages are highlighted with yellow color
 - Timestamps in HH:mm:ss format for easy debugging
@@ -283,8 +283,8 @@ public partial class GameManager : Node
 
 - **`GodotLoggerFactory`**: Factory with GetOrCreate() pattern for DI-friendly architecture
 - **`LoggerSettingsResource`**: Resource with ProjectSettings integration
-- **`GodotConsoleLogFormatter`**: Rich formatting for Godot's editor console
-- **`GodotConsoleLogProcessor`**: Processor optimized for Godot's output methods
+- **`ConsoleLogFormatter`**: Rich formatting for Godot's editor console
+- **`ConsoleLogProcessor`**: Processor optimized for Godot's output methods
 - **`GodotLogFileFactory`**: File factory using `OS.GetUserDataDir()`
 
 ## Architecture
