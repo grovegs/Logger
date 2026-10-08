@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 9f8ea9470e6f4c3082be41057f49e271, type: 3}
   m_Name: LoggerSettings
   m_EditorClassIdentifier: GroveGames.Logger.Unity:GroveGames.Logger.Unity:UnityLoggerSettings
   _minLogLevel: 1
