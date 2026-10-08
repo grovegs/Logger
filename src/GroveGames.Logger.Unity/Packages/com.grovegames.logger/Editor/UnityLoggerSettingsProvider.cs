@@ -53,6 +53,7 @@ internal static class UnityLoggerSettingsProvider
                     if (evt.newValue is UnityLoggerSettings newSettings)
                     {
                         EditorBuildSettings.AddConfigObject(UnityLoggerSettings.GetConfigName(), newSettings, true);
+                        AddToPreloadedAssets(newSettings);
                         serializedObject.Dispose();
                         serializedObject = new SerializedObject(newSettings);
                         rootElement.Bind(serializedObject);
@@ -79,6 +80,7 @@ internal static class UnityLoggerSettingsProvider
         {
             if (existingSettings != null)
             {
+                AddToPreloadedAssets(existingSettings);
                 return existingSettings;
             }
         }
@@ -100,6 +102,21 @@ internal static class UnityLoggerSettingsProvider
         }
 
         EditorBuildSettings.AddConfigObject(UnityLoggerSettings.GetConfigName(), settings, true);
+        AddToPreloadedAssets(settings);
         return settings;
+    }
+
+    internal static void AddToPreloadedAssets(UnityLoggerSettings settings)
+    {
+        var preloadedAssets = new System.Collections.Generic.List<Object>(PlayerSettings.GetPreloadedAssets());
+
+        if (preloadedAssets.Contains(settings))
+        {
+            return;
+        }
+
+        preloadedAssets.RemoveAll(asset => asset is UnityLoggerSettings);
+        preloadedAssets.Add(settings);
+        PlayerSettings.SetPreloadedAssets(preloadedAssets.ToArray());
     }
 }
