@@ -1,19 +1,19 @@
 #if TOOLS
 using Godot;
 
-namespace GroveGames.Logger;
+namespace GroveGames.Logger.Godot;
 
 [Tool]
 public partial class Plugin : EditorPlugin
 {
     public override void _EnterTree()
     {
-        var resourcePath = GodotLoggerSettingsResource.GetDefaultResourcePath();
+        var resourcePath = LoggerSettingsResource.GetDefaultResourcePath();
 
-        if (!ProjectSettings.HasSetting(GodotLoggerSettingsResource.GetProjectSettingsKey()))
+        if (!ProjectSettings.HasSetting(LoggerSettingsResource.GetProjectSettingsKey()))
         {
-            ProjectSettings.SetSetting(GodotLoggerSettingsResource.GetProjectSettingsKey(), resourcePath);
-            ProjectSettings.SetInitialValue(GodotLoggerSettingsResource.GetProjectSettingsKey(), resourcePath);
+            ProjectSettings.SetSetting(LoggerSettingsResource.GetProjectSettingsKey(), resourcePath);
+            ProjectSettings.SetInitialValue(LoggerSettingsResource.GetProjectSettingsKey(), resourcePath);
             ProjectSettings.Save();
         }
     }
