@@ -5,11 +5,11 @@ using UnityEditor;
 
 namespace GroveGames.Logger.Unity
 {
-    public sealed class LoggerSettings : ScriptableObject
+    public sealed class UnityLoggerSettings : ScriptableObject
     {
         private const string ConfigName = "com.grovegames.logger.settings";
 
-        private static LoggerSettings s_loaded;
+        private static UnityLoggerSettings s_loaded;
 
         [SerializeField] private LogLevel _minLogLevel = LogLevel.Information;
         [SerializeField] private int _maxFileCount = 10;
@@ -28,10 +28,10 @@ namespace GroveGames.Logger.Unity
             s_loaded = this;
         }
 
-        public static LoggerSettings GetOrCreate()
+        public static UnityLoggerSettings GetOrCreate()
         {
     #if UNITY_EDITOR
-            if (EditorBuildSettings.TryGetConfigObject<LoggerSettings>(ConfigName, out var settings) && settings != null)
+            if (EditorBuildSettings.TryGetConfigObject<UnityLoggerSettings>(ConfigName, out var settings) && settings != null)
             {
                 return settings;
             }
@@ -41,7 +41,7 @@ namespace GroveGames.Logger.Unity
                 return s_loaded;
             }
     #endif
-            var defaultSettings = CreateInstance<LoggerSettings>();
+            var defaultSettings = CreateInstance<UnityLoggerSettings>();
             defaultSettings.name = ConfigName;
             return defaultSettings;
         }

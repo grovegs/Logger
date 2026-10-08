@@ -184,15 +184,15 @@ Configure logger settings via Edit → Project Settings → GroveGames → Logge
 For custom configurations or DI scenarios, pass settings directly:
 
 ```csharp
-var settings = LoggerSettings.GetOrCreate();
+var settings = UnityLoggerSettings.GetOrCreate();
 var logger = UnityLoggerFactory.CreateLogger(settings, builder => { ... });
 ```
 
 ### Unity Components
 
 - **`UnityLoggerFactory`**: Factory with GetOrCreate() pattern for DI-friendly architecture
-- **`LoggerSettings`**: ScriptableObject with EditorBuildSettings integration
-- **`LoggerSettingsProvider`**: Project Settings UI using UI Toolkit
+- **`UnityLoggerSettings`**: ScriptableObject with EditorBuildSettings integration
+- **`UnityLoggerSettingsProvider`**: Project Settings UI using UI Toolkit
 - **`UnityConsoleLogFormatter`**: Formatter for Unity console output (format: `[Tag] Message`)
 - **`UnityConsoleLogProcessor`**: Routes logs to `Debug.Log`, `Debug.LogWarning`, `Debug.LogError`
 - **`UnityLogFileFactory`**: File factory using `Application.persistentDataPath`
