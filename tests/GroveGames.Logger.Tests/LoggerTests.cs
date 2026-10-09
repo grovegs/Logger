@@ -95,15 +95,47 @@ public sealed class LoggerTests
     }
 
     [Fact]
-    public void Log_AfterDispose_ThrowsObjectDisposedException()
+    public void Log_AfterDispose_IsIgnored()
     {
-        // Arrange
-        var processors = new ILogProcessor[] { new TestLogProcessor() };
-        var logger = new Logger(processors, [], LogLevel.Information);
+        var processor = new TestLogProcessor();
+        var logger = new Logger([processor], [], LogLevel.Information);
         logger.Dispose();
 
-        // Act & Assert
-        Assert.Throws<ObjectDisposedException>(() => logger.Log(LogLevel.Information, "tag", "message"));
+        logger.Log(LogLevel.Information, "tag", "message");
+
+        Assert.Equal(0, processor.ProcessLogCallCount);
+    }
+
+    [Fact]
+    public void Log_DuringDispose_IsIgnored()
+    {
+        var processor = new TestLogProcessor();
+        Logger? logger = null;
+        var logging = new LoggingOnDisposeProcessor(() => logger!.Log(LogLevel.Information, "tag", "shutdown"));
+        logger = new Logger([logging, processor], [], LogLevel.Information);
+
+        logger.Dispose();
+
+        Assert.Equal(0, processor.ProcessLogCallCount);
+    }
+
+    private sealed class LoggingOnDisposeProcessor : ILogProcessor, IDisposable
+    {
+        private readonly Action _onDispose;
+
+        public LoggingOnDisposeProcessor(Action onDispose)
+        {
+            _onDispose = onDispose;
+        }
+
+        public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+        {
+        }
+
+        public void Dispose()
+        {
+            _onDispose();
+        }
     }
 
     [Fact]
@@ -229,15 +261,15 @@ public sealed class LoggerTests
     [Fact]
     public void Dispose_NoDisposableProcessors_CompletesSuccessfully()
     {
-        // Arrange
-        var processors = new ILogProcessor[] { new TestLogProcessor(), new TestLogProcessor() };
-        var logger = new Logger(processors, [], LogLevel.Information);
+        var first = new TestLogProcessor();
+        var second = new TestLogProcessor();
+        var logger = new Logger([first, second], [], LogLevel.Information);
 
-        // Act
         logger.Dispose();
+        logger.Log(LogLevel.Information, "tag", "message");
 
-        // Assert
-        Assert.Throws<ObjectDisposedException>(() => logger.Log(LogLevel.Information, "tag", "message"));
+        Assert.Equal(0, first.ProcessLogCallCount);
+        Assert.Equal(0, second.ProcessLogCallCount);
     }
 
     [Theory]
