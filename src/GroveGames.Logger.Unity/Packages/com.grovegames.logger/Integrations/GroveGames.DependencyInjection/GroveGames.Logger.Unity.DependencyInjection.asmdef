@@ -1,0 +1,27 @@
+{
+    "name": "GroveGames.Logger.Unity.DependencyInjection",
+    "rootNamespace": "GroveGames.Logger.Unity",
+    "references": [
+        "GUID:f5d3867fef86483f8076c2a0f9a822ec"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "GroveGames.Logger.dll",
+        "GroveGames.DependencyInjection.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "GROVEGAMES_DEPENDENCYINJECTION"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.grovegames.dependencyinjection",
+            "expression": "0.6.8",
+            "define": "GROVEGAMES_DEPENDENCYINJECTION"
+        }
+    ],
+    "noEngineReferences": false
+}

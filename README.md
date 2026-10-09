@@ -188,6 +188,23 @@ var settings = LoggerSettings.GetOrCreate();
 var logger = UnityLoggerFactory.CreateLogger(settings, builder => { ... });
 ```
 
+### Dependency Injection
+
+With [GroveGames.DependencyInjection](https://github.com/grovegs/DependencyInjection) installed, register the logger in your root installer:
+
+```csharp
+builder.AddLogger(ConfigureLogger);
+
+private static void ConfigureLogger(ILoggerBuilder logger)
+{
+    logger.AddConsoleLogProcessor();
+    logger.AddFileLogProcessor();
+    logger.AddLogSource();
+}
+```
+
+`AddLogger` registers `ILogger`, built from `LoggerSettings` and then `ConfigureLogger`, so code overrides the settings, for example per environment with scripting defines set in build profiles. Disposing the container disposes the logger.
+
 ### Unity Components
 
 - **`UnityLoggerFactory`**: Factory with GetOrCreate() pattern for DI-friendly architecture
