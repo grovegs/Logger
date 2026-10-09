@@ -134,27 +134,27 @@ public sealed class StreamWriterTests
     }
 
     [Fact]
-    public void AddEntry_ThrowsObjectDisposedException_WhenDisposed()
+    public void AddEntry_WhenDisposed_DoesNothing()
     {
-        // Arrange
         using var stream = new MemoryStream();
         var writer = new StreamWriter(stream, 1024, 100);
         writer.Dispose();
 
-        // Act & Assert
-        Assert.Throws<ObjectDisposedException>(() => writer.AddEntry("Test"));
+        var exception = Record.Exception(() => writer.AddEntry("Test"));
+
+        Assert.Null(exception);
     }
 
     [Fact]
-    public void Flush_ThrowsObjectDisposedException_WhenDisposed()
+    public void Flush_WhenDisposed_DoesNothing()
     {
-        // Arrange
         using var stream = new MemoryStream();
         var writer = new StreamWriter(stream, 1024, 100);
         writer.Dispose();
 
-        // Act & Assert
-        Assert.Throws<ObjectDisposedException>(writer.Flush);
+        var exception = Record.Exception(writer.Flush);
+
+        Assert.Null(exception);
     }
 
     [Fact]

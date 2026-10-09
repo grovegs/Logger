@@ -36,9 +36,7 @@ public sealed class Logger : ILogger, IDisposable
 
     public void Log(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        if (level < _minimumLevel)
+        if (_disposed || level < _minimumLevel)
         {
             return;
         }
@@ -56,6 +54,8 @@ public sealed class Logger : ILogger, IDisposable
             return;
         }
 
+        _disposed = true;
+
         foreach (var source in _logSources)
         {
             source.Dispose();
@@ -68,7 +68,5 @@ public sealed class Logger : ILogger, IDisposable
                 disposable.Dispose();
             }
         }
-
-        _disposed = true;
     }
 }
