@@ -38,7 +38,10 @@ public sealed class StreamWriter : IStreamWriter
 
     public void AddEntry(ReadOnlySpan<char> entry)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (_disposed)
+        {
+            return;
+        }
 
         var byteCount = Encoding.UTF8.GetByteCount(entry);
         var totalLength = byteCount + s_newLine.Length;
@@ -111,7 +114,10 @@ public sealed class StreamWriter : IStreamWriter
 
     public void Flush()
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (_disposed)
+        {
+            return;
+        }
 
         using (_flushLock.EnterScope())
         {
