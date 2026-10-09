@@ -1,15 +1,10 @@
 ﻿using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace GroveGames.Logger.Unity
 {
     public sealed class LoggerSettings : ScriptableObject
     {
-        private const string ConfigName = "com.grovegames.logger.settings";
-
-        private static LoggerSettings s_loaded;
+        public const string ResourcePath = "GroveGames/LoggerSettings";
 
         [SerializeField] private LogLevel _minLogLevel = LogLevel.Information;
         [SerializeField] private int _maxFileCount = 10;
@@ -23,29 +18,10 @@ namespace GroveGames.Logger.Unity
         public int FileBufferSize => _fileBufferSize;
         public int FileChannelCapacity => _fileChannelCapacity;
 
-        private void OnEnable()
-        {
-            s_loaded = this;
-        }
-
         public static LoggerSettings GetOrCreate()
         {
-    #if UNITY_EDITOR
-            if (EditorBuildSettings.TryGetConfigObject<LoggerSettings>(ConfigName, out var settings) && settings != null)
-            {
-                return settings;
-            }
-    #else
-            if (s_loaded != null)
-            {
-                return s_loaded;
-            }
-    #endif
-            var defaultSettings = CreateInstance<LoggerSettings>();
-            defaultSettings.name = ConfigName;
-            return defaultSettings;
+            var settings = Resources.Load<LoggerSettings>(ResourcePath);
+            return settings != null ? settings : CreateInstance<LoggerSettings>();
         }
-
-        public static string GetConfigName() => ConfigName;
     }
 }

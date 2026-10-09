@@ -1,5 +1,4 @@
-﻿using UnityEditor;
-using UnityEditor.Build;
+﻿using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 
 namespace GroveGames.Logger.Unity.Editor
@@ -10,10 +9,7 @@ namespace GroveGames.Logger.Unity.Editor
 
         public void OnPreprocessBuild(BuildReport report)
         {
-            if (EditorBuildSettings.TryGetConfigObject<LoggerSettings>(LoggerSettings.GetConfigName(), out var settings) && settings != null)
-            {
-                LoggerSettingsProvider.AddToPreloadedAssets(settings);
-            }
+            LoggerSettingsAsset.Migrate();
         }
     }
 }
