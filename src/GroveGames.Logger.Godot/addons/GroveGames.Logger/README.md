@@ -171,7 +171,7 @@ public class GameManager : MonoBehaviour
 
 ### Project Settings Configuration
 
-Configure logger settings via Edit → Project Settings → GroveGames → Logger. Settings are stored as a ScriptableObject in `Assets/Settings/GroveGamesLoggerSettings.asset` and automatically included in builds via `EditorBuildSettings`.
+Configure logger settings via Edit → Project Settings → GroveGames → Logger. Settings are stored as a ScriptableObject in `Assets/Settings/Resources/GroveGames/LoggerSettings.asset` and loaded with `Resources.Load`, so every build profile ships them.
 
 | Setting                 | Type       | Default       | Description                               |
 | ----------------------- | ---------- | ------------- | ----------------------------------------- |
@@ -188,10 +188,27 @@ var settings = LoggerSettings.GetOrCreate();
 var logger = UnityLoggerFactory.CreateLogger(settings, builder => { ... });
 ```
 
+### Dependency Injection
+
+With [GroveGames.DependencyInjection](https://github.com/grovegs/DependencyInjection) installed, register the logger in your root installer:
+
+```csharp
+builder.AddLogger(ConfigureLogger);
+
+private static void ConfigureLogger(ILoggerBuilder logger)
+{
+    logger.AddConsoleLogProcessor();
+    logger.AddFileLogProcessor();
+    logger.AddLogSource();
+}
+```
+
+`AddLogger` registers `ILogger`, built from `LoggerSettings` and then `ConfigureLogger`, so code overrides the settings, for example per environment with scripting defines set in build profiles. Disposing the container disposes the logger.
+
 ### Unity Components
 
 - **`UnityLoggerFactory`**: Factory with GetOrCreate() pattern for DI-friendly architecture
-- **`LoggerSettings`**: ScriptableObject with EditorBuildSettings integration
+- **`LoggerSettings`**: ScriptableObject loaded from `Resources/GroveGames/LoggerSettings`
 - **`LoggerSettingsProvider`**: Project Settings UI using UI Toolkit
 - **`ConsoleLogFormatter`**: Formatter for Unity console output (format: `[Tag] Message`)
 - **`ConsoleLogProcessor`**: Routes logs to `Debug.Log`, `Debug.LogWarning`, `Debug.LogError`
