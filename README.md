@@ -171,7 +171,7 @@ public class GameManager : MonoBehaviour
 
 ### Project Settings Configuration
 
-Configure logger settings via Edit → Project Settings → GroveGames → Logger. Settings are stored as a ScriptableObject in `Assets/Settings/Resources/GroveGames/LoggerSettings.asset` and loaded with `Resources.Load`, so every build profile ships them. Settings registered by older versions are moved there automatically.
+Configure logger settings via Edit → Project Settings → GroveGames → Logger. Settings are stored as a ScriptableObject in `Assets/Settings/Resources/GroveGames/LoggerSettings.asset` and loaded with `Resources.Load`, so every build profile ships them.
 
 | Setting                 | Type       | Default       | Description                               |
 | ----------------------- | ---------- | ------------- | ----------------------------------------- |
