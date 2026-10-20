@@ -171,7 +171,7 @@ public class GameManager : MonoBehaviour
 
 ### Project Settings Configuration
 
-Configure logger settings via Edit → Project Settings → GroveGames → Logger. Settings are stored as a ScriptableObject in `Assets/Settings/Resources/GroveGames/LoggerSettings.asset` and loaded with `Resources.Load`, so every build profile ships them.
+Configure logger settings via Edit → Project Settings → GroveGames → Logger. Settings are stored as a ScriptableObject in `Assets/Settings/GroveGames/LoggerSettings.asset` and registered as a preloaded asset in Player Settings, so every build profile ships them. An asset left in the old `Assets/Settings/Resources/GroveGames/` folder is moved there automatically.
 
 | Setting                 | Type       | Default       | Description                               |
 | ----------------------- | ---------- | ------------- | ----------------------------------------- |
@@ -208,7 +208,7 @@ private static void ConfigureLogger(ILoggerBuilder logger)
 ### Unity Components
 
 - **`UnityLoggerFactory`**: Factory with GetOrCreate() pattern for DI-friendly architecture
-- **`LoggerSettings`**: ScriptableObject loaded from `Resources/GroveGames/LoggerSettings`
+- **`LoggerSettings`**: ScriptableObject registered as a preloaded asset
 - **`LoggerSettingsProvider`**: Project Settings UI using UI Toolkit
 - **`ConsoleLogFormatter`**: Formatter for Unity console output (format: `[Tag] Message`)
 - **`ConsoleLogProcessor`**: Routes logs to `Debug.Log`, `Debug.LogWarning`, `Debug.LogError`

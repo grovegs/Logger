@@ -4,7 +4,9 @@ namespace GroveGames.Logger.Unity
 {
     public sealed class LoggerSettings : ScriptableObject
     {
-        public const string ResourcePath = "GroveGames/LoggerSettings";
+        public const string ConfigName = "com.grovegames.logger.settings";
+
+        private static LoggerSettings? s_instance;
 
         [SerializeField] private LogLevel _minLogLevel = LogLevel.Information;
         [SerializeField] private int _maxFileCount = 10;
@@ -20,8 +22,25 @@ namespace GroveGames.Logger.Unity
 
         public static LoggerSettings GetOrCreate()
         {
-            var settings = Resources.Load<LoggerSettings>(ResourcePath);
-            return settings != null ? settings : CreateInstance<LoggerSettings>();
+#if UNITY_EDITOR
+            if (UnityEditor.EditorBuildSettings.TryGetConfigObject(ConfigName, out LoggerSettings settings) && settings != null)
+            {
+                return settings;
+            }
+#else
+            if (s_instance == null)
+            {
+                var preloaded = Resources.FindObjectsOfTypeAll<LoggerSettings>();
+                s_instance = preloaded.Length > 0 ? preloaded[0] : null;
+            }
+#endif
+            if (s_instance == null)
+            {
+                s_instance = CreateInstance<LoggerSettings>();
+                s_instance.hideFlags = HideFlags.DontSave;
+            }
+
+            return s_instance;
         }
     }
 }
