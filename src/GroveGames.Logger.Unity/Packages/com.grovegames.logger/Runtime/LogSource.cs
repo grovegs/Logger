@@ -25,6 +25,13 @@ namespace GroveGames.Logger.Unity
             }
 
             var level = ConvertLogType(type);
+
+            if (level == LogLevel.Error && !string.IsNullOrEmpty(stackTrace))
+            {
+                _logProcessor.ProcessLog(level, _tag.AsSpan(), $"{condition}\n{stackTrace}".AsSpan());
+                return;
+            }
+
             _logProcessor.ProcessLog(level, _tag.AsSpan(), condition.AsSpan());
         }
 
