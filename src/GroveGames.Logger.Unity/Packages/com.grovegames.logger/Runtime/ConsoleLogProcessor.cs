@@ -5,7 +5,12 @@ namespace GroveGames.Logger.Unity
 {
     public sealed class ConsoleLogProcessor : ILogProcessor
     {
+        [ThreadStatic]
+        private static bool s_isWriting;
+
         private readonly ILogFormatter _logFormatter;
+
+        internal static bool IsWriting => s_isWriting;
 
         public ConsoleLogProcessor(ILogFormatter logFormatter)
         {
@@ -18,7 +23,20 @@ namespace GroveGames.Logger.Unity
             Span<char> buffer = stackalloc char[bufferSize];
             _logFormatter.Format(buffer, level, tag, message);
             var log = buffer.ToString();
+            s_isWriting = true;
 
+            try
+            {
+                Write(level, log);
+            }
+            finally
+            {
+                s_isWriting = false;
+            }
+        }
+
+        private static void Write(LogLevel level, string log)
+        {
             switch (level)
             {
                 case LogLevel.Debug:

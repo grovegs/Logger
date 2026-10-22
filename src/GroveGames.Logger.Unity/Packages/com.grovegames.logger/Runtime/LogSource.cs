@@ -19,7 +19,7 @@ namespace GroveGames.Logger.Unity
 
         private void OnLogMessageReceived(string condition, string stackTrace, LogType type)
         {
-            if (_disposed == 1)
+            if (_disposed == 1 || ConsoleLogProcessor.IsWriting)
             {
                 return;
             }
