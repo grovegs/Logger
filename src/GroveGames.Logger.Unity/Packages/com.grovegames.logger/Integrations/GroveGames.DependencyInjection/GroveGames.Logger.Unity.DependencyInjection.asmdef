@@ -2,7 +2,9 @@
     "name": "GroveGames.Logger.Unity.DependencyInjection",
     "rootNamespace": "GroveGames.Logger.Unity",
     "references": [
-        "GUID:f5d3867fef86483f8076c2a0f9a822ec"
+        "GUID:f5d3867fef86483f8076c2a0f9a822ec",
+        "GUID:9d8d0fb5d2ded4239927aac80a0cd26c",
+        "GUID:6c306e23946f7466c9187a4387a5baca"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
