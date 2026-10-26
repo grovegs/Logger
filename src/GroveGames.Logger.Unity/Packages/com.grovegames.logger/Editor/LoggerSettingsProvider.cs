@@ -54,6 +54,7 @@ namespace GroveGames.Logger.Unity.Editor
                     container.Add(new PropertyField(serializedObject.FindProperty("_fileFolderName"), "File Folder Name"));
                     container.Add(new PropertyField(serializedObject.FindProperty("_fileBufferSize"), "File Buffer Size"));
                     container.Add(new PropertyField(serializedObject.FindProperty("_fileChannelCapacity"), "File Channel Capacity"));
+                    container.Add(new PropertyField(serializedObject.FindProperty("_historyCapacity"), "History Capacity"));
 
                     rootElement.Add(container);
                     rootElement.Bind(serializedObject);

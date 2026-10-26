@@ -22,6 +22,11 @@
             builder.AddLogProcessor(new ConsoleLogProcessor(unityConsoleLogFormatter));
         }
 
+        public static void AddLogHistory(this ILoggerBuilder builder, ILogHistory history)
+        {
+            builder.AddLogProcessor(new LogHistoryProcessor(history));
+        }
+
         public static void AddLogSource(this ILoggerBuilder builder, string tag = "Unity")
         {
             builder.AddLogSource(processors => new LogSource(processors, tag));

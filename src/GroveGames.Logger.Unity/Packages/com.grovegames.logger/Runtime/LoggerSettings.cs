@@ -13,12 +13,14 @@ namespace GroveGames.Logger.Unity
         [SerializeField] private string _fileFolderName = "logs";
         [SerializeField] private int _fileBufferSize = 8192;
         [SerializeField] private int _fileChannelCapacity = 1000;
+        [SerializeField] private int _historyCapacity = 1000;
 
         public LogLevel MinLogLevel => _minLogLevel;
         public int MaxFileCount => _maxFileCount;
         public string FileFolderName => _fileFolderName;
         public int FileBufferSize => _fileBufferSize;
         public int FileChannelCapacity => _fileChannelCapacity;
+        public int HistoryCapacity => _historyCapacity;
 
         public static LoggerSettings GetOrCreate()
         {
