@@ -5,7 +5,7 @@ using GroveGames.DeveloperTools.Unity;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace GroveGames.Logger.Unity
+namespace GroveGames.Logger.Unity.DeveloperTools
 {
     public sealed class LogsPage : IDeveloperToolsPage
     {
