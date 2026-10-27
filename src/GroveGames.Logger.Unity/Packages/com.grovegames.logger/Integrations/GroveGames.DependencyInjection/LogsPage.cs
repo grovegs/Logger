@@ -9,6 +9,8 @@ namespace GroveGames.Logger.Unity
 {
     public sealed class LogsPage : IDeveloperToolsPage
     {
+        public const int PageOrder = 100;
+
         private const int LevelCount = 4;
         private const string TimeFormat = "HH:mm:ss";
         private const int MinimumVisibleRows = 5;
