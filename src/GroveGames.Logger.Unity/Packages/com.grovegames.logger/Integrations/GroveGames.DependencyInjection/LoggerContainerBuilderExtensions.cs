@@ -2,6 +2,7 @@ using System;
 using GroveGames.DependencyInjection;
 #if GROVEGAMES_DEVELOPERTOOLS
 using GroveGames.DeveloperTools.Unity;
+using GroveGames.Logger.Unity.DeveloperTools;
 #endif
 
 namespace GroveGames.Logger.Unity
