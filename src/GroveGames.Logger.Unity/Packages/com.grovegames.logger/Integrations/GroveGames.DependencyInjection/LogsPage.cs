@@ -36,9 +36,10 @@ namespace GroveGames.Logger.Unity.DeveloperTools
         private readonly TextField _detailsText;
         private int _version = -1;
         private string _searchText = string.Empty;
+        private readonly VisualElement _root;
 
         public string Title => "Logs";
-        public VisualElement Root { get; }
+        public VisualElement Root => _root;
 
         public LogsPage(ILogHistory history)
         {
@@ -49,7 +50,7 @@ namespace GroveGames.Logger.Unity.DeveloperTools
             _levelCounts = new int[LevelCount];
             _levelButtons = new Button[LevelCount];
 
-            Root = new VisualElement();
+            _root = new VisualElement();
             Root.style.flexGrow = 1f;
             Root.style.flexShrink = 1f;
             Root.style.minHeight = 0f;

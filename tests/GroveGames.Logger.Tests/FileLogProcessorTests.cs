@@ -4,9 +4,18 @@ public sealed class FileLogProcessorTests
 {
     private sealed class TestStreamWriter : IStreamWriter
     {
-        public List<string> Entries { get; } = [];
-        public bool IsDisposed { get; private set; }
-        public bool IsFlushed { get; private set; }
+        private readonly List<string> _entries;
+        private bool _isDisposed;
+        private bool _isFlushed;
+
+        public List<string> Entries => _entries;
+        public bool IsDisposed => _isDisposed;
+        public bool IsFlushed => _isFlushed;
+
+        public TestStreamWriter()
+        {
+            _entries = [];
+        }
 
         public void AddEntry(ReadOnlySpan<char> entry)
         {
@@ -15,19 +24,28 @@ public sealed class FileLogProcessorTests
 
         public void Flush()
         {
-            IsFlushed = true;
+            _isFlushed = true;
         }
 
         public void Dispose()
         {
-            IsDisposed = true;
+            _isDisposed = true;
         }
     }
 
     private sealed class TestLogFormatter : ILogFormatter
     {
-        public List<(LogLevel level, string tag, string message)> GetBufferSizeCalls { get; } = [];
-        public List<(LogLevel level, string tag, string message)> FormatCalls { get; } = [];
+        public TestLogFormatter()
+        {
+            _formatCalls = [];
+            _getBufferSizeCalls = [];
+        }
+
+        private readonly List<(LogLevel level, string tag, string message)> _getBufferSizeCalls;
+        private readonly List<(LogLevel level, string tag, string message)> _formatCalls;
+
+        public List<(LogLevel level, string tag, string message)> GetBufferSizeCalls => _getBufferSizeCalls;
+        public List<(LogLevel level, string tag, string message)> FormatCalls => _formatCalls;
 
         public int GetBufferSize(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
         {
