@@ -4,39 +4,74 @@ public sealed class LogFileFactoryTests
 {
     private sealed class TestFileSystem : IFileSystem
     {
-        public bool DirectoryExistsResult { get; set; }
-        public IEnumerable<FileInfo> GetFilesResult { get; set; } = Array.Empty<FileInfo>();
-        public Stream CreateFileStreamResult { get; set; } = new MemoryStream();
+        private bool _directoryExistsResult;
+        private IEnumerable<FileInfo> _getFilesResult;
+        private Stream _createFileStreamResult;
+        private bool _createDirectoryCalled;
+        private string? _createDirectoryPath;
+        private bool _deleteFileCalled;
+        private string? _deleteFilePath;
+        private string? _createFileStreamPath;
+        private FileMode _createFileStreamMode;
+        private FileAccess _createFileStreamAccess;
+        private FileShare _createFileStreamShare;
+        private int _createFileStreamBufferSize;
+        private bool _createFileStreamUseAsync;
 
-        public bool CreateDirectoryCalled { get; private set; }
-        public string? CreateDirectoryPath { get; private set; }
+        public bool DirectoryExistsResult => _directoryExistsResult;
+        public IEnumerable<FileInfo> GetFilesResult => _getFilesResult;
+        public Stream CreateFileStreamResult => _createFileStreamResult;
 
-        public bool DeleteFileCalled { get; private set; }
-        public string? DeleteFilePath { get; private set; }
+        public bool CreateDirectoryCalled => _createDirectoryCalled;
+        public string? CreateDirectoryPath => _createDirectoryPath;
 
-        public string? CreateFileStreamPath { get; private set; }
-        public FileMode CreateFileStreamMode { get; private set; }
-        public FileAccess CreateFileStreamAccess { get; private set; }
-        public FileShare CreateFileStreamShare { get; private set; }
-        public int CreateFileStreamBufferSize { get; private set; }
-        public bool CreateFileStreamUseAsync { get; private set; }
+        public bool DeleteFileCalled => _deleteFileCalled;
+        public string? DeleteFilePath => _deleteFilePath;
+
+        public string? CreateFileStreamPath => _createFileStreamPath;
+        public FileMode CreateFileStreamMode => _createFileStreamMode;
+        public FileAccess CreateFileStreamAccess => _createFileStreamAccess;
+        public FileShare CreateFileStreamShare => _createFileStreamShare;
+        public int CreateFileStreamBufferSize => _createFileStreamBufferSize;
+        public bool CreateFileStreamUseAsync => _createFileStreamUseAsync;
+
+        public TestFileSystem()
+        {
+            _createFileStreamResult = new MemoryStream();
+            _getFilesResult = Array.Empty<FileInfo>();
+        }
+
+        public void SetCreateFileStreamResult(Stream value)
+        {
+            _createFileStreamResult = value;
+        }
+
+        public void SetGetFilesResult(IEnumerable<FileInfo> value)
+        {
+            _getFilesResult = value;
+        }
+
+        public void SetDirectoryExistsResult(bool value)
+        {
+            _directoryExistsResult = value;
+        }
 
         public bool DirectoryExists(string path) => DirectoryExistsResult;
 
         public void CreateDirectory(string path)
         {
-            CreateDirectoryCalled = true;
-            CreateDirectoryPath = path;
+            _createDirectoryCalled = true;
+            _createDirectoryPath = path;
         }
 
         public Stream CreateFileStream(string path, FileMode mode, FileAccess access, FileShare share, int bufferSize, bool useAsync)
         {
-            CreateFileStreamPath = path;
-            CreateFileStreamMode = mode;
-            CreateFileStreamAccess = access;
-            CreateFileStreamShare = share;
-            CreateFileStreamBufferSize = bufferSize;
-            CreateFileStreamUseAsync = useAsync;
+            _createFileStreamPath = path;
+            _createFileStreamMode = mode;
+            _createFileStreamAccess = access;
+            _createFileStreamShare = share;
+            _createFileStreamBufferSize = bufferSize;
+            _createFileStreamUseAsync = useAsync;
             return CreateFileStreamResult;
         }
 
@@ -44,8 +79,8 @@ public sealed class LogFileFactoryTests
 
         public void DeleteFile(string path)
         {
-            DeleteFileCalled = true;
-            DeleteFilePath = path;
+            _deleteFileCalled = true;
+            _deleteFilePath = path;
         }
     }
 
@@ -143,11 +178,9 @@ public sealed class LogFileFactoryTests
     public void CreateFile_DirectoryDoesNotExist_CreatesDirectory()
     {
         // Arrange
-        var fileSystem = new TestFileSystem
-        {
-            DirectoryExistsResult = false,
-            GetFilesResult = Array.Empty<FileInfo>()
-        };
+        var fileSystem = new TestFileSystem();
+        fileSystem.SetDirectoryExistsResult(false);
+        fileSystem.SetGetFilesResult(Array.Empty<FileInfo>());
         var timeProvider = new TestTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
         var factory = new LogFileFactory("/root", "logs", 10, 1024, fileSystem, timeProvider);
 
@@ -163,11 +196,9 @@ public sealed class LogFileFactoryTests
     public void CreateFile_DirectoryExists_DoesNotCreateDirectory()
     {
         // Arrange
-        var fileSystem = new TestFileSystem
-        {
-            DirectoryExistsResult = true,
-            GetFilesResult = Array.Empty<FileInfo>()
-        };
+        var fileSystem = new TestFileSystem();
+        fileSystem.SetDirectoryExistsResult(true);
+        fileSystem.SetGetFilesResult(Array.Empty<FileInfo>());
         var timeProvider = new TestTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
         var factory = new LogFileFactory("/root", "logs", 10, 1024, fileSystem, timeProvider);
 
@@ -182,11 +213,9 @@ public sealed class LogFileFactoryTests
     public void CreateFile_GeneratesCorrectFileName()
     {
         // Arrange
-        var fileSystem = new TestFileSystem
-        {
-            DirectoryExistsResult = true,
-            GetFilesResult = Array.Empty<FileInfo>()
-        };
+        var fileSystem = new TestFileSystem();
+        fileSystem.SetDirectoryExistsResult(true);
+        fileSystem.SetGetFilesResult(Array.Empty<FileInfo>());
         var timeProvider = new TestTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
         var factory = new LogFileFactory("/root", "logs", 10, 1024, fileSystem, timeProvider);
 
@@ -211,11 +240,9 @@ public sealed class LogFileFactoryTests
             new FileInfo("/root/logs/20240101_120000_000.log", new DateTime(2024, 1, 1)),
             new FileInfo("/root/logs/20240102_120000_000.log", new DateTime(2024, 1, 2))
         };
-        var fileSystem = new TestFileSystem
-        {
-            DirectoryExistsResult = true,
-            GetFilesResult = existingFiles
-        };
+        var fileSystem = new TestFileSystem();
+        fileSystem.SetDirectoryExistsResult(true);
+        fileSystem.SetGetFilesResult(existingFiles);
         var timeProvider = new TestTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
         var factory = new LogFileFactory("/root", "logs", 5, 1024, fileSystem, timeProvider);
 
@@ -236,11 +263,9 @@ public sealed class LogFileFactoryTests
             new FileInfo("/root/logs/20240103_120000_000.log", new DateTime(2024, 1, 3)),
             new FileInfo("/root/logs/20240102_120000_000.log", new DateTime(2024, 1, 2))
         };
-        var fileSystem = new TestFileSystem
-        {
-            DirectoryExistsResult = true,
-            GetFilesResult = existingFiles
-        };
+        var fileSystem = new TestFileSystem();
+        fileSystem.SetDirectoryExistsResult(true);
+        fileSystem.SetGetFilesResult(existingFiles);
         var timeProvider = new TestTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
         var factory = new LogFileFactory("/root", "logs", 2, 1024, fileSystem, timeProvider);
 
@@ -257,12 +282,10 @@ public sealed class LogFileFactoryTests
     {
         // Arrange
         var expectedStream = new MemoryStream();
-        var fileSystem = new TestFileSystem
-        {
-            DirectoryExistsResult = true,
-            GetFilesResult = Array.Empty<FileInfo>(),
-            CreateFileStreamResult = expectedStream
-        };
+        var fileSystem = new TestFileSystem();
+        fileSystem.SetDirectoryExistsResult(true);
+        fileSystem.SetGetFilesResult(Array.Empty<FileInfo>());
+        fileSystem.SetCreateFileStreamResult(expectedStream);
         var timeProvider = new TestTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
         var factory = new LogFileFactory("/root", "logs", 10, 1024, fileSystem, timeProvider);
 

@@ -4,24 +4,38 @@ public sealed class LoggerTests
 {
     private sealed class TestLogProcessor : ILogProcessor
     {
-        public int ProcessLogCallCount { get; private set; }
-        public LogLevel LastLogLevel { get; private set; }
-        public string LastTag { get; private set; } = string.Empty;
-        public string LastMessage { get; private set; } = string.Empty;
+        private int _processLogCallCount;
+        private LogLevel _lastLogLevel;
+        private string _lastTag;
+        private string _lastMessage;
+
+        public int ProcessLogCallCount => _processLogCallCount;
+        public LogLevel LastLogLevel => _lastLogLevel;
+        public string LastTag => _lastTag;
+        public string LastMessage => _lastMessage;
+
+        public TestLogProcessor()
+        {
+            _lastMessage = string.Empty;
+            _lastTag = string.Empty;
+        }
 
         public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
         {
-            ProcessLogCallCount++;
-            LastLogLevel = level;
-            LastTag = tag.ToString();
-            LastMessage = message.ToString();
+            _processLogCallCount++;
+            _lastLogLevel = level;
+            _lastTag = tag.ToString();
+            _lastMessage = message.ToString();
         }
     }
 
     private sealed class DisposableTestLogProcessor : ILogProcessor, IDisposable
     {
-        public bool IsDisposed { get; private set; }
-        public int DisposeCallCount { get; private set; }
+        private bool _isDisposed;
+        private int _disposeCallCount;
+
+        public bool IsDisposed => _isDisposed;
+        public int DisposeCallCount => _disposeCallCount;
 
         public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
         {
@@ -29,8 +43,8 @@ public sealed class LoggerTests
 
         public void Dispose()
         {
-            DisposeCallCount++;
-            IsDisposed = true;
+            _disposeCallCount++;
+            _isDisposed = true;
         }
     }
 

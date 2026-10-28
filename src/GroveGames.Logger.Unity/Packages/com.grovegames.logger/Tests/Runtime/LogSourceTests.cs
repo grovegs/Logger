@@ -64,7 +64,14 @@ namespace GroveGames.Logger.Unity.Tests
 
         private sealed class TestLogProcessor : ILogProcessor
         {
-            public List<string> Messages { get; } = new();
+            private readonly List<string> _messages;
+
+            public List<string> Messages => _messages;
+
+            public TestLogProcessor()
+            {
+                _messages = new();
+            }
 
             public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
             {

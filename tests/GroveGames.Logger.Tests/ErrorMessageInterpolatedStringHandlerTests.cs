@@ -4,11 +4,13 @@ public class ErrorMessageInterpolatedStringHandlerTests
 {
     private class TestLogger : ILogger
     {
-        public LogLevel MinimumLevel { get; }
+        private readonly LogLevel _minimumLevel;
+
+        public LogLevel MinimumLevel => _minimumLevel;
 
         public TestLogger(LogLevel minimumLevel)
         {
-            MinimumLevel = minimumLevel;
+            _minimumLevel = minimumLevel;
         }
 
         public void Log(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message) { }
