@@ -42,7 +42,7 @@ namespace GroveGames.Logger.Unity.Editor
 
                     var assetField = new ObjectField("Settings Asset")
                     {
-                        objectType = typeof(LoggerSettings),
+                        objectType = typeof(UnityLoggerSettings),
                         value = settings,
                         style = { marginBottom = 10 }
                     };

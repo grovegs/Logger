@@ -184,7 +184,7 @@ Configure logger settings via Edit → Project Settings → GroveGames → Logge
 For custom configurations or DI scenarios, pass settings directly:
 
 ```csharp
-var settings = LoggerSettings.GetOrCreate();
+var settings = UnityLoggerSettings.GetOrCreate();
 var logger = UnityLoggerFactory.CreateLogger(settings, builder => { ... });
 ```
 
@@ -203,12 +203,12 @@ private static void ConfigureLogger(ILoggerBuilder logger)
 }
 ```
 
-`AddLogger` registers `ILogger`, built from `LoggerSettings` and then `ConfigureLogger`, so code overrides the settings, for example per environment with scripting defines set in build profiles. Disposing the container disposes the logger.
+`AddLogger` registers `ILogger`, built from `UnityLoggerSettings` and then `ConfigureLogger`, so code overrides the settings, for example per environment with scripting defines set in build profiles. Disposing the container disposes the logger.
 
 ### Unity Components
 
 - **`UnityLoggerFactory`**: Factory with GetOrCreate() pattern for DI-friendly architecture
-- **`LoggerSettings`**: ScriptableObject registered as a preloaded asset
+- **`UnityLoggerSettings`**: ScriptableObject registered as a preloaded asset; implements the core `ILoggerSettings`
 - **`LoggerSettingsProvider`**: Project Settings UI using UI Toolkit
 - **`ConsoleLogFormatter`**: Formatter for Unity console output (format: `[Tag] Message`)
 - **`ConsoleLogProcessor`**: Routes logs to `Debug.Log`, `Debug.LogWarning`, `Debug.LogError`
@@ -299,7 +299,7 @@ public partial class GameManager : Node
 ### Godot Components
 
 - **`GodotLoggerFactory`**: Factory with GetOrCreate() pattern for DI-friendly architecture
-- **`LoggerSettingsResource`**: Resource with ProjectSettings integration
+- **`LoggerSettingsResource`**: Resource with ProjectSettings integration; implements the core `ILoggerSettings`
 - **`ConsoleLogFormatter`**: Rich formatting for Godot's editor console
 - **`ConsoleLogProcessor`**: Processor optimized for Godot's output methods
 - **`GodotLogFileFactory`**: File factory using `OS.GetUserDataDir()`

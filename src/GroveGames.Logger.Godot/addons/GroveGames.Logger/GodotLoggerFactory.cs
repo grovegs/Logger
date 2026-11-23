@@ -10,17 +10,14 @@ public sealed class GodotLoggerFactory
         return CreateLogger(LoggerSettingsResource.GetOrCreate(), configure);
     }
 
-    public static Logger CreateLogger(LoggerSettingsResource settings, Action<ILoggerBuilder> configure)
+    public static Logger CreateLogger(ILoggerSettings settings, Action<ILoggerBuilder> configure)
     {
         if (settings == null)
         {
-            GD.PushError("LoggerSettingsResource cannot be null");
-            settings = new();
+            GD.PushError("Settings cannot be null");
+            settings = new LoggerSettingsResource();
         }
 
-        var builder = new LoggerBuilder();
-        builder.SetMinimumLevel(settings.MinLogLevel);
-        configure(builder);
-        return builder.Build();
+        return LoggerFactory.CreateLogger(settings, configure);
     }
 }
