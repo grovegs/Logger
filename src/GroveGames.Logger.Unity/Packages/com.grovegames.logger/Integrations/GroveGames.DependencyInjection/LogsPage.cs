@@ -1,13 +1,14 @@
 #if GROVEGAMES_DEVELOPERTOOLS
 using System;
 using System.Collections.Generic;
+using GroveGames.DeveloperTools;
 using GroveGames.DeveloperTools.Unity;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace GroveGames.Logger.Unity.DeveloperTools
 {
-    public sealed class LogsPage : IDeveloperToolsPage
+    public sealed class LogsPage : IDeveloperToolsPage<VisualElement>
     {
         public const int PageOrder = 100;
 
