@@ -316,6 +316,14 @@ public partial class GameManager : Node
 
 ---
 
+## Agent Skills
+
+The package ships an agent skill, `grovegames-logger`, with the rules for game code that uses it.
+
+- **Unity:** the package's `Skills~` folder.
+- **Godot:** the addon's `skills` folder.
+- **.NET:** `skills/grovegames-logger/SKILL.md` in the NuGet package.
+
 ## Testing
 
 Run tests:
