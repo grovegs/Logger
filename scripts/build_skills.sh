@@ -41,11 +41,14 @@ build_skill() {
   local expected
 
   expected="$(mktemp)"
-  {
-    cat "${skill_dir}/SKILL.md"
-    echo ""
-    cat "${fragment}"
-  } > "${expected}"
+  cat "${skill_dir}/SKILL.md" > "${expected}"
+
+  if [ -f "${fragment}" ]; then
+    {
+      echo ""
+      cat "${fragment}"
+    } >> "${expected}"
+  fi
 
   if [ "${MODE}" = "--check" ]; then
     if [ ! -f "${target}" ] || ! cmp -s "${expected}" "${target}"; then
@@ -72,11 +75,11 @@ for skill_dir in "${SKILLS_DIR}"/*; do
 
   name="$(basename "${skill_dir}")"
 
-  if [ -f "${skill_dir}/unity.md" ] && [ -n "${UNITY_PACKAGE}" ]; then
+  if [ -n "${UNITY_PACKAGE}" ]; then
     build_skill "${skill_dir}" "${skill_dir}/unity.md" "${UNITY_PACKAGE}/Skills~/${name}/SKILL.md"
   fi
 
-  if [ -f "${skill_dir}/godot.md" ] && [ -n "${GODOT_ADDON}" ]; then
+  if [ -n "${GODOT_ADDON}" ]; then
     if [ "${MODE}" = "write" ]; then
       mkdir -p "${GODOT_ADDON}/skills"
       : > "${GODOT_ADDON}/skills/.gdignore"
