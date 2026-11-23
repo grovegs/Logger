@@ -19,4 +19,4 @@ Rules for game code that logs with this package. They hold in every game. The AP
 
 ## Unity
 
-- Game code does not call `Debug.Log`, `Debug.LogWarning` or `Debug.LogError`. It logs through `ILogger`.
+- Game code does not call `Debug.Log`, because it allocates. `Debug.LogWarning` and `Debug.LogError` are allowed.

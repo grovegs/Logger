@@ -1,3 +1,3 @@
 ## Godot
 
-- Game code does not call `GD.Print`, `GD.PushWarning` or `GD.PushError`. It logs through `ILogger`.
+- Game code does not call `GD.Print`, because it allocates. `GD.PushWarning` and `GD.PushError` are allowed.

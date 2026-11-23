@@ -1,3 +1,3 @@
 ## Unity
 
-- Game code does not call `Debug.Log`, `Debug.LogWarning` or `Debug.LogError`. It logs through `ILogger`.
+- Game code does not call `Debug.Log`, because it allocates. `Debug.LogWarning` and `Debug.LogError` are allowed.
