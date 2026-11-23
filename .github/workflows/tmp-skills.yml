@@ -1,0 +1,31 @@
+name: tmp skills
+on: pull_request
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - shell: bash
+        run: |
+          set -euo pipefail
+          dotnet pack src/GroveGames.Logger -c Release -o "${RUNNER_TEMP}/feed" -p:Version=9.9.9
+          unzip -l "${RUNNER_TEMP}/feed/GroveGames.Logger.9.9.9.nupkg" | grep -E "skills|buildTransitive"
+          for name in off on transitive; do
+            mkdir -p "${RUNNER_TEMP}/${name}"
+          done
+          cd "${RUNNER_TEMP}"
+          cat > nuget.config <<'XML'
+          <configuration><packageSources><clear /><add key="local" value="feed" /><add key="nuget.org" value="https://api.nuget.org/v3/index.json" /></packageSources></configuration>
+          XML
+          sed -i 's/^          //' nuget.config
+          (cd off && dotnet new console -o App && dotnet add App package GroveGames.Logger --version 9.9.9 && dotnet build App)
+          if [ -e off/.claude ] || [ -e off/App/.claude ]; then echo "copied without opt-in"; exit 1; fi
+          (cd on && dotnet new console -o App && dotnet add App package GroveGames.Logger --version 9.9.9 && dotnet build App "-p:GroveGamesAgentSkillsDirectory=${RUNNER_TEMP}/on/.claude/skills")
+          find on/.claude -type f
+          head -5 on/.claude/skills/grovegames-logger/SKILL.md
+          (cd transitive && dotnet new classlib -o Lib && dotnet add Lib package GroveGames.Logger --version 9.9.9 && dotnet new console -o App && dotnet add App reference Lib && dotnet build App "-p:GroveGamesAgentSkillsDirectory=${RUNNER_TEMP}/transitive/.claude/skills")
+          find transitive/.claude -type f
+          (cd on && dotnet build App "-p:GroveGamesAgentSkillsDirectory=${RUNNER_TEMP}/on/.claude/skills" | grep -c "warn" || true)
