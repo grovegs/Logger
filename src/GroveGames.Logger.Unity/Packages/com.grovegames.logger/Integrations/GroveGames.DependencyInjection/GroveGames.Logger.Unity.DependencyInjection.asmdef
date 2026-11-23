@@ -12,7 +12,8 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "GroveGames.Logger.dll",
-        "GroveGames.DependencyInjection.dll"
+        "GroveGames.DependencyInjection.dll",
+        "GroveGames.DeveloperTools.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [
