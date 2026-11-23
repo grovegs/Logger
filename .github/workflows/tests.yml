@@ -49,5 +49,5 @@ jobs:
         run: |
           set -euo pipefail
           dotnet pack src/GroveGames.Logger --configuration Release --output "${RUNNER_TEMP}/packages"
-          unzip -l "${RUNNER_TEMP}"/packages/GroveGames.Logger.*.nupkg | grep -F "skills/"
-          unzip -l "${RUNNER_TEMP}"/packages/GroveGames.Logger.*.nupkg | grep -q -F "skills/grovegames-logger/SKILL.md"
+          unzip -l "${RUNNER_TEMP}"/packages/GroveGames.Logger.[0-9]*.nupkg | grep -F "skills/"
+          unzip -l "${RUNNER_TEMP}"/packages/GroveGames.Logger.[0-9]*.nupkg | grep -q -F "skills/grovegames-logger/SKILL.md"
