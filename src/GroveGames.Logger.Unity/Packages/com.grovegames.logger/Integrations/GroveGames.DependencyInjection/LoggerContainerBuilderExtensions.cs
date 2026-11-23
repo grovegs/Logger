@@ -12,7 +12,7 @@ namespace GroveGames.Logger.Unity
         public static IContainerBuilder AddLogger(this IContainerBuilder builder, Action<ILoggerBuilder> configure)
         {
 #if GROVEGAMES_DEVELOPERTOOLS
-            var history = new LogHistory(LoggerSettings.GetOrCreate().HistoryCapacity);
+            var history = new LogHistory(UnityLoggerSettings.GetOrCreate().HistoryCapacity);
             builder.AddSingleton<ILogHistory>(history);
             builder.AddDeveloperToolsPage<LogsPage>(LogsPage.PageOrder);
             return builder.AddSingleton<ILogger>(_ => UnityLoggerFactory.CreateLogger(logger =>

@@ -10,7 +10,7 @@ namespace GroveGames.Logger.Unity.Editor.Tests
         {
             var asset = LoggerSettingsAsset.GetOrCreate();
 
-            var settings = LoggerSettings.GetOrCreate();
+            var settings = UnityLoggerSettings.GetOrCreate();
 
             Assert.AreSame(asset, settings);
         }

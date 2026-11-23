@@ -4,11 +4,11 @@
     {
         public static void AddFileLogProcessor(this ILoggerBuilder builder)
         {
-            var settings = LoggerSettings.GetOrCreate();
+            var settings = UnityLoggerSettings.GetOrCreate();
             AddFileLogProcessor(builder, settings);
         }
 
-        public static void AddFileLogProcessor(this ILoggerBuilder builder, LoggerSettings settings)
+        public static void AddFileLogProcessor(this ILoggerBuilder builder, ILoggerSettings settings)
         {
             var unityFileFactory = new UnityLogFileFactory(settings.FileFolderName, settings.MaxFileCount, settings.FileBufferSize);
             var streamWriter = new StreamWriter(unityFileFactory.CreateFile(), settings.FileBufferSize, settings.FileChannelCapacity);

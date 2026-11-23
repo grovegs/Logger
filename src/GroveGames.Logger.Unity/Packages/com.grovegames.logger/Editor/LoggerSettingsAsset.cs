@@ -14,46 +14,46 @@ namespace GroveGames.Logger.Unity.Editor
         [InitializeOnLoadMethod]
         private static void MigrateLegacyAsset()
         {
-            if (File.Exists(LegacyAssetPath) && !EditorBuildSettings.TryGetConfigObject(LoggerSettings.ConfigName, out LoggerSettings _))
+            if (File.Exists(LegacyAssetPath) && !EditorBuildSettings.TryGetConfigObject(UnityLoggerSettings.ConfigName, out UnityLoggerSettings _))
             {
                 EditorApplication.delayCall += () => GetOrCreate();
             }
         }
 
-        public static LoggerSettings GetOrCreate()
+        public static UnityLoggerSettings GetOrCreate()
         {
-            if (!EditorBuildSettings.TryGetConfigObject(LoggerSettings.ConfigName, out LoggerSettings settings) || settings == null)
+            if (!EditorBuildSettings.TryGetConfigObject(UnityLoggerSettings.ConfigName, out UnityLoggerSettings settings) || settings == null)
             {
                 settings = LoadOrCreate();
-                EditorBuildSettings.AddConfigObject(LoggerSettings.ConfigName, settings, true);
+                EditorBuildSettings.AddConfigObject(UnityLoggerSettings.ConfigName, settings, true);
             }
 
             Preload(settings);
             return settings;
         }
 
-        private static LoggerSettings LoadOrCreate()
+        private static UnityLoggerSettings LoadOrCreate()
         {
             CreateFolder();
 
-            if (AssetDatabase.LoadAssetAtPath<LoggerSettings>(AssetPath) == null && AssetDatabase.LoadAssetAtPath<LoggerSettings>(LegacyAssetPath) != null)
+            if (AssetDatabase.LoadAssetAtPath<UnityLoggerSettings>(AssetPath) == null && AssetDatabase.LoadAssetAtPath<UnityLoggerSettings>(LegacyAssetPath) != null)
             {
                 AssetDatabase.MoveAsset(LegacyAssetPath, AssetPath);
             }
 
-            var settings = AssetDatabase.LoadAssetAtPath<LoggerSettings>(AssetPath);
+            var settings = AssetDatabase.LoadAssetAtPath<UnityLoggerSettings>(AssetPath);
 
             if (settings != null)
             {
                 return settings;
             }
 
-            AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<LoggerSettings>(), AssetPath);
+            AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<UnityLoggerSettings>(), AssetPath);
             AssetDatabase.SaveAssets();
-            return AssetDatabase.LoadAssetAtPath<LoggerSettings>(AssetPath);
+            return AssetDatabase.LoadAssetAtPath<UnityLoggerSettings>(AssetPath);
         }
 
-        private static void Preload(LoggerSettings settings)
+        private static void Preload(UnityLoggerSettings settings)
         {
             var preloaded = PlayerSettings.GetPreloadedAssets();
             var assets = new List<Object>(preloaded.Length + 1);
@@ -63,7 +63,7 @@ namespace GroveGames.Logger.Unity.Editor
             {
                 var asset = preloaded[i];
 
-                if (asset is LoggerSettings && asset != settings)
+                if (asset is UnityLoggerSettings && asset != settings)
                 {
                     continue;
                 }

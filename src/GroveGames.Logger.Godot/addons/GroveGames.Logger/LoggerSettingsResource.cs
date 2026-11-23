@@ -3,7 +3,7 @@ using Godot;
 namespace GroveGames.Logger.Godot;
 
 [GlobalClass]
-public partial class LoggerSettingsResource : Resource
+public partial class LoggerSettingsResource : Resource, ILoggerSettings
 {
     private const string ProjectSettingsKey = "grove_games/logger/settings_resource";
     private const string DefaultResourcePath = "res://addons/GroveGames.Logger/LoggerSettings.tres";
