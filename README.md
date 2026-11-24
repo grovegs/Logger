@@ -20,6 +20,7 @@ A high-performance, zero-allocation logging library for .NET, Unity, and Godot w
 - **Unity Integration**: Available as a Unity package
 - **Godot Integration**: Available as a Godot addon
 - **Bounded Messages**: A message is at most 4096 characters; a longer one is cut there and ends with `... (truncated)`, so buffers and log lines stay bounded
+- **Test Double**: `FakeLogger` in the Unity package's editor-only `GroveGames.Logger.Unity.Testing` assembly, for your own tests
 
 ## .NET
 
