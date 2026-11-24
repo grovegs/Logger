@@ -1,21 +1,9 @@
-﻿namespace GroveGames.Logger.Tests;
+﻿using GroveGames.Logger.Testing;
+
+namespace GroveGames.Logger.Tests;
 
 public class DebugMessageInterpolatedStringHandlerTests
 {
-    private class FakeLogger : ILogger
-    {
-        private readonly LogLevel _minimumLevel;
-
-        public LogLevel MinimumLevel => _minimumLevel;
-
-        public FakeLogger(LogLevel minimumLevel)
-        {
-            _minimumLevel = minimumLevel;
-        }
-
-        public void Log(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message) { }
-    }
-
     [Fact]
     public void Constructor_LoggerMinimumLevelDebug_CreatesHandler()
     {
