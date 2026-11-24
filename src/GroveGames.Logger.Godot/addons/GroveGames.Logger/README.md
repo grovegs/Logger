@@ -19,6 +19,7 @@ A high-performance, zero-allocation logging library for .NET, Unity, and Godot w
 - **Custom Formatting**: Full control over log output format via `ILogFormatter` interface
 - **Unity Integration**: Available as a Unity package
 - **Godot Integration**: Available as a Godot addon
+- **Bounded Messages**: A message is at most 4096 characters; a longer one is cut there and ends with `... (truncated)`, so buffers and log lines stay bounded
 
 ## .NET
 
