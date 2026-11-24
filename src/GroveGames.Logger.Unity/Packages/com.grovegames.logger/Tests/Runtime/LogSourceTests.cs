@@ -11,7 +11,7 @@ namespace GroveGames.Logger.Unity.Tests
         [Test]
         public void ConsoleLogProcessor_ProcessLog_IsNotEchoedToOtherProcessors()
         {
-            var recorder = new TestLogProcessor();
+            var recorder = new FakeLogProcessor();
             var console = new ConsoleLogProcessor(new ConsoleLogFormatter());
             using var source = new LogSource(new ILogProcessor[] { console, recorder });
 
@@ -23,7 +23,7 @@ namespace GroveGames.Logger.Unity.Tests
         [Test]
         public void DebugLog_FromUnity_ReachesProcessors()
         {
-            var recorder = new TestLogProcessor();
+            var recorder = new FakeLogProcessor();
             using var source = new LogSource(new ILogProcessor[] { recorder });
 
             Debug.Log("From Unity");
@@ -35,7 +35,7 @@ namespace GroveGames.Logger.Unity.Tests
         [Test]
         public void LogException_FromUnity_IncludesStackTrace()
         {
-            var recorder = new TestLogProcessor();
+            var recorder = new FakeLogProcessor();
             using var source = new LogSource(new ILogProcessor[] { recorder });
             LogAssert.ignoreFailingMessages = true;
 
@@ -62,13 +62,13 @@ namespace GroveGames.Logger.Unity.Tests
             throw new InvalidOperationException("Broken");
         }
 
-        private sealed class TestLogProcessor : ILogProcessor
+        private sealed class FakeLogProcessor : ILogProcessor
         {
             private readonly List<string> _messages;
 
             public List<string> Messages => _messages;
 
-            public TestLogProcessor()
+            public FakeLogProcessor()
             {
                 _messages = new();
             }

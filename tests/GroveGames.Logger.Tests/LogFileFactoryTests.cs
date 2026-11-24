@@ -2,7 +2,7 @@
 
 public sealed class LogFileFactoryTests
 {
-    private sealed class TestFileSystem : IFileSystem
+    private sealed class FakeFileSystem : IFileSystem
     {
         private bool _directoryExistsResult;
         private IEnumerable<FileInfo> _getFilesResult;
@@ -35,7 +35,7 @@ public sealed class LogFileFactoryTests
         public int CreateFileStreamBufferSize => _createFileStreamBufferSize;
         public bool CreateFileStreamUseAsync => _createFileStreamUseAsync;
 
-        public TestFileSystem()
+        public FakeFileSystem()
         {
             _createFileStreamResult = new MemoryStream();
             _getFilesResult = Array.Empty<FileInfo>();
@@ -84,11 +84,11 @@ public sealed class LogFileFactoryTests
         }
     }
 
-    private sealed class TestTimeProvider : ITimeProvider
+    private sealed class FakeTimeProvider : ITimeProvider
     {
         private readonly DateTimeOffset _utcNow;
 
-        public TestTimeProvider(DateTimeOffset utcNow)
+        public FakeTimeProvider(DateTimeOffset utcNow)
         {
             _utcNow = utcNow;
         }
@@ -178,10 +178,10 @@ public sealed class LogFileFactoryTests
     public void CreateFile_DirectoryDoesNotExist_CreatesDirectory()
     {
         // Arrange
-        var fileSystem = new TestFileSystem();
+        var fileSystem = new FakeFileSystem();
         fileSystem.SetDirectoryExistsResult(false);
         fileSystem.SetGetFilesResult(Array.Empty<FileInfo>());
-        var timeProvider = new TestTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
+        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
         var factory = new LogFileFactory("/root", "logs", 10, 1024, fileSystem, timeProvider);
 
         // Act
@@ -196,10 +196,10 @@ public sealed class LogFileFactoryTests
     public void CreateFile_DirectoryExists_DoesNotCreateDirectory()
     {
         // Arrange
-        var fileSystem = new TestFileSystem();
+        var fileSystem = new FakeFileSystem();
         fileSystem.SetDirectoryExistsResult(true);
         fileSystem.SetGetFilesResult(Array.Empty<FileInfo>());
-        var timeProvider = new TestTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
+        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
         var factory = new LogFileFactory("/root", "logs", 10, 1024, fileSystem, timeProvider);
 
         // Act
@@ -213,10 +213,10 @@ public sealed class LogFileFactoryTests
     public void CreateFile_GeneratesCorrectFileName()
     {
         // Arrange
-        var fileSystem = new TestFileSystem();
+        var fileSystem = new FakeFileSystem();
         fileSystem.SetDirectoryExistsResult(true);
         fileSystem.SetGetFilesResult(Array.Empty<FileInfo>());
-        var timeProvider = new TestTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
+        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
         var factory = new LogFileFactory("/root", "logs", 10, 1024, fileSystem, timeProvider);
 
         // Act
@@ -240,10 +240,10 @@ public sealed class LogFileFactoryTests
             new FileInfo("/root/logs/20240101_120000_000.log", new DateTime(2024, 1, 1)),
             new FileInfo("/root/logs/20240102_120000_000.log", new DateTime(2024, 1, 2))
         };
-        var fileSystem = new TestFileSystem();
+        var fileSystem = new FakeFileSystem();
         fileSystem.SetDirectoryExistsResult(true);
         fileSystem.SetGetFilesResult(existingFiles);
-        var timeProvider = new TestTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
+        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
         var factory = new LogFileFactory("/root", "logs", 5, 1024, fileSystem, timeProvider);
 
         // Act
@@ -263,10 +263,10 @@ public sealed class LogFileFactoryTests
             new FileInfo("/root/logs/20240103_120000_000.log", new DateTime(2024, 1, 3)),
             new FileInfo("/root/logs/20240102_120000_000.log", new DateTime(2024, 1, 2))
         };
-        var fileSystem = new TestFileSystem();
+        var fileSystem = new FakeFileSystem();
         fileSystem.SetDirectoryExistsResult(true);
         fileSystem.SetGetFilesResult(existingFiles);
-        var timeProvider = new TestTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
+        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
         var factory = new LogFileFactory("/root", "logs", 2, 1024, fileSystem, timeProvider);
 
         // Act
@@ -282,11 +282,11 @@ public sealed class LogFileFactoryTests
     {
         // Arrange
         var expectedStream = new MemoryStream();
-        var fileSystem = new TestFileSystem();
+        var fileSystem = new FakeFileSystem();
         fileSystem.SetDirectoryExistsResult(true);
         fileSystem.SetGetFilesResult(Array.Empty<FileInfo>());
         fileSystem.SetCreateFileStreamResult(expectedStream);
-        var timeProvider = new TestTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
+        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
         var factory = new LogFileFactory("/root", "logs", 10, 1024, fileSystem, timeProvider);
 
         // Act

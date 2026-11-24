@@ -2,7 +2,7 @@
 
 public sealed class FileLogFormatterTests
 {
-    private class TestTimeProvider : ITimeProvider
+    private class FakeTimeProvider : ITimeProvider
     {
         public DateTimeOffset GetUtcNow() => new(2024, 1, 1, 12, 34, 56, TimeSpan.Zero);
     }
@@ -17,7 +17,7 @@ public sealed class FileLogFormatterTests
     [Fact]
     public void Constructor_ValidTimeProvider_CreatesInstance()
     {
-        var timeProvider = new TestTimeProvider();
+        var timeProvider = new FakeTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
         Assert.NotNull(formatter);
     }
@@ -61,7 +61,7 @@ public sealed class FileLogFormatterTests
     public void Format_DebugLevel_FormatsCorrectly()
     {
         // Arrange
-        var timeProvider = new TestTimeProvider();
+        var timeProvider = new FakeTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
         var tag = "Test";
         var message = "Debug message";
@@ -79,7 +79,7 @@ public sealed class FileLogFormatterTests
     public void Format_InformationLevel_FormatsCorrectly()
     {
         // Arrange
-        var timeProvider = new TestTimeProvider();
+        var timeProvider = new FakeTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
         var tag = "Test";
         var message = "Info message";
@@ -97,7 +97,7 @@ public sealed class FileLogFormatterTests
     public void Format_WarningLevel_FormatsCorrectly()
     {
         // Arrange
-        var timeProvider = new TestTimeProvider();
+        var timeProvider = new FakeTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
         var tag = "Test";
         var message = "Warning message";
@@ -115,7 +115,7 @@ public sealed class FileLogFormatterTests
     public void Format_ErrorLevel_FormatsCorrectly()
     {
         // Arrange
-        var timeProvider = new TestTimeProvider();
+        var timeProvider = new FakeTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
         var tag = "Test";
         var message = "Error message";
@@ -133,7 +133,7 @@ public sealed class FileLogFormatterTests
     public void Format_UnknownLevel_FormatsWithN()
     {
         // Arrange
-        var timeProvider = new TestTimeProvider();
+        var timeProvider = new FakeTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
         var tag = "Test";
         var message = "Unknown message";
@@ -151,7 +151,7 @@ public sealed class FileLogFormatterTests
     public void Format_EmptyTag_FormatsCorrectly()
     {
         // Arrange
-        var timeProvider = new TestTimeProvider();
+        var timeProvider = new FakeTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
         var tag = "";
         var message = "Message";
@@ -169,7 +169,7 @@ public sealed class FileLogFormatterTests
     public void Format_EmptyMessage_FormatsCorrectly()
     {
         // Arrange
-        var timeProvider = new TestTimeProvider();
+        var timeProvider = new FakeTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
         var tag = "Tag";
         var message = "";
@@ -187,7 +187,7 @@ public sealed class FileLogFormatterTests
     public void Format_EmptyTagAndMessage_FormatsCorrectly()
     {
         // Arrange
-        var timeProvider = new TestTimeProvider();
+        var timeProvider = new FakeTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
         var tag = "";
         var message = "";
@@ -205,7 +205,7 @@ public sealed class FileLogFormatterTests
     public void Format_LongTagAndMessage_FormatsCorrectly()
     {
         // Arrange
-        var timeProvider = new TestTimeProvider();
+        var timeProvider = new FakeTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
         var tag = "VeryLongTagName";
         var message = "This is a very long message with lots of content";
@@ -223,7 +223,7 @@ public sealed class FileLogFormatterTests
     public void Format_ExactBufferSize_FitsExactly()
     {
         // Arrange
-        var timeProvider = new TestTimeProvider();
+        var timeProvider = new FakeTimeProvider();
         var formatter = new FileLogFormatter(timeProvider);
         var tag = "Tag";
         var message = "Message";

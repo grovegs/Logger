@@ -2,7 +2,7 @@
 
 public sealed class FileLogProcessorTests
 {
-    private sealed class TestStreamWriter : IStreamWriter
+    private sealed class FakeStreamWriter : IStreamWriter
     {
         private readonly List<string> _entries;
         private bool _isDisposed;
@@ -12,7 +12,7 @@ public sealed class FileLogProcessorTests
         public bool IsDisposed => _isDisposed;
         public bool IsFlushed => _isFlushed;
 
-        public TestStreamWriter()
+        public FakeStreamWriter()
         {
             _entries = [];
         }
@@ -33,9 +33,9 @@ public sealed class FileLogProcessorTests
         }
     }
 
-    private sealed class TestLogFormatter : ILogFormatter
+    private sealed class FakeLogFormatter : ILogFormatter
     {
-        public TestLogFormatter()
+        public FakeLogFormatter()
         {
             _formatCalls = [];
             _getBufferSizeCalls = [];
@@ -66,7 +66,7 @@ public sealed class FileLogProcessorTests
     public void Constructor_NullWriter_ThrowsArgumentNullException()
     {
         // Arrange
-        var formatter = new TestLogFormatter();
+        var formatter = new FakeLogFormatter();
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new FileLogProcessor(null!, formatter));
@@ -76,7 +76,7 @@ public sealed class FileLogProcessorTests
     public void Constructor_NullFormatter_ThrowsArgumentNullException()
     {
         // Arrange
-        var writer = new TestStreamWriter();
+        var writer = new FakeStreamWriter();
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new FileLogProcessor(writer, null!));
@@ -86,8 +86,8 @@ public sealed class FileLogProcessorTests
     public void Constructor_ValidParameters_CreatesInstance()
     {
         // Arrange
-        var writer = new TestStreamWriter();
-        var formatter = new TestLogFormatter();
+        var writer = new FakeStreamWriter();
+        var formatter = new FakeLogFormatter();
 
         // Act
         using var processor = new FileLogProcessor(writer, formatter);
@@ -100,8 +100,8 @@ public sealed class FileLogProcessorTests
     public void ProcessLog_ValidInput_CallsFormatterGetBufferSize()
     {
         // Arrange
-        var writer = new TestStreamWriter();
-        var formatter = new TestLogFormatter();
+        var writer = new FakeStreamWriter();
+        var formatter = new FakeLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
 
         // Act
@@ -116,8 +116,8 @@ public sealed class FileLogProcessorTests
     public void ProcessLog_ValidInput_CallsFormatterFormat()
     {
         // Arrange
-        var writer = new TestStreamWriter();
-        var formatter = new TestLogFormatter();
+        var writer = new FakeStreamWriter();
+        var formatter = new FakeLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
 
         // Act
@@ -131,8 +131,8 @@ public sealed class FileLogProcessorTests
     [Fact]
     public void ProcessLog_MessageLongerThanTheStackBuffer_WritesTheWholeEntry()
     {
-        var writer = new TestStreamWriter();
-        var formatter = new TestLogFormatter();
+        var writer = new FakeStreamWriter();
+        var formatter = new FakeLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
         var message = new string('a', 5000);
 
@@ -146,8 +146,8 @@ public sealed class FileLogProcessorTests
     public void ProcessLog_ValidInput_CallsWriterAddEntry()
     {
         // Arrange
-        var writer = new TestStreamWriter();
-        var formatter = new TestLogFormatter();
+        var writer = new FakeStreamWriter();
+        var formatter = new FakeLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
 
         // Act
@@ -166,8 +166,8 @@ public sealed class FileLogProcessorTests
     public void ProcessLog_DifferentLogLevels_ProcessesCorrectly(LogLevel level)
     {
         // Arrange
-        var writer = new TestStreamWriter();
-        var formatter = new TestLogFormatter();
+        var writer = new FakeStreamWriter();
+        var formatter = new FakeLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
 
         // Act
@@ -185,8 +185,8 @@ public sealed class FileLogProcessorTests
     public void ProcessLog_EmptyTag_ProcessesCorrectly()
     {
         // Arrange
-        var writer = new TestStreamWriter();
-        var formatter = new TestLogFormatter();
+        var writer = new FakeStreamWriter();
+        var formatter = new FakeLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
 
         // Act
@@ -203,8 +203,8 @@ public sealed class FileLogProcessorTests
     public void ProcessLog_EmptyMessage_ProcessesCorrectly()
     {
         // Arrange
-        var writer = new TestStreamWriter();
-        var formatter = new TestLogFormatter();
+        var writer = new FakeStreamWriter();
+        var formatter = new FakeLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
 
         // Act
@@ -221,8 +221,8 @@ public sealed class FileLogProcessorTests
     public void ProcessLog_EmptyTagAndMessage_ProcessesCorrectly()
     {
         // Arrange
-        var writer = new TestStreamWriter();
-        var formatter = new TestLogFormatter();
+        var writer = new FakeStreamWriter();
+        var formatter = new FakeLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
 
         // Act
@@ -239,8 +239,8 @@ public sealed class FileLogProcessorTests
     public void ProcessLog_LongTagAndMessage_ProcessesCorrectly()
     {
         // Arrange
-        var writer = new TestStreamWriter();
-        var formatter = new TestLogFormatter();
+        var writer = new FakeStreamWriter();
+        var formatter = new FakeLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
         var longTag = new string('A', 50);
         var longMessage = new string('B', 200);
@@ -260,8 +260,8 @@ public sealed class FileLogProcessorTests
     public void ProcessLog_MultipleEntries_ProcessesAll()
     {
         // Arrange
-        var writer = new TestStreamWriter();
-        var formatter = new TestLogFormatter();
+        var writer = new FakeStreamWriter();
+        var formatter = new FakeLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
 
         // Act
@@ -282,8 +282,8 @@ public sealed class FileLogProcessorTests
     public void ProcessLog_SpecialCharacters_ProcessesCorrectly()
     {
         // Arrange
-        var writer = new TestStreamWriter();
-        var formatter = new TestLogFormatter();
+        var writer = new FakeStreamWriter();
+        var formatter = new FakeLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
 
         // Act
@@ -300,8 +300,8 @@ public sealed class FileLogProcessorTests
     public void Dispose_CallsWriterDispose()
     {
         // Arrange
-        var writer = new TestStreamWriter();
-        var formatter = new TestLogFormatter();
+        var writer = new FakeStreamWriter();
+        var formatter = new FakeLogFormatter();
         var processor = new FileLogProcessor(writer, formatter);
 
         // Act
@@ -315,8 +315,8 @@ public sealed class FileLogProcessorTests
     public void Dispose_CalledMultipleTimes_DoesNotThrow()
     {
         // Arrange
-        var writer = new TestStreamWriter();
-        var formatter = new TestLogFormatter();
+        var writer = new FakeStreamWriter();
+        var formatter = new FakeLogFormatter();
         var processor = new FileLogProcessor(writer, formatter);
 
         // Act
@@ -332,8 +332,8 @@ public sealed class FileLogProcessorTests
     public void ProcessLog_AllocatesCorrectBufferSize()
     {
         // Arrange
-        var writer = new TestStreamWriter();
-        var formatter = new TestLogFormatter();
+        var writer = new FakeStreamWriter();
+        var formatter = new FakeLogFormatter();
         using var processor = new FileLogProcessor(writer, formatter);
 
         // Act
