@@ -62,6 +62,24 @@ public sealed class LoggerExtensionsAllocationTests
         Assert.Equal(0, logger.CharacterCount);
     }
 
+    [Fact]
+    public void LogInformation_LongValue_DoesNotAllocate()
+    {
+        var logger = new CountingLogger(LogLevel.Debug);
+        var value = new string('a', 2000);
+        logger.LogInformation("Tag", $"Values: {value}");
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        for (var i = 0; i < CallCount; i++)
+        {
+            logger.LogInformation("Tag", $"Values: {value}");
+        }
+
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+        Assert.Equal(0L, allocated);
+    }
+
     private static void Log(ILogger logger, int stage, float ratio)
     {
         logger.LogInformation("Tag", $"Reach Stage {stage} at {ratio}");
