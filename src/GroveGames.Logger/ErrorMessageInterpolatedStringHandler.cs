@@ -1,21 +1,17 @@
 ﻿using System.Runtime.CompilerServices;
 
-using GroveGames.Globalization;
-
 namespace GroveGames.Logger;
 
 [InterpolatedStringHandler]
 public ref struct ErrorMessageInterpolatedStringHandler
 {
-    private readonly bool _isEnabled;
-    private TextInterpolatedStringHandler _handler;
+    private MessageInterpolatedStringHandler _handler;
 
     public readonly ReadOnlySpan<char> Written => _handler.Written;
 
     public ErrorMessageInterpolatedStringHandler(int literalLength, int formattedCount, ILogger logger)
     {
-        _isEnabled = logger.MinimumLevel <= LogLevel.Error;
-        _handler = _isEnabled ? new TextInterpolatedStringHandler(literalLength, formattedCount) : default;
+        _handler = new MessageInterpolatedStringHandler(literalLength, formattedCount, logger.MinimumLevel <= LogLevel.Error);
     }
 
     public void Dispose()
@@ -25,163 +21,83 @@ public ref struct ErrorMessageInterpolatedStringHandler
 
     public bool AppendLiteral(ReadOnlySpan<char> value)
     {
-        if (_isEnabled)
-        {
-            _handler.AppendFormatted(value);
-        }
-
-        return _isEnabled;
+        return _handler.Append(value);
     }
 
     public bool AppendFormatted(ReadOnlySpan<char> value)
     {
-        if (_isEnabled)
-        {
-            _handler.AppendFormatted(value);
-        }
-
-        return _isEnabled;
+        return _handler.Append(value);
     }
 
     public bool AppendFormatted(string? value)
     {
-        if (_isEnabled)
-        {
-            _handler.AppendFormatted(value);
-        }
-
-        return _isEnabled;
+        return _handler.Append(value.AsSpan());
     }
 
     public bool AppendFormatted(char value)
     {
-        if (_isEnabled)
-        {
-            _handler.AppendFormatted(value);
-        }
-
-        return _isEnabled;
+        return _handler.Append(value);
     }
 
     public bool AppendFormatted(int value)
     {
-        if (_isEnabled)
-        {
-            _handler.AppendFormatted(value);
-        }
-
-        return _isEnabled;
+        return _handler.Append(value, null);
     }
 
     public bool AppendFormatted(int value, string? format)
     {
-        if (_isEnabled)
-        {
-            _handler.AppendFormatted(value, format);
-        }
-
-        return _isEnabled;
+        return _handler.Append(value, format);
     }
 
     public bool AppendFormatted(long value)
     {
-        if (_isEnabled)
-        {
-            _handler.AppendFormatted(value);
-        }
-
-        return _isEnabled;
+        return _handler.Append(value, null);
     }
 
     public bool AppendFormatted(long value, string? format)
     {
-        if (_isEnabled)
-        {
-            _handler.AppendFormatted(value, format);
-        }
-
-        return _isEnabled;
+        return _handler.Append(value, format);
     }
 
     public bool AppendFormatted(float value)
     {
-        if (_isEnabled)
-        {
-            _handler.AppendFormatted(value);
-        }
-
-        return _isEnabled;
+        return _handler.Append(value, null);
     }
 
     public bool AppendFormatted(float value, string? format)
     {
-        if (_isEnabled)
-        {
-            _handler.AppendFormatted(value, format);
-        }
-
-        return _isEnabled;
+        return _handler.Append(value, format);
     }
 
     public bool AppendFormatted(double value)
     {
-        if (_isEnabled)
-        {
-            _handler.AppendFormatted(value);
-        }
-
-        return _isEnabled;
+        return _handler.Append(value, null);
     }
 
     public bool AppendFormatted(double value, string? format)
     {
-        if (_isEnabled)
-        {
-            _handler.AppendFormatted(value, format);
-        }
-
-        return _isEnabled;
+        return _handler.Append(value, format);
     }
 
-#if NET10_0_OR_GREATER
+#if NET6_0_OR_GREATER
     public bool AppendFormatted<T>(T value) where T : ISpanFormattable
     {
-        if (_isEnabled)
-        {
-            _handler.AppendFormatted(value);
-        }
-
-        return _isEnabled;
+        return _handler.Append(value, null);
     }
 
     public bool AppendFormatted<T>(T value, string? format) where T : ISpanFormattable
     {
-        if (_isEnabled)
-        {
-            _handler.AppendFormatted(value, format);
-        }
-
-        return _isEnabled;
+        return _handler.Append(value, format);
     }
 #else
     public bool AppendFormatted<T>(T value)
     {
-        if (_isEnabled)
-        {
-            _handler.AppendFormatted(value);
-        }
-
-        return _isEnabled;
+        return _handler.Append(value, null);
     }
 
     public bool AppendFormatted<T>(T value, string? format)
     {
-        if (_isEnabled)
-        {
-            _handler.AppendFormatted(value, format);
-        }
-
-        return _isEnabled;
+        return _handler.Append(value, format);
     }
 #endif
 }

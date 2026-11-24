@@ -1,9 +1,13 @@
+using System.Buffers;
+
 using Godot;
 
 namespace GroveGames.Logger.Godot;
 
 public sealed class ConsoleLogProcessor : ILogProcessor
 {
+    private const int StackBufferSize = 1024;
+
     private readonly ILogFormatter _logFormatter;
 
     public ConsoleLogProcessor(ILogFormatter logFormatter)
@@ -13,10 +17,7 @@ public sealed class ConsoleLogProcessor : ILogProcessor
 
     public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
-        var bufferSize = _logFormatter.GetBufferSize(level, tag, message);
-        Span<char> buffer = stackalloc char[bufferSize];
-        _logFormatter.Format(buffer, level, tag, message);
-        var log = buffer.ToString();
+        var log = Format(level, tag, message);
 
         switch (level)
         {
@@ -32,6 +33,31 @@ public sealed class ConsoleLogProcessor : ILogProcessor
             case LogLevel.Error:
                 GD.PrintErr(log);
                 break;
+        }
+    }
+
+    private string Format(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+    {
+        var bufferSize = _logFormatter.GetBufferSize(level, tag, message);
+
+        if (bufferSize <= StackBufferSize)
+        {
+            Span<char> buffer = stackalloc char[bufferSize];
+            _logFormatter.Format(buffer, level, tag, message);
+            return buffer.ToString();
+        }
+
+        var rented = ArrayPool<char>.Shared.Rent(bufferSize);
+
+        try
+        {
+            var buffer = rented.AsSpan(0, bufferSize);
+            _logFormatter.Format(buffer, level, tag, message);
+            return buffer.ToString();
+        }
+        finally
+        {
+            ArrayPool<char>.Shared.Return(rented);
         }
     }
 }

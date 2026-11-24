@@ -129,6 +129,20 @@ public sealed class FileLogProcessorTests
     }
 
     [Fact]
+    public void ProcessLog_MessageLongerThanTheStackBuffer_WritesTheWholeEntry()
+    {
+        var writer = new TestStreamWriter();
+        var formatter = new TestLogFormatter();
+        using var processor = new FileLogProcessor(writer, formatter);
+        var message = new string('a', 5000);
+
+        processor.ProcessLog(LogLevel.Information, "API".AsSpan(), message.AsSpan());
+
+        Assert.Single(writer.Entries);
+        Assert.Equal($"Information|API|{message}", writer.Entries[0]);
+    }
+
+    [Fact]
     public void ProcessLog_ValidInput_CallsWriterAddEntry()
     {
         // Arrange
