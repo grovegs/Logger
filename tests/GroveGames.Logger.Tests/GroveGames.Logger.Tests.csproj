@@ -25,6 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\src\GroveGames.Logger.Unity\Packages\com.grovegames.logger\Testing\FakeLogger.cs" Link="Testing\FakeLogger.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\GroveGames.Logger\GroveGames.Logger.csproj" />
   </ItemGroup>
 
