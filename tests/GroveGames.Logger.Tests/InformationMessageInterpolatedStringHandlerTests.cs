@@ -2,13 +2,13 @@
 
 public class InformationMessageInterpolatedStringHandlerTests
 {
-    private class TestLogger : ILogger
+    private class FakeLogger : ILogger
     {
         private readonly LogLevel _minimumLevel;
 
         public LogLevel MinimumLevel => _minimumLevel;
 
-        public TestLogger(LogLevel minimumLevel)
+        public FakeLogger(LogLevel minimumLevel)
         {
             _minimumLevel = minimumLevel;
         }
@@ -20,7 +20,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     public void Constructor_LoggerMinimumLevelInformation_CreatesHandler()
     {
         // Arrange
-        var logger = new TestLogger(LogLevel.Information);
+        var logger = new FakeLogger(LogLevel.Information);
 
         // Act
         var handler = new InformationMessageInterpolatedStringHandler(10, 2, logger);
@@ -34,7 +34,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     public void Constructor_LoggerMinimumLevelLowerThanInformation_CreatesHandler(LogLevel level)
     {
         // Arrange
-        var logger = new TestLogger(level);
+        var logger = new FakeLogger(level);
 
         // Act
         var handler = new InformationMessageInterpolatedStringHandler(10, 2, logger);
@@ -48,7 +48,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     public void Constructor_LoggerLevelDebug_AllowsAppending()
     {
         // Arrange
-        var logger = new TestLogger(LogLevel.Debug);
+        var logger = new FakeLogger(LogLevel.Debug);
         var handler = new InformationMessageInterpolatedStringHandler(50, 2, logger);
 
         // Act
@@ -63,7 +63,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     public void Constructor_LoggerLevelInformation_AllowsAppending()
     {
         // Arrange
-        var logger = new TestLogger(LogLevel.Information);
+        var logger = new FakeLogger(LogLevel.Information);
         var handler = new InformationMessageInterpolatedStringHandler(50, 2, logger);
 
         // Act
@@ -77,7 +77,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     [Fact]
     public void Constructor_LoggerLevelWarning_BlocksAppending()
     {
-        var logger = new TestLogger(LogLevel.Warning);
+        var logger = new FakeLogger(LogLevel.Warning);
         var handler = new DebugMessageInterpolatedStringHandler(50, 2, logger);
         handler.AppendLiteral("Debug: ");
         handler.AppendFormatted(123);
@@ -87,7 +87,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     [Fact]
     public void Constructor_LoggerLevelError_BlocksAppending()
     {
-        var logger = new TestLogger(LogLevel.Error);
+        var logger = new FakeLogger(LogLevel.Error);
         var handler = new DebugMessageInterpolatedStringHandler(50, 2, logger);
         handler.AppendLiteral("Debug: ");
         handler.AppendFormatted(123);
@@ -98,7 +98,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     public void AppendLiteral_ValidString_AppendsToWritten()
     {
         // Arrange
-        var logger = new TestLogger(LogLevel.Information);
+        var logger = new FakeLogger(LogLevel.Information);
         var handler = new InformationMessageInterpolatedStringHandler(20, 0, logger);
 
         // Act
@@ -112,7 +112,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     public void AppendFormatted_IntValue_AppendsToWritten()
     {
         // Arrange
-        var logger = new TestLogger(LogLevel.Information);
+        var logger = new FakeLogger(LogLevel.Information);
         var handler = new InformationMessageInterpolatedStringHandler(10, 1, logger);
 
         // Act
@@ -126,7 +126,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     public void AppendFormatted_IntWithFormat_AppendsFormattedToWritten()
     {
         // Arrange
-        var logger = new TestLogger(LogLevel.Information);
+        var logger = new FakeLogger(LogLevel.Information);
         var handler = new InformationMessageInterpolatedStringHandler(10, 1, logger);
 
         // Act
@@ -140,7 +140,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     public void AppendFormatted_ReadOnlySpan_AppendsToWritten()
     {
         // Arrange
-        var logger = new TestLogger(LogLevel.Information);
+        var logger = new FakeLogger(LogLevel.Information);
         var handler = new InformationMessageInterpolatedStringHandler(10, 1, logger);
 
         // Act
@@ -154,7 +154,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     public void AppendMethods_MixedCalls_CombinesAllParts()
     {
         // Arrange
-        var logger = new TestLogger(LogLevel.Information);
+        var logger = new FakeLogger(LogLevel.Information);
         var handler = new InformationMessageInterpolatedStringHandler(30, 3, logger);
 
         // Act
@@ -173,7 +173,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     public void AppendLiteral_EmptySpan_HandlesCorrectly()
     {
         // Arrange
-        var logger = new TestLogger(LogLevel.Information);
+        var logger = new FakeLogger(LogLevel.Information);
         var handler = new InformationMessageInterpolatedStringHandler(0, 0, logger);
 
         // Act
@@ -187,7 +187,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     public void AppendFormatted_EmptySpan_HandlesCorrectly()
     {
         // Arrange
-        var logger = new TestLogger(LogLevel.Information);
+        var logger = new FakeLogger(LogLevel.Information);
         var handler = new InformationMessageInterpolatedStringHandler(0, 0, logger);
 
         // Act
@@ -201,7 +201,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     public void AppendFormatted_NullFormat_UsesDefaultFormat()
     {
         // Arrange
-        var logger = new TestLogger(LogLevel.Information);
+        var logger = new FakeLogger(LogLevel.Information);
         var handler = new InformationMessageInterpolatedStringHandler(10, 1, logger);
 
         // Act
@@ -215,7 +215,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     public void AppendFormatted_Double_FormatsCorrectly()
     {
         // Arrange
-        var logger = new TestLogger(LogLevel.Information);
+        var logger = new FakeLogger(LogLevel.Information);
         var handler = new InformationMessageInterpolatedStringHandler(30, 1, logger);
         var value = 123.456789;
 
@@ -230,7 +230,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     public void Constructor_NoLoggerLevelRestriction_AppendMethodsWork()
     {
         // Arrange
-        var logger = new TestLogger(LogLevel.Debug);
+        var logger = new FakeLogger(LogLevel.Debug);
         var handler = new InformationMessageInterpolatedStringHandler(50, 2, logger);
 
         // Act
@@ -246,7 +246,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     public void AppendFormatted_LargeNumber_FormatsCorrectly()
     {
         // Arrange
-        var logger = new TestLogger(LogLevel.Information);
+        var logger = new FakeLogger(LogLevel.Information);
         var handler = new InformationMessageInterpolatedStringHandler(30, 1, logger);
         var value = 1234567890L;
 
@@ -261,7 +261,7 @@ public class InformationMessageInterpolatedStringHandlerTests
     public void AppendMethods_MultipleFormats_AppliesEachCorrectly()
     {
         // Arrange
-        var logger = new TestLogger(LogLevel.Information);
+        var logger = new FakeLogger(LogLevel.Information);
         var handler = new InformationMessageInterpolatedStringHandler(100, 4, logger);
 
         // Act

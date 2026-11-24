@@ -2,7 +2,7 @@
 
 public sealed class LoggerTests
 {
-    private sealed class TestLogProcessor : ILogProcessor
+    private sealed class FakeLogProcessor : ILogProcessor
     {
         private int _processLogCallCount;
         private LogLevel _lastLogLevel;
@@ -14,7 +14,7 @@ public sealed class LoggerTests
         public string LastTag => _lastTag;
         public string LastMessage => _lastMessage;
 
-        public TestLogProcessor()
+        public FakeLogProcessor()
         {
             _lastMessage = string.Empty;
             _lastTag = string.Empty;
@@ -76,7 +76,7 @@ public sealed class LoggerTests
     public void Constructor_NullProcessorInArray_ThrowsArgumentNullException()
     {
         // Arrange
-        var processors = new ILogProcessor[] { new TestLogProcessor(), null!, new TestLogProcessor() };
+        var processors = new ILogProcessor[] { new FakeLogProcessor(), null!, new FakeLogProcessor() };
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new Logger(processors, [], LogLevel.Information));
@@ -86,7 +86,7 @@ public sealed class LoggerTests
     public void Constructor_ValidParameters_CreatesInstance()
     {
         // Arrange
-        var processors = new ILogProcessor[] { new TestLogProcessor() };
+        var processors = new ILogProcessor[] { new FakeLogProcessor() };
 
         // Act
         using var logger = new Logger(processors, [], LogLevel.Information);
@@ -99,7 +99,7 @@ public sealed class LoggerTests
     public void MinimumLevel_ReturnsConstructorValue()
     {
         // Arrange
-        var processors = new ILogProcessor[] { new TestLogProcessor() };
+        var processors = new ILogProcessor[] { new FakeLogProcessor() };
 
         // Act
         using var logger = new Logger(processors, [], LogLevel.Warning);
@@ -111,7 +111,7 @@ public sealed class LoggerTests
     [Fact]
     public void Log_AfterDispose_IsIgnored()
     {
-        var processor = new TestLogProcessor();
+        var processor = new FakeLogProcessor();
         var logger = new Logger([processor], [], LogLevel.Information);
         logger.Dispose();
 
@@ -123,7 +123,7 @@ public sealed class LoggerTests
     [Fact]
     public void Log_DuringDispose_IsIgnored()
     {
-        var processor = new TestLogProcessor();
+        var processor = new FakeLogProcessor();
         Logger? logger = null;
         var logging = new LoggingOnDisposeProcessor(() => logger!.Log(LogLevel.Information, "tag", "shutdown"));
         logger = new Logger([logging, processor], [], LogLevel.Information);
@@ -156,7 +156,7 @@ public sealed class LoggerTests
     public void Log_BelowMinimumLevel_DoesNotProcessLog()
     {
         // Arrange
-        var processor = new TestLogProcessor();
+        var processor = new FakeLogProcessor();
         var processors = new ILogProcessor[] { processor };
         using var logger = new Logger(processors, [], LogLevel.Warning);
 
@@ -171,7 +171,7 @@ public sealed class LoggerTests
     public void Log_AtMinimumLevel_ProcessesLog()
     {
         // Arrange
-        var processor = new TestLogProcessor();
+        var processor = new FakeLogProcessor();
         var processors = new ILogProcessor[] { processor };
         using var logger = new Logger(processors, [], LogLevel.Warning);
 
@@ -189,7 +189,7 @@ public sealed class LoggerTests
     public void Log_AboveMinimumLevel_ProcessesLog()
     {
         // Arrange
-        var processor = new TestLogProcessor();
+        var processor = new FakeLogProcessor();
         var processors = new ILogProcessor[] { processor };
         using var logger = new Logger(processors, [], LogLevel.Information);
 
@@ -205,9 +205,9 @@ public sealed class LoggerTests
     public void Log_MultipleProcessors_CallsAllProcessors()
     {
         // Arrange
-        var processor1 = new TestLogProcessor();
-        var processor2 = new TestLogProcessor();
-        var processor3 = new TestLogProcessor();
+        var processor1 = new FakeLogProcessor();
+        var processor2 = new FakeLogProcessor();
+        var processor3 = new FakeLogProcessor();
         var processors = new ILogProcessor[] { processor1, processor2, processor3 };
         using var logger = new Logger(processors, [], LogLevel.Debug);
 
@@ -224,7 +224,7 @@ public sealed class LoggerTests
     public void Log_EmptySpans_ProcessesSuccessfully()
     {
         // Arrange
-        var processor = new TestLogProcessor();
+        var processor = new FakeLogProcessor();
         var processors = new ILogProcessor[] { processor };
         using var logger = new Logger(processors, [], LogLevel.Debug);
 
@@ -242,7 +242,7 @@ public sealed class LoggerTests
     {
         // Arrange
         var processor1 = new DisposableTestLogProcessor();
-        var processor2 = new TestLogProcessor(); // Not disposable
+        var processor2 = new FakeLogProcessor(); // Not disposable
         var processor3 = new DisposableTestLogProcessor();
         var processors = new ILogProcessor[] { processor1, processor2, processor3 };
         var logger = new Logger(processors, [], LogLevel.Information);
@@ -275,8 +275,8 @@ public sealed class LoggerTests
     [Fact]
     public void Dispose_NoDisposableProcessors_CompletesSuccessfully()
     {
-        var first = new TestLogProcessor();
-        var second = new TestLogProcessor();
+        var first = new FakeLogProcessor();
+        var second = new FakeLogProcessor();
         var logger = new Logger([first, second], [], LogLevel.Information);
 
         logger.Dispose();
@@ -294,7 +294,7 @@ public sealed class LoggerTests
     public void Log_AllLogLevels_ProcessesCorrectly(LogLevel level)
     {
         // Arrange
-        var processor = new TestLogProcessor();
+        var processor = new FakeLogProcessor();
         var processors = new ILogProcessor[] { processor };
         using var logger = new Logger(processors, [], LogLevel.Debug);
 

@@ -2,7 +2,7 @@
 
 public sealed class LogSourceTests
 {
-    private sealed class TestLogProcessor : ILogProcessor
+    private sealed class FakeLogProcessor : ILogProcessor
     {
         private int _processLogCallCount;
         private LogLevel _lastLogLevel;
@@ -14,7 +14,7 @@ public sealed class LogSourceTests
         public string LastTag => _lastTag;
         public string LastMessage => _lastMessage;
 
-        public TestLogProcessor()
+        public FakeLogProcessor()
         {
             _lastMessage = string.Empty;
             _lastTag = string.Empty;
@@ -29,14 +29,14 @@ public sealed class LogSourceTests
         }
     }
 
-    private sealed class TestLogSource : ILogSource
+    private sealed class FakeLogSource : ILogSource
     {
         private readonly ILogProcessor[] _processors;
         private bool _isDisposed;
         public bool IsDisposed => _isDisposed;
         public int ProcessorCount => _processors.Length;
 
-        public TestLogSource(ILogProcessor[] processors)
+        public FakeLogSource(ILogProcessor[] processors)
         {
             _processors = processors;
         }
@@ -58,12 +58,12 @@ public sealed class LogSourceTests
     [Fact]
     public void LoggerBuilder_AddLogSource_InitializesSource()
     {
-        var processor = new TestLogProcessor();
-        TestLogSource? source = null;
+        var processor = new FakeLogProcessor();
+        FakeLogSource? source = null;
         var builder = new LoggerBuilder();
 
         builder.AddLogProcessor(processor);
-        builder.AddLogSource(processors => source = new TestLogSource(processors));
+        builder.AddLogSource(processors => source = new FakeLogSource(processors));
         var logger = builder.Build();
 
         Assert.NotNull(source);
@@ -75,14 +75,14 @@ public sealed class LogSourceTests
     [Fact]
     public void LoggerBuilder_MultipleSources_InitializesAll()
     {
-        var processor = new TestLogProcessor();
-        TestLogSource? source1 = null;
-        TestLogSource? source2 = null;
+        var processor = new FakeLogProcessor();
+        FakeLogSource? source1 = null;
+        FakeLogSource? source2 = null;
         var builder = new LoggerBuilder();
 
         builder.AddLogProcessor(processor);
-        builder.AddLogSource(processors => source1 = new TestLogSource(processors));
-        builder.AddLogSource(processors => source2 = new TestLogSource(processors));
+        builder.AddLogSource(processors => source1 = new FakeLogSource(processors));
+        builder.AddLogSource(processors => source2 = new FakeLogSource(processors));
         var logger = builder.Build();
 
         Assert.NotNull(source1);
@@ -96,7 +96,7 @@ public sealed class LogSourceTests
     [Fact]
     public void LoggerBuilder_NoSources_DoesNotInitialize()
     {
-        var processor = new TestLogProcessor();
+        var processor = new FakeLogProcessor();
         var builder = new LoggerBuilder();
 
         builder.AddLogProcessor(processor);
@@ -110,12 +110,12 @@ public sealed class LogSourceTests
     [Fact]
     public void Logger_Dispose_DisposesSources()
     {
-        var processor = new TestLogProcessor();
-        TestLogSource? source = null;
+        var processor = new FakeLogProcessor();
+        FakeLogSource? source = null;
         var builder = new LoggerBuilder();
 
         builder.AddLogProcessor(processor);
-        builder.AddLogSource(processors => source = new TestLogSource(processors));
+        builder.AddLogSource(processors => source = new FakeLogSource(processors));
         var logger = builder.Build();
 
         logger.Dispose();
@@ -127,7 +127,7 @@ public sealed class LogSourceTests
     [Fact]
     public void Logger_Constructor_NullSource_ThrowsArgumentNullException()
     {
-        var processors = new ILogProcessor[] { new TestLogProcessor() };
+        var processors = new ILogProcessor[] { new FakeLogProcessor() };
         var sources = new ILogSource[] { null! };
 
         Assert.Throws<ArgumentNullException>(() => new Logger(processors, sources, LogLevel.Information));
@@ -144,12 +144,12 @@ public sealed class LogSourceTests
     [Fact]
     public void Source_CanProcessLogs_ThroughProcessors()
     {
-        var processor = new TestLogProcessor();
-        TestLogSource? source = null;
+        var processor = new FakeLogProcessor();
+        FakeLogSource? source = null;
         var builder = new LoggerBuilder();
 
         builder.AddLogProcessor(processor);
-        builder.AddLogSource(processors => source = new TestLogSource(processors));
+        builder.AddLogSource(processors => source = new FakeLogSource(processors));
         var logger = builder.Build();
 
         Assert.NotNull(source);

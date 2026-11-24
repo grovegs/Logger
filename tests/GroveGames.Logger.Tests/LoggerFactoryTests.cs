@@ -2,7 +2,7 @@
 
 public sealed class LoggerFactoryTests
 {
-    private sealed class TestLogProcessor : ILogProcessor
+    private sealed class FakeLogProcessor : ILogProcessor
     {
         public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
         {
@@ -28,7 +28,7 @@ public sealed class LoggerFactoryTests
     {
         var settings = new LoggerSettings(LogLevel.Warning, 10, "logs", 8192, 1000);
 
-        using var logger = LoggerFactory.CreateLogger(settings, builder => builder.AddLogProcessor(new TestLogProcessor()));
+        using var logger = LoggerFactory.CreateLogger(settings, builder => builder.AddLogProcessor(new FakeLogProcessor()));
 
         Assert.Equal(LogLevel.Warning, logger.MinimumLevel);
     }
@@ -38,7 +38,7 @@ public sealed class LoggerFactoryTests
     {
         var settings = new LoggerSettings(LogLevel.Warning, 10, "logs", 8192, 1000);
 
-        using var logger = LoggerFactory.CreateLogger(settings, builder => builder.AddLogProcessor(new TestLogProcessor()).SetMinimumLevel(LogLevel.Error));
+        using var logger = LoggerFactory.CreateLogger(settings, builder => builder.AddLogProcessor(new FakeLogProcessor()).SetMinimumLevel(LogLevel.Error));
 
         Assert.Equal(LogLevel.Error, logger.MinimumLevel);
     }
