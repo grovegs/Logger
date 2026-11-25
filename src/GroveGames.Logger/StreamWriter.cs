@@ -7,7 +7,8 @@ public sealed class StreamWriter : IStreamWriter
 {
     private static readonly byte[] s_newLine = [.. Encoding.UTF8.GetBytes(Environment.NewLine)];
     private static readonly TimeSpan s_flushTimeout = TimeSpan.FromSeconds(1);
-    private static readonly TimeSpan s_writeInterval = TimeSpan.FromMilliseconds(100);
+    private static readonly TimeSpan s_disposeTimeout = TimeSpan.FromSeconds(5);
+    private const int MaxBufferSize = 0x7FFFFFC7;
 
     private readonly Stream _stream;
     private readonly object _lock;
@@ -23,6 +24,7 @@ public sealed class StreamWriter : IStreamWriter
     private long _completed;
     private bool _failed;
     private bool _stopping;
+    private bool _writerIdle;
     private int _disposed;
 
     public StreamWriter(Stream stream, int bufferSize, int channelCapacity)
@@ -44,6 +46,7 @@ public sealed class StreamWriter : IStreamWriter
         _completed = 0;
         _failed = false;
         _stopping = false;
+        _writerIdle = false;
         _disposed = 0;
         _thread = new Thread(Run) { IsBackground = true, Name = "GroveGames.Logger" };
         _thread.Start();
@@ -58,26 +61,23 @@ public sealed class StreamWriter : IStreamWriter
 
         lock (_lock)
         {
-            if (_failed || _stopping)
+            if (_failed || _stopping || (_pending != null && _activeEntries >= _capacity))
             {
                 return;
             }
 
-            if (_activeLength + Encoding.UTF8.GetMaxByteCount(entry.Length) + s_newLine.Length > _active.Length)
+            if (_activeLength + ((long)entry.Length + 1) * 3 + s_newLine.Length > _active.Length)
             {
-                var needed = Encoding.UTF8.GetByteCount(entry) + s_newLine.Length;
+                var entryLength = (long)Encoding.UTF8.GetByteCount(entry) + s_newLine.Length;
 
-                if (_activeLength + needed > _active.Length && !TrySubmit())
+                if (_activeLength + entryLength > _active.Length)
                 {
-                    if (_activeEntries >= _capacity)
+                    TrySubmit();
+
+                    if (_activeLength + entryLength > _active.Length && !TryGrow(_activeLength + entryLength))
                     {
                         return;
                     }
-                }
-
-                if (_activeLength + needed > _active.Length)
-                {
-                    Grow(_activeLength + needed);
                 }
             }
 
@@ -86,9 +86,14 @@ public sealed class StreamWriter : IStreamWriter
             _activeLength += written + s_newLine.Length;
             _activeEntries++;
 
-            if (_activeLength >= _active.Length * 3 / 4)
+            if (_activeLength >= _active.Length - (_active.Length >> 2))
             {
                 TrySubmit();
+            }
+            else if (_writerIdle)
+            {
+                _writerIdle = false;
+                Monitor.PulseAll(_lock);
             }
         }
     }
@@ -137,7 +142,7 @@ public sealed class StreamWriter : IStreamWriter
             Monitor.PulseAll(_lock);
         }
 
-        _thread.Join();
+        _thread.Join(s_disposeTimeout);
 
         try
         {
@@ -171,18 +176,24 @@ public sealed class StreamWriter : IStreamWriter
         return true;
     }
 
-    private void Grow(int required)
+    private bool TryGrow(long required)
     {
-        var size = _active.Length;
+        if (required > MaxBufferSize)
+        {
+            return false;
+        }
+
+        long size = _active.Length;
 
         while (size < required)
         {
             size *= 2;
         }
 
-        var bigger = new byte[size];
+        var bigger = new byte[Math.Min(size, MaxBufferSize)];
         Buffer.BlockCopy(_active, 0, bigger, 0, _activeLength);
         _active = bigger;
+        return true;
     }
 
     private bool Wait(long start)
@@ -223,7 +234,9 @@ public sealed class StreamWriter : IStreamWriter
                             return;
                         }
 
-                        Monitor.Wait(_lock, s_writeInterval);
+                        _writerIdle = true;
+                        Monitor.Wait(_lock);
+                        _writerIdle = false;
                     }
 
                     buffer = _pending!;

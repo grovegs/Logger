@@ -386,7 +386,7 @@ public sealed class StreamWriterTests
         writer.Flush();
 
         // Assert
-        Assert.InRange(stream.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Length, 5, 49);
+        Assert.InRange(stream.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Length, 5, 14);
     }
 
     [Fact]
@@ -432,6 +432,57 @@ public sealed class StreamWriterTests
         // Assert
         // A buffer may still double once if the writer thread runs late, so allow that bounded growth, which is far below one allocation per entry.
         Assert.InRange(GC.GetAllocatedBytesForCurrentThread() - before, 0, 32 * 1024);
+    }
+
+    [Fact]
+    public void Flush_WriterStuck_ReturnsAfterTheTimeout()
+    {
+        // Arrange
+        var stream = new FakeGatedStream();
+        using var writer = new StreamWriter(stream, 1024, 100);
+        writer.AddEntry("stuck");
+        var stopwatch = Stopwatch.StartNew();
+
+        // Act
+        writer.Flush();
+
+        // Assert
+        stopwatch.Stop();
+        stream.Open();
+        Assert.InRange(stopwatch.ElapsedMilliseconds, 900, 5000);
+    }
+
+    [Fact]
+    public void AddEntry_EntryManyTimesTheBufferSize_WritesItWhole()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var entry = new string('x', 100);
+
+        // Act
+        using (var writer = new StreamWriter(stream, 16, 100))
+        {
+            writer.AddEntry(entry);
+        }
+
+        // Assert
+        Assert.Equal($"{entry}{Environment.NewLine}", Encoding.UTF8.GetString(stream.ToArray()));
+    }
+
+    [Fact]
+    public void AddEntry_InvalidSurrogate_WritesReplacementCharacter()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+
+        // Act
+        using (var writer = new StreamWriter(stream, 1024, 100))
+        {
+            writer.AddEntry("a\uD800b");
+        }
+
+        // Assert
+        Assert.Equal($"a\uFFFDb{Environment.NewLine}", Encoding.UTF8.GetString(stream.ToArray()));
     }
 
     private sealed class FakeFailingStream : Stream
@@ -524,6 +575,17 @@ public sealed class StreamWriterTests
         public void Open()
         {
             _gate.Set();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _gate.Dispose();
+                _inner.Dispose();
+            }
+
+            base.Dispose(disposing);
         }
 
         public override void Flush()
