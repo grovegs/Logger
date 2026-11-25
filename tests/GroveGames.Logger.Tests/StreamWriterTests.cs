@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 
 namespace GroveGames.Logger.Tests;
 
@@ -379,6 +380,94 @@ public sealed class StreamWriterTests
         public override void Write(byte[] buffer, int offset, int count)
         {
             throw new IOException("Disk full");
+        }
+    }
+
+    [Fact]
+    public void Flush_AfterQueueWasFull_ReturnsOnceLaterEntriesAreWritten()
+    {
+        // Arrange
+        var stream = new FakeGatedStream();
+        using var writer = new StreamWriter(stream, 1024, 1);
+        for (var i = 0; i < 10; i++)
+        {
+            writer.AddEntry("dropped or written");
+        }
+
+        stream.Open();
+        writer.Flush();
+        writer.AddEntry("last");
+        var stopwatch = Stopwatch.StartNew();
+
+        // Act
+        writer.Flush();
+
+        // Assert
+        stopwatch.Stop();
+        Assert.True(stopwatch.ElapsedMilliseconds < 500, $"Flush took {stopwatch.ElapsedMilliseconds} ms");
+        Assert.EndsWith($"last{Environment.NewLine}", stream.Text);
+    }
+
+    private sealed class FakeGatedStream : Stream
+    {
+        private readonly ManualResetEventSlim _gate;
+        private readonly MemoryStream _inner;
+
+        public FakeGatedStream()
+        {
+            _gate = new ManualResetEventSlim(false);
+            _inner = new MemoryStream();
+        }
+
+        public string Text
+        {
+            get
+            {
+                lock (_inner)
+                {
+                    return Encoding.UTF8.GetString(_inner.ToArray());
+                }
+            }
+        }
+
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override bool CanWrite => true;
+        public override long Length => 0;
+        public override long Position { get => 0; set { } }
+
+        public void Open()
+        {
+            _gate.Set();
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            _gate.Wait();
+
+            lock (_inner)
+            {
+                _inner.Write(buffer, offset, count);
+            }
         }
     }
 }

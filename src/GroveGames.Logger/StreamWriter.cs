@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Diagnostics;
 using System.Text;
 using System.Threading.Channels;
 
@@ -17,7 +18,7 @@ public sealed class StreamWriter : IStreamWriter
     private long _accepted;
     private long _written;
     private volatile bool _failed;
-    private volatile bool _disposed;
+    private volatile int _disposed;
 
     public StreamWriter(Stream stream, int bufferSize, int channelCapacity)
     {
@@ -29,7 +30,7 @@ public sealed class StreamWriter : IStreamWriter
         _bufferSize = bufferSize;
         _channel = Channel.CreateBounded<ArraySegment<byte>>(new BoundedChannelOptions(channelCapacity)
         {
-            FullMode = BoundedChannelFullMode.DropWrite,
+            FullMode = BoundedChannelFullMode.Wait,
             SingleReader = true,
             SingleWriter = false,
             AllowSynchronousContinuations = false
@@ -38,13 +39,13 @@ public sealed class StreamWriter : IStreamWriter
         _accepted = 0;
         _written = 0;
         _failed = false;
-        _disposed = false;
+        _disposed = 0;
         _writeTask = Task.Run(ProcessEntriesAsync);
     }
 
     public void AddEntry(ReadOnlySpan<char> entry)
     {
-        if (_disposed || _failed)
+        if (_disposed != 0 || _failed)
         {
             return;
         }
@@ -69,12 +70,12 @@ public sealed class StreamWriter : IStreamWriter
 
     public void Flush()
     {
-        if (_disposed)
+        if (_disposed != 0)
         {
             return;
         }
 
-        var deadline = DateTime.UtcNow + s_flushTimeout;
+        var start = Stopwatch.GetTimestamp();
 
         lock (_progressLock)
         {
@@ -82,7 +83,7 @@ public sealed class StreamWriter : IStreamWriter
 
             while (_written < target && !_failed)
             {
-                var remaining = deadline - DateTime.UtcNow;
+                var remaining = s_flushTimeout - TimeSpan.FromSeconds((double)(Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency);
 
                 if (remaining <= TimeSpan.Zero)
                 {
@@ -96,12 +97,11 @@ public sealed class StreamWriter : IStreamWriter
 
     public void Dispose()
     {
-        if (_disposed)
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
         {
             return;
         }
 
-        _disposed = true;
         _channel.Writer.TryComplete();
 
         try
@@ -193,6 +193,11 @@ public sealed class StreamWriter : IStreamWriter
 
     private async Task WriteBatchAsync(byte[] batchBuffer, int batchPosition, long processed)
     {
+        if (batchPosition == 0 && processed == _written)
+        {
+            return;
+        }
+
         if (batchPosition > 0)
         {
             await _stream.WriteAsync(batchBuffer.AsMemory(0, batchPosition)).ConfigureAwait(false);

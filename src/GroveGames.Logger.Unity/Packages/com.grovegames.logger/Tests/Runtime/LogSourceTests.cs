@@ -62,6 +62,25 @@ namespace GroveGames.Logger.Unity.Tests
             throw new InvalidOperationException("Broken");
         }
 
+        [Test]
+        public void DebugLog_ProcessorThrows_StillReachesTheOtherProcessors()
+        {
+            var recorder = new FakeLogProcessor();
+            using var source = new LogSource(new ILogProcessor[] { new FakeThrowingLogProcessor(), recorder });
+
+            Debug.Log("From Unity");
+
+            Assert.AreEqual(1, recorder.Messages.Count);
+        }
+
+        private sealed class FakeThrowingLogProcessor : ILogProcessor
+        {
+            public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+            {
+                throw new InvalidOperationException("Broken processor");
+            }
+        }
+
         private sealed class FakeLogProcessor : ILogProcessor
         {
             private readonly List<string> _messages;

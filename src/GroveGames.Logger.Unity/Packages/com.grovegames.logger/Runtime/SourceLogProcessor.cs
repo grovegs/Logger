@@ -32,7 +32,13 @@ namespace GroveGames.Logger.Unity
         {
             for (var i = 0; i < _processors.Length; i++)
             {
-                _processors[i].ProcessLog(level, tag, message);
+                try
+                {
+                    _processors[i].ProcessLog(level, tag, message);
+                }
+                catch (Exception)
+                {
+                }
             }
         }
     }

@@ -343,4 +343,27 @@ public sealed class LogFileFactoryTests
         // Assert
         Assert.Equal(["/logs/20260101_000000_000.log", "/logs/20260102_000000_000.log"], fileSystem.DeletedPaths);
     }
+
+    [Fact]
+    public void CreateFile_ClockWentBackwards_KeepsTheNewFile()
+    {
+        // Arrange
+        var newPath = Path.Combine(Path.Combine("/root", "logs"), "20260101_000000_000.log");
+        var fileSystem = new FakeFileSystem();
+        fileSystem.SetDirectoryExistsResult(true);
+        var created = DateTime.UtcNow;
+        fileSystem.SetGetFilesResult(
+        [
+            new FileInfo(newPath, created),
+            new FileInfo("/root/logs/20260301_000000_000.log", created),
+            new FileInfo("/root/logs/20260201_000000_000.log", created)
+        ]);
+        var factory = new LogFileFactory("/root", "logs", 2, 1024, fileSystem, new FakeTimeProvider(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero)));
+
+        // Act
+        using var stream = factory.CreateFile();
+
+        // Assert
+        Assert.Equal(["/root/logs/20260201_000000_000.log"], fileSystem.DeletedPaths);
+    }
 }
