@@ -13,7 +13,7 @@ namespace GroveGames.Logger.Unity
 
         public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
         {
-            _history.Add(new LogEntry(level, tag.ToString(), message.ToString(), DateTime.Now));
+            _history.Add(new LogEntry(level, tag.ToString(), message.ToString(), DateTime.UtcNow));
         }
     }
 }

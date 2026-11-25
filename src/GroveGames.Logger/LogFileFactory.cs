@@ -64,12 +64,18 @@ public sealed class LogFileFactory : ILogFileFactory
 
     private void CleanupOldFiles(string path)
     {
-        var files = _fileSystem.GetFiles(path, "*.log").ToList();
+        var files = _fileSystem.GetFiles(path, "*.log").ToArray();
 
-        if (files.Count > _maxFileCount)
+        if (files.Length <= _maxFileCount)
         {
-            var oldestFile = files.OrderBy(file => file.CreationTime).First();
-            _fileSystem.DeleteFile(oldestFile.FullPath);
+            return;
+        }
+
+        Array.Sort(files, static (left, right) => string.CompareOrdinal(left.FullPath, right.FullPath));
+
+        for (var i = 0; i < files.Length - _maxFileCount; i++)
+        {
+            _fileSystem.DeleteFile(files[i].FullPath);
         }
     }
 }

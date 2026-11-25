@@ -301,4 +301,84 @@ public sealed class StreamWriterTests
         var lines = result.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         Assert.Equal(expectedEntries, lines.Length);
     }
+
+    [Fact]
+    public void Flush_QueuedEntries_WritesThemBeforeReturning()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        using var writer = new StreamWriter(stream, 1024, 100);
+        writer.AddEntry("first");
+        writer.AddEntry("second");
+
+        // Act
+        writer.Flush();
+
+        // Assert
+        Assert.Equal($"first{Environment.NewLine}second{Environment.NewLine}", Encoding.UTF8.GetString(stream.ToArray()));
+    }
+
+    [Fact]
+    public void Dispose_StreamFailsToWrite_DoesNotThrow()
+    {
+        // Arrange
+        var writer = new StreamWriter(new FakeFailingStream(), 1024, 100);
+        writer.AddEntry("entry");
+        writer.Flush();
+
+        // Act
+        var exception = Record.Exception(writer.Dispose);
+
+        // Assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void AddEntry_AfterStreamFailed_DoesNotThrow()
+    {
+        // Arrange
+        using var writer = new StreamWriter(new FakeFailingStream(), 1024, 100);
+        writer.AddEntry("entry");
+        writer.Flush();
+
+        // Act
+        var exception = Record.Exception(() => writer.AddEntry("later"));
+
+        // Assert
+        Assert.Null(exception);
+    }
+
+    private sealed class FakeFailingStream : Stream
+    {
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override bool CanWrite => true;
+        public override long Length => 0;
+        public override long Position { get => 0; set { } }
+
+        public override void Flush()
+        {
+            throw new IOException("Disk full");
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            throw new IOException("Disk full");
+        }
+    }
 }

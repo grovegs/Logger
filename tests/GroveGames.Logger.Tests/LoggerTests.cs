@@ -324,4 +324,27 @@ public sealed class LoggerTests
         // Assert
         Assert.Equal(100, processor.ProcessLogCallCount);
     }
+
+    [Fact]
+    public void Log_ProcessorThrows_StillRunsTheOtherProcessorsWithoutThrowing()
+    {
+        // Arrange
+        var after = new FakeLogProcessor();
+        using var logger = new Logger([new FakeThrowingLogProcessor(), after], [], LogLevel.Debug);
+
+        // Act
+        var exception = Record.Exception(() => logger.Log(LogLevel.Information, "Tag", "Message"));
+
+        // Assert
+        Assert.Null(exception);
+        Assert.Equal(1, after.ProcessLogCallCount);
+    }
+
+    private sealed class FakeThrowingLogProcessor : ILogProcessor
+    {
+        public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
+        {
+            throw new InvalidOperationException();
+        }
+    }
 }

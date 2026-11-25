@@ -67,6 +67,12 @@ var logger = LoggerFactory.CreateLogger(builder =>
 });
 ```
 
+`StreamWriter` writes on a background task in batches. `Flush()` waits up to a second for every entry added so far to reach the stream, so call it before the process may be killed. When the queue is full, new entries are dropped. If the stream fails (a full disk, for example), the writer stops and drops later entries instead of throwing, and `Dispose()` never throws.
+
+`LogFileFactory` names files by their UTC start time and keeps the newest `maxFileCount` files, deleting the oldest by name.
+
+A processor that throws doesn't stop the log call: the exception is ignored and the remaining processors still run.
+
 ### Custom Log Formatters
 
 Implement `ILogFormatter` to create custom formats:
@@ -170,6 +176,8 @@ public class GameManager : MonoBehaviour
     }
 }
 ```
+
+`AddFileLogProcessor()` flushes the log file when the application loses focus, which is when mobile platforms pause it and may kill it. `AddLogSource()` forwards messages that Unity logs from any thread, and history entries are stamped in UTC.
 
 ### Project Settings Configuration
 

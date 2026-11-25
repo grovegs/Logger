@@ -11,6 +11,7 @@ public sealed class LogFileFactoryTests
         private string? _createDirectoryPath;
         private bool _deleteFileCalled;
         private string? _deleteFilePath;
+        private readonly List<string> _deletedPaths;
         private string? _createFileStreamPath;
         private FileMode _createFileStreamMode;
         private FileAccess _createFileStreamAccess;
@@ -27,6 +28,7 @@ public sealed class LogFileFactoryTests
 
         public bool DeleteFileCalled => _deleteFileCalled;
         public string? DeleteFilePath => _deleteFilePath;
+        public IReadOnlyList<string> DeletedPaths => _deletedPaths;
 
         public string? CreateFileStreamPath => _createFileStreamPath;
         public FileMode CreateFileStreamMode => _createFileStreamMode;
@@ -39,6 +41,7 @@ public sealed class LogFileFactoryTests
         {
             _createFileStreamResult = new MemoryStream();
             _getFilesResult = Array.Empty<FileInfo>();
+            _deletedPaths = [];
         }
 
         public void SetCreateFileStreamResult(Stream value)
@@ -81,6 +84,7 @@ public sealed class LogFileFactoryTests
         {
             _deleteFileCalled = true;
             _deleteFilePath = path;
+            _deletedPaths.Add(path);
         }
     }
 
@@ -315,5 +319,28 @@ public sealed class LogFileFactoryTests
 
         // Assert
         Assert.Equal(10, fileSystem.CreateFileStreamCallCount);
+    }
+
+    [Fact]
+    public void CreateFile_FileCountFarAboveMax_DeletesEveryExtraFileOldestByName()
+    {
+        // Arrange
+        var fileSystem = new FakeFileSystem();
+        fileSystem.SetDirectoryExistsResult(true);
+        var newest = DateTime.UtcNow;
+        fileSystem.SetGetFilesResult(
+        [
+            new FileInfo("/logs/20260103_000000_000.log", newest),
+            new FileInfo("/logs/20260101_000000_000.log", newest),
+            new FileInfo("/logs/20260104_000000_000.log", newest),
+            new FileInfo("/logs/20260102_000000_000.log", newest)
+        ]);
+        var factory = new LogFileFactory("/root", "logs", 2, 1024, fileSystem, new FakeTimeProvider(new DateTimeOffset(2026, 1, 5, 0, 0, 0, TimeSpan.Zero)));
+
+        // Act
+        using var stream = factory.CreateFile();
+
+        // Assert
+        Assert.Equal(["/logs/20260101_000000_000.log", "/logs/20260102_000000_000.log"], fileSystem.DeletedPaths);
     }
 }
