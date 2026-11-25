@@ -67,6 +67,12 @@ var logger = LoggerFactory.CreateLogger(builder =>
 });
 ```
 
+`StreamWriter` encodes each entry as UTF-8 straight into one of two buffers and writes full buffers on its own background thread, so logging allocates nothing once the buffers have grown to fit your bursts. An idle writer writes new entries at once, so the last lines before a crash are not left in memory; under load, entries are written in batches. `Flush()` waits up to a second for every entry added so far to reach the stream, so call it before the process may be killed. While the writer is busy, up to `channelCapacity` entries wait, and later ones are dropped. If the stream fails (a full disk, for example), the writer stops and drops later entries instead of throwing, and `Dispose()` never throws. `Dispose()` writes everything accepted, waiting at most 5 seconds for a stuck stream.
+
+`LogFileFactory` names files by their UTC start time and keeps the newest `maxFileCount` files, deleting the oldest by name. The file it has just opened is never deleted, even when the device clock went backwards.
+
+A processor that throws doesn't stop the log call: the exception is ignored and the remaining processors still run. Processors may be called from any thread, so keep them thread-safe.
+
 ### Custom Log Formatters
 
 Implement `ILogFormatter` to create custom formats:
@@ -119,7 +125,7 @@ for (int i = 0; i < 1000000; i++)
 - **`LoggerBuilder`**: Fluent API for logger configuration
 - **`ILogProcessor`**: Interface for processing log entries
 - **`ILogFormatter`**: Interface for controlling log entry formatting
-- **`StreamWriter`**: High-performance async file writer with batching
+- **`StreamWriter`**: Zero-allocation double-buffered file writer with a background thread
 - **`LogFileFactory`**: Manages log file creation and rotation
 
 ## Unity
@@ -170,6 +176,8 @@ public class GameManager : MonoBehaviour
     }
 }
 ```
+
+`AddFileLogProcessor()` flushes the log file when the application loses focus, which is when mobile platforms pause it and may kill it. `AddLogSource()` forwards messages that Unity logs from any thread, so your own processors must be thread-safe and must not touch Unity objects. History entries are stamped in UTC.
 
 ### Project Settings Configuration
 
