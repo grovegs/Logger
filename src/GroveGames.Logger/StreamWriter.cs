@@ -109,15 +109,8 @@ public sealed class StreamWriter : IStreamWriter
 
         lock (_lock)
         {
-            while (!_failed && !TrySubmit())
-            {
-                if (!Wait(start))
-                {
-                    return;
-                }
-            }
-
-            var target = _submitted;
+            // When the writer is busy, the active buffer is the next one it submits, so count it without waiting for the swap.
+            var target = TrySubmit() ? _submitted : _submitted + 1;
 
             while (_completed < target && !_failed)
             {

@@ -15,7 +15,7 @@ dotnet pack -c Release
 - Use zero-allocation APIs (Span\<T\>, ReadOnlySpan\<T\>, stackalloc, etc.) when available
 - net10.0 supports most optimizations natively
 - netstandard2.1 includes Span\<T\>/ReadOnlySpan\<T\> natively
-- For netstandard2.1: use official NuGet packages only when needed (e.g., `System.Threading.Channels`, `Microsoft.Bcl.TimeProvider`)
+- For netstandard2.1: use official NuGet packages only when needed (e.g., `Microsoft.Bcl.TimeProvider`)
 - When no official package exists, write polyfills in `Polyfills/` using C# 14 extension members
 - Follow `.editorconfig` naming: `_camelCase` for private fields, `s_camelCase` for static, `IPascalCase` for interfaces
 - Seal implementation classes unless designed for inheritance

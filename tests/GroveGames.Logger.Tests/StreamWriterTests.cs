@@ -485,6 +485,125 @@ public sealed class StreamWriterTests
         Assert.Equal($"a\uFFFDb{Environment.NewLine}", Encoding.UTF8.GetString(stream.ToArray()));
     }
 
+    [Fact]
+    public void Flush_AnotherThreadKeepsLogging_ReturnsWithoutWaitingForTheTimeout()
+    {
+        // Arrange
+        var stream = new FakeSlowStream();
+        using var writer = new StreamWriter(stream, 1024, int.MaxValue);
+        using var stop = new CancellationTokenSource();
+        var logger = new Thread(() =>
+        {
+            while (!stop.IsCancellationRequested)
+            {
+                writer.AddEntry("background");
+            }
+        });
+        logger.Start();
+        Thread.Sleep(50);
+        var slowest = 0L;
+        var missing = 0;
+
+        // Act
+        for (var i = 0; i < 10; i++)
+        {
+            var mine = $"mine {i}{Environment.NewLine}";
+            writer.AddEntry($"mine {i}");
+            var stopwatch = Stopwatch.StartNew();
+            writer.Flush();
+            slowest = Math.Max(slowest, stopwatch.ElapsedMilliseconds);
+            missing += stream.Text.Contains(mine, StringComparison.Ordinal) ? 0 : 1;
+        }
+
+        // Assert
+        stop.Cancel();
+        logger.Join();
+        Assert.Equal(0, missing);
+        Assert.True(slowest < 500, $"The slowest Flush took {slowest} ms");
+    }
+
+    [Fact]
+    public void Dispose_WriterBusy_WritesEveryAcceptedEntry()
+    {
+        // Arrange
+        var stream = new FakeGatedStream();
+        var writer = new StreamWriter(stream, 64, 100);
+        for (var i = 0; i < 20; i++)
+        {
+            writer.AddEntry($"entry {i}");
+        }
+
+        var opener = new Thread(() =>
+        {
+            Thread.Sleep(50);
+            stream.Open();
+        });
+        opener.Start();
+
+        // Act
+        writer.Dispose();
+
+        // Assert
+        opener.Join();
+        Assert.Equal(20, stream.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Length);
+    }
+
+    private sealed class FakeSlowStream : Stream
+    {
+        private readonly MemoryStream _inner;
+
+        public FakeSlowStream()
+        {
+            _inner = new MemoryStream();
+        }
+
+        public string Text
+        {
+            get
+            {
+                lock (_inner)
+                {
+                    return Encoding.UTF8.GetString(_inner.ToArray());
+                }
+            }
+        }
+
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override bool CanWrite => true;
+        public override long Length => 0;
+        public override long Position { get => 0; set { } }
+
+        public override void Flush()
+        {
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            Thread.Sleep(5);
+
+            lock (_inner)
+            {
+                _inner.Write(buffer, offset, count);
+            }
+        }
+    }
+
     private sealed class FakeFailingStream : Stream
     {
         public override bool CanRead => false;
