@@ -349,6 +349,91 @@ public sealed class StreamWriterTests
         Assert.Null(exception);
     }
 
+    [Fact]
+    public void AddEntry_WriterBusyWithinCapacity_KeepsEveryEntry()
+    {
+        // Arrange
+        var stream = new FakeGatedStream();
+        using var writer = new StreamWriter(stream, 64, 100);
+
+        // Act
+        for (var i = 0; i < 50; i++)
+        {
+            writer.AddEntry($"entry {i}");
+        }
+
+        stream.Open();
+        writer.Flush();
+
+        // Assert
+        Assert.Equal(50, stream.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Length);
+    }
+
+    [Fact]
+    public void AddEntry_WriterBusyBeyondCapacity_DropsTheRest()
+    {
+        // Arrange
+        var stream = new FakeGatedStream();
+        using var writer = new StreamWriter(stream, 64, 5);
+
+        // Act
+        for (var i = 0; i < 50; i++)
+        {
+            writer.AddEntry($"entry {i}");
+        }
+
+        stream.Open();
+        writer.Flush();
+
+        // Assert
+        Assert.InRange(stream.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Length, 5, 49);
+    }
+
+    [Fact]
+    public void AddEntry_WithoutFlush_IsWrittenSoon()
+    {
+        // Arrange
+        var stream = new FakeGatedStream();
+        stream.Open();
+        using var writer = new StreamWriter(stream, 1024, 100);
+        var stopwatch = Stopwatch.StartNew();
+
+        // Act
+        writer.AddEntry("idle");
+
+        // Assert
+        while (stream.Text.Length == 0 && stopwatch.ElapsedMilliseconds < 2000)
+        {
+            Thread.Sleep(10);
+        }
+
+        Assert.Equal($"idle{Environment.NewLine}", stream.Text);
+    }
+
+    [Fact]
+    public void AddEntry_AfterWarmup_DoesNotAllocate()
+    {
+        // Arrange
+        using var writer = new StreamWriter(Stream.Null, 1024, 100);
+        for (var i = 0; i < 10_000; i++)
+        {
+            writer.AddEntry("[INF] [Gameplay] Player collected 12 coins");
+        }
+
+        writer.Flush();
+        var before = GC.GetAllocatedBytesForCurrentThread();
+
+        // Act
+        for (var i = 0; i < 10_000; i++)
+        {
+            writer.AddEntry("[INF] [Gameplay] Player collected 12 coins");
+        }
+
+        // Assert
+        // A buffer may still double once if the writer thread runs late, so allow that bounded growth, which is far below one allocation per entry.
+        Assert.InRange(GC.GetAllocatedBytesForCurrentThread() - before, 0, 32 * 1024);
+    }
+
     private sealed class FakeFailingStream : Stream
     {
         public override bool CanRead => false;

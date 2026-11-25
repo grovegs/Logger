@@ -67,7 +67,7 @@ var logger = LoggerFactory.CreateLogger(builder =>
 });
 ```
 
-`StreamWriter` writes on a background task in batches. `Flush()` waits up to a second for every entry added so far to reach the stream, so call it before the process may be killed. When the queue is full, new entries are dropped. If the stream fails (a full disk, for example), the writer stops and drops later entries instead of throwing, and `Dispose()` never throws.
+`StreamWriter` encodes each entry as UTF-8 straight into one of two buffers and writes full buffers on its own background thread, so logging allocates nothing once the buffers have grown to fit your bursts. Entries reach the stream within about 100 ms, or at once when a buffer is three-quarters full. `Flush()` waits up to a second for every entry added so far to reach the stream, so call it before the process may be killed. While the writer is busy, up to `channelCapacity` entries wait, and later ones are dropped. If the stream fails (a full disk, for example), the writer stops and drops later entries instead of throwing, and `Dispose()` never throws.
 
 `LogFileFactory` names files by their UTC start time and keeps the newest `maxFileCount` files, deleting the oldest by name. The file it has just opened is never deleted, even when the device clock went backwards.
 
@@ -125,7 +125,7 @@ for (int i = 0; i < 1000000; i++)
 - **`LoggerBuilder`**: Fluent API for logger configuration
 - **`ILogProcessor`**: Interface for processing log entries
 - **`ILogFormatter`**: Interface for controlling log entry formatting
-- **`StreamWriter`**: High-performance async file writer with batching
+- **`StreamWriter`**: Zero-allocation double-buffered file writer with a background thread
 - **`LogFileFactory`**: Manages log file creation and rotation
 
 ## Unity
