@@ -75,7 +75,7 @@ namespace GroveGames.Logger.Unity.Tests
 
         private static LogEntry Entry(string message)
         {
-            return new LogEntry(LogLevel.Information, "Test", message, DateTime.Now);
+            return new LogEntry(LogLevel.Information, "Test", message, DateTime.UtcNow);
         }
     }
 }

@@ -27,6 +27,7 @@ namespace GroveGames.Logger.Unity
                 stream = unityFileFactory.CreateFile();
                 var streamWriter = new StreamWriter(stream, settings.FileBufferSize, settings.FileChannelCapacity);
                 builder.AddLogProcessor(new FileLogProcessor(streamWriter, new FileLogFormatter()));
+                builder.AddLogSource(_ => new LogFileFlusher(streamWriter));
             }
             catch (Exception exception)
             {

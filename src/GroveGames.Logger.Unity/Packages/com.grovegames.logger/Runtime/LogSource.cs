@@ -14,7 +14,7 @@ namespace GroveGames.Logger.Unity
         {
             _logProcessor = new SourceLogProcessor(processors);
             _tag = tag;
-            Application.logMessageReceived += OnLogMessageReceived;
+            Application.logMessageReceivedThreaded += OnLogMessageReceived;
         }
 
         private void OnLogMessageReceived(string condition, string stackTrace, LogType type)
@@ -55,7 +55,7 @@ namespace GroveGames.Logger.Unity
                 return;
             }
 
-            Application.logMessageReceived -= OnLogMessageReceived;
+            Application.logMessageReceivedThreaded -= OnLogMessageReceived;
         }
     }
 }

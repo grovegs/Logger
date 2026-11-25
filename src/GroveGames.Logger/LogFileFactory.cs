@@ -32,7 +32,7 @@ public sealed class LogFileFactory : ILogFileFactory
 
         EnsureDirectoryExists(path);
         var fileStream = CreateFileStream(fullPath);
-        CleanupOldFiles(path);
+        CleanupOldFiles(path, fileName);
 
         return fileStream;
     }
@@ -58,18 +58,38 @@ public sealed class LogFileFactory : ILogFileFactory
             FileAccess.Write,
             FileShare.Read,
             _bufferSize,
-            true
+            false
         );
     }
 
-    private void CleanupOldFiles(string path)
+    private void CleanupOldFiles(string path, string currentFileName)
     {
-        var files = _fileSystem.GetFiles(path, "*.log").ToList();
+        var files = _fileSystem.GetFiles(path, "*.log").ToArray();
 
-        if (files.Count > _maxFileCount)
+        if (files.Length <= _maxFileCount)
         {
-            var oldestFile = files.OrderBy(file => file.CreationTime).First();
-            _fileSystem.DeleteFile(oldestFile.FullPath);
+            return;
+        }
+
+        Array.Sort(files, static (left, right) => string.CompareOrdinal(left.FullPath, right.FullPath));
+        var toDelete = files.Length - _maxFileCount;
+
+        for (var i = 0; i < files.Length && toDelete > 0; i++)
+        {
+            if (string.Equals(Path.GetFileName(files[i].FullPath), currentFileName, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            toDelete--;
+
+            try
+            {
+                _fileSystem.DeleteFile(files[i].FullPath);
+            }
+            catch (Exception)
+            {
+            }
         }
     }
 }

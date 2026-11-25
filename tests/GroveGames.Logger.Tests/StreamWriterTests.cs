@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 
 namespace GroveGames.Logger.Tests;
 
@@ -300,5 +301,439 @@ public sealed class StreamWriterTests
         var result = Encoding.UTF8.GetString(stream.ToArray());
         var lines = result.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         Assert.Equal(expectedEntries, lines.Length);
+    }
+
+    [Fact]
+    public void Flush_QueuedEntries_WritesThemBeforeReturning()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        using var writer = new StreamWriter(stream, 1024, 100);
+        writer.AddEntry("first");
+        writer.AddEntry("second");
+
+        // Act
+        writer.Flush();
+
+        // Assert
+        Assert.Equal($"first{Environment.NewLine}second{Environment.NewLine}", Encoding.UTF8.GetString(stream.ToArray()));
+    }
+
+    [Fact]
+    public void Dispose_StreamFailsToWrite_DoesNotThrow()
+    {
+        // Arrange
+        var writer = new StreamWriter(new FakeFailingStream(), 1024, 100);
+        writer.AddEntry("entry");
+        writer.Flush();
+
+        // Act
+        var exception = Record.Exception(writer.Dispose);
+
+        // Assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void AddEntry_AfterStreamFailed_DoesNotThrow()
+    {
+        // Arrange
+        using var writer = new StreamWriter(new FakeFailingStream(), 1024, 100);
+        writer.AddEntry("entry");
+        writer.Flush();
+
+        // Act
+        var exception = Record.Exception(() => writer.AddEntry("later"));
+
+        // Assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void AddEntry_WriterBusyWithinCapacity_KeepsEveryEntry()
+    {
+        // Arrange
+        var stream = new FakeGatedStream();
+        using var writer = new StreamWriter(stream, 64, 100);
+
+        // Act
+        for (var i = 0; i < 50; i++)
+        {
+            writer.AddEntry($"entry {i}");
+        }
+
+        stream.Open();
+        writer.Flush();
+
+        // Assert
+        Assert.Equal(50, stream.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Length);
+    }
+
+    [Fact]
+    public void AddEntry_WriterBusyBeyondCapacity_DropsTheRest()
+    {
+        // Arrange
+        var stream = new FakeGatedStream();
+        using var writer = new StreamWriter(stream, 64, 5);
+
+        // Act
+        for (var i = 0; i < 50; i++)
+        {
+            writer.AddEntry($"entry {i}");
+        }
+
+        stream.Open();
+        writer.Flush();
+
+        // Assert
+        Assert.InRange(stream.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Length, 5, 14);
+    }
+
+    [Fact]
+    public void AddEntry_WithoutFlush_IsWrittenSoon()
+    {
+        // Arrange
+        var stream = new FakeGatedStream();
+        stream.Open();
+        using var writer = new StreamWriter(stream, 1024, 100);
+        var stopwatch = Stopwatch.StartNew();
+
+        // Act
+        writer.AddEntry("idle");
+
+        // Assert
+        while (stream.Text.Length == 0 && stopwatch.ElapsedMilliseconds < 2000)
+        {
+            Thread.Sleep(10);
+        }
+
+        Assert.Equal($"idle{Environment.NewLine}", stream.Text);
+    }
+
+    [Fact]
+    public void AddEntry_AfterWarmup_DoesNotAllocate()
+    {
+        // Arrange
+        using var writer = new StreamWriter(Stream.Null, 1024, 100);
+        for (var i = 0; i < 10_000; i++)
+        {
+            writer.AddEntry("[INF] [Gameplay] Player collected 12 coins");
+        }
+
+        writer.Flush();
+        var before = GC.GetAllocatedBytesForCurrentThread();
+
+        // Act
+        for (var i = 0; i < 10_000; i++)
+        {
+            writer.AddEntry("[INF] [Gameplay] Player collected 12 coins");
+        }
+
+        // Assert
+        // A buffer may still double once if the writer thread runs late, so allow that bounded growth, which is far below one allocation per entry.
+        Assert.InRange(GC.GetAllocatedBytesForCurrentThread() - before, 0, 32 * 1024);
+    }
+
+    [Fact]
+    public void Flush_WriterStuck_ReturnsAfterTheTimeout()
+    {
+        // Arrange
+        var stream = new FakeGatedStream();
+        using var writer = new StreamWriter(stream, 1024, 100);
+        writer.AddEntry("stuck");
+        var stopwatch = Stopwatch.StartNew();
+
+        // Act
+        writer.Flush();
+
+        // Assert
+        stopwatch.Stop();
+        stream.Open();
+        Assert.InRange(stopwatch.ElapsedMilliseconds, 900, 5000);
+    }
+
+    [Fact]
+    public void AddEntry_EntryManyTimesTheBufferSize_WritesItWhole()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+        var entry = new string('x', 100);
+
+        // Act
+        using (var writer = new StreamWriter(stream, 16, 100))
+        {
+            writer.AddEntry(entry);
+        }
+
+        // Assert
+        Assert.Equal($"{entry}{Environment.NewLine}", Encoding.UTF8.GetString(stream.ToArray()));
+    }
+
+    [Fact]
+    public void AddEntry_InvalidSurrogate_WritesReplacementCharacter()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+
+        // Act
+        using (var writer = new StreamWriter(stream, 1024, 100))
+        {
+            writer.AddEntry("a\uD800b");
+        }
+
+        // Assert
+        Assert.Equal($"a\uFFFDb{Environment.NewLine}", Encoding.UTF8.GetString(stream.ToArray()));
+    }
+
+    [Fact]
+    public void Flush_AnotherThreadKeepsLogging_ReturnsWithoutWaitingForTheTimeout()
+    {
+        // Arrange
+        var stream = new FakeSlowStream();
+        using var writer = new StreamWriter(stream, 1024, int.MaxValue);
+        using var stop = new CancellationTokenSource();
+        var logger = new Thread(() =>
+        {
+            while (!stop.IsCancellationRequested)
+            {
+                writer.AddEntry("background");
+            }
+        });
+        logger.Start();
+        Thread.Sleep(50);
+        var slowest = 0L;
+        var missing = 0;
+
+        // Act
+        for (var i = 0; i < 10; i++)
+        {
+            var mine = $"mine {i}{Environment.NewLine}";
+            writer.AddEntry($"mine {i}");
+            var stopwatch = Stopwatch.StartNew();
+            writer.Flush();
+            slowest = Math.Max(slowest, stopwatch.ElapsedMilliseconds);
+            missing += stream.Text.Contains(mine, StringComparison.Ordinal) ? 0 : 1;
+        }
+
+        // Assert
+        stop.Cancel();
+        logger.Join();
+        Assert.Equal(0, missing);
+        Assert.True(slowest < 500, $"The slowest Flush took {slowest} ms");
+    }
+
+    [Fact]
+    public void Dispose_WriterBusy_WritesEveryAcceptedEntry()
+    {
+        // Arrange
+        var stream = new FakeGatedStream();
+        var writer = new StreamWriter(stream, 64, 100);
+        for (var i = 0; i < 20; i++)
+        {
+            writer.AddEntry($"entry {i}");
+        }
+
+        var opener = new Thread(() =>
+        {
+            Thread.Sleep(50);
+            stream.Open();
+        });
+        opener.Start();
+
+        // Act
+        writer.Dispose();
+
+        // Assert
+        opener.Join();
+        Assert.Equal(20, stream.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Length);
+    }
+
+    private sealed class FakeSlowStream : Stream
+    {
+        private readonly MemoryStream _inner;
+
+        public FakeSlowStream()
+        {
+            _inner = new MemoryStream();
+        }
+
+        public string Text
+        {
+            get
+            {
+                lock (_inner)
+                {
+                    return Encoding.UTF8.GetString(_inner.ToArray());
+                }
+            }
+        }
+
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override bool CanWrite => true;
+        public override long Length => 0;
+        public override long Position { get => 0; set { } }
+
+        public override void Flush()
+        {
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            Thread.Sleep(5);
+
+            lock (_inner)
+            {
+                _inner.Write(buffer, offset, count);
+            }
+        }
+    }
+
+    private sealed class FakeFailingStream : Stream
+    {
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override bool CanWrite => true;
+        public override long Length => 0;
+        public override long Position { get => 0; set { } }
+
+        public override void Flush()
+        {
+            throw new IOException("Disk full");
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            throw new IOException("Disk full");
+        }
+    }
+
+    [Fact]
+    public void Flush_AfterQueueWasFull_ReturnsOnceLaterEntriesAreWritten()
+    {
+        // Arrange
+        var stream = new FakeGatedStream();
+        using var writer = new StreamWriter(stream, 1024, 1);
+        for (var i = 0; i < 10; i++)
+        {
+            writer.AddEntry("dropped or written");
+        }
+
+        stream.Open();
+        writer.Flush();
+        writer.AddEntry("last");
+        var stopwatch = Stopwatch.StartNew();
+
+        // Act
+        writer.Flush();
+
+        // Assert
+        stopwatch.Stop();
+        Assert.True(stopwatch.ElapsedMilliseconds < 500, $"Flush took {stopwatch.ElapsedMilliseconds} ms");
+        Assert.EndsWith($"last{Environment.NewLine}", stream.Text);
+    }
+
+    private sealed class FakeGatedStream : Stream
+    {
+        private readonly ManualResetEventSlim _gate;
+        private readonly MemoryStream _inner;
+
+        public FakeGatedStream()
+        {
+            _gate = new ManualResetEventSlim(false);
+            _inner = new MemoryStream();
+        }
+
+        public string Text
+        {
+            get
+            {
+                lock (_inner)
+                {
+                    return Encoding.UTF8.GetString(_inner.ToArray());
+                }
+            }
+        }
+
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override bool CanWrite => true;
+        public override long Length => 0;
+        public override long Position { get => 0; set { } }
+
+        public void Open()
+        {
+            _gate.Set();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _gate.Dispose();
+                _inner.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            _gate.Wait();
+
+            lock (_inner)
+            {
+                _inner.Write(buffer, offset, count);
+            }
+        }
     }
 }

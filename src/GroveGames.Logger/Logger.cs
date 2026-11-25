@@ -43,7 +43,13 @@ public sealed class Logger : ILogger, IDisposable
 
         foreach (var logProcessor in _logProcessors)
         {
-            logProcessor.ProcessLog(level, tag, message);
+            try
+            {
+                logProcessor.ProcessLog(level, tag, message);
+            }
+            catch (Exception)
+            {
+            }
         }
     }
 

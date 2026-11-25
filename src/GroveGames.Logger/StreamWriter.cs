@@ -1,20 +1,31 @@
-﻿using System.Buffers;
+﻿using System.Diagnostics;
 using System.Text;
-using System.Threading.Channels;
 
 namespace GroveGames.Logger;
 
 public sealed class StreamWriter : IStreamWriter
 {
     private static readonly byte[] s_newLine = [.. Encoding.UTF8.GetBytes(Environment.NewLine)];
+    private static readonly TimeSpan s_flushTimeout = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan s_disposeTimeout = TimeSpan.FromSeconds(5);
+    private const int MaxBufferSize = 0x7FFFFFC7;
 
     private readonly Stream _stream;
-    private readonly int _bufferSize;
-    private readonly Channel<ArraySegment<byte>> _channel;
-    private readonly CancellationTokenSource _cancellationTokenSource;
-    private readonly Lock _flushLock;
-    private readonly Task _writeTask;
-    private volatile bool _disposed;
+    private readonly object _lock;
+    private readonly Thread _thread;
+    private readonly int _capacity;
+    private int _activeEntries;
+    private byte[] _active;
+    private int _activeLength;
+    private byte[]? _spare;
+    private byte[]? _pending;
+    private int _pendingLength;
+    private long _submitted;
+    private long _completed;
+    private bool _failed;
+    private bool _stopping;
+    private bool _writerIdle;
+    private int _disposed;
 
     public StreamWriter(Stream stream, int bufferSize, int channelCapacity)
     {
@@ -23,119 +34,227 @@ public sealed class StreamWriter : IStreamWriter
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(channelCapacity);
 
         _stream = stream;
-        _bufferSize = bufferSize;
-        _channel = Channel.CreateBounded<ArraySegment<byte>>(new BoundedChannelOptions(channelCapacity)
-        {
-            FullMode = BoundedChannelFullMode.DropNewest,
-            SingleReader = true,
-            SingleWriter = false,
-            AllowSynchronousContinuations = false
-        });
-        _cancellationTokenSource = new CancellationTokenSource();
-        _flushLock = new Lock();
-        _writeTask = Task.Run(() => ProcessEntriesAsync(_cancellationTokenSource.Token));
+        _lock = new object();
+        _capacity = channelCapacity;
+        _activeEntries = 0;
+        _active = new byte[bufferSize];
+        _activeLength = 0;
+        _spare = new byte[bufferSize];
+        _pending = null;
+        _pendingLength = 0;
+        _submitted = 0;
+        _completed = 0;
+        _failed = false;
+        _stopping = false;
+        _writerIdle = false;
+        _disposed = 0;
+        _thread = new Thread(Run) { IsBackground = true, Name = "GroveGames.Logger" };
+        _thread.Start();
     }
 
     public void AddEntry(ReadOnlySpan<char> entry)
     {
-        if (_disposed)
+        if (Volatile.Read(ref _disposed) != 0)
         {
             return;
         }
 
-        var byteCount = Encoding.UTF8.GetByteCount(entry);
-        var totalLength = byteCount + s_newLine.Length;
-        var buffer = ArrayPool<byte>.Shared.Rent(totalLength);
-        var bytesWritten = Encoding.UTF8.GetBytes(entry, buffer);
-        s_newLine.CopyTo(buffer.AsSpan(bytesWritten));
-
-        if (!_channel.Writer.TryWrite(new ArraySegment<byte>(buffer, 0, totalLength)))
+        lock (_lock)
         {
-            ArrayPool<byte>.Shared.Return(buffer, false);
-        }
-    }
-
-    private async Task ProcessEntriesAsync(CancellationToken cancellationToken)
-    {
-        var batchBuffer = ArrayPool<byte>.Shared.Rent(_bufferSize);
-        var batchPosition = 0;
-        var reader = _channel.Reader;
-
-        while (await reader.WaitToReadAsync(cancellationToken))
-        {
-            while (reader.TryRead(out var segment))
+            if (_failed || _stopping || (_pending != null && _activeEntries >= _capacity))
             {
-                var entryBuffer = segment.Array!;
-                var entryLength = segment.Count;
+                return;
+            }
 
-                if (batchPosition + entryLength > _bufferSize)
+            if (_activeLength + ((long)entry.Length + 1) * 3 + s_newLine.Length > _active.Length)
+            {
+                var entryLength = (long)Encoding.UTF8.GetByteCount(entry) + s_newLine.Length;
+
+                if (_activeLength + entryLength > _active.Length)
                 {
-                    if (batchPosition > 0)
-                    {
-                        await _stream.WriteAsync(batchBuffer.AsMemory(0, batchPosition), cancellationToken);
-                        batchPosition = 0;
-                    }
+                    TrySubmit();
 
-                    if (entryLength > _bufferSize)
+                    if (_activeLength + entryLength > _active.Length && !TryGrow(_activeLength + entryLength))
                     {
-                        await _stream.WriteAsync(entryBuffer.AsMemory(0, entryLength), cancellationToken);
+                        return;
                     }
-                    else
-                    {
-                        Buffer.BlockCopy(entryBuffer, 0, batchBuffer, 0, entryLength);
-                        batchPosition = entryLength;
-                    }
-                }
-                else
-                {
-                    Buffer.BlockCopy(entryBuffer, 0, batchBuffer, batchPosition, entryLength);
-                    batchPosition += entryLength;
-                }
-
-                ArrayPool<byte>.Shared.Return(entryBuffer, false);
-
-                if (batchPosition >= _bufferSize * 3 / 4)
-                {
-                    await _stream.WriteAsync(batchBuffer.AsMemory(0, batchPosition), cancellationToken);
-                    batchPosition = 0;
                 }
             }
 
-            if (batchPosition > 0)
+            var written = Encoding.UTF8.GetBytes(entry, _active.AsSpan(_activeLength));
+            s_newLine.CopyTo(_active.AsSpan(_activeLength + written));
+            _activeLength += written + s_newLine.Length;
+            _activeEntries++;
+
+            if (_activeLength >= _active.Length - (_active.Length >> 2))
             {
-                await _stream.WriteAsync(batchBuffer.AsMemory(0, batchPosition), cancellationToken);
-                await _stream.FlushAsync(cancellationToken);
-                batchPosition = 0;
+                TrySubmit();
+            }
+            else if (_writerIdle)
+            {
+                _writerIdle = false;
+                Monitor.PulseAll(_lock);
             }
         }
-
-        ArrayPool<byte>.Shared.Return(batchBuffer, false);
     }
 
     public void Flush()
     {
-        if (_disposed)
+        if (Volatile.Read(ref _disposed) != 0)
         {
             return;
         }
 
-        using (_flushLock.EnterScope())
+        var start = Stopwatch.GetTimestamp();
+
+        lock (_lock)
         {
-            _stream.Flush();
+            // When the writer is busy, the active buffer is the next one it submits, so count it without waiting for the swap.
+            var target = TrySubmit() ? _submitted : _submitted + 1;
+
+            while (_completed < target && !_failed)
+            {
+                if (!Wait(start))
+                {
+                    return;
+                }
+            }
         }
     }
 
     public void Dispose()
     {
-        if (_disposed)
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
         {
             return;
         }
 
-        _disposed = true;
-        _channel.Writer.TryComplete();
-        _writeTask.Wait();
-        _cancellationTokenSource.Dispose();
-        _stream.Dispose();
+        lock (_lock)
+        {
+            _stopping = true;
+            Monitor.PulseAll(_lock);
+        }
+
+        _thread.Join(s_disposeTimeout);
+
+        try
+        {
+            _stream.Dispose();
+        }
+        catch (Exception)
+        {
+        }
+    }
+
+    private bool TrySubmit()
+    {
+        if (_activeLength == 0)
+        {
+            return true;
+        }
+
+        if (_pending != null)
+        {
+            return false;
+        }
+
+        _pending = _active;
+        _pendingLength = _activeLength;
+        _active = _spare!;
+        _spare = null;
+        _activeLength = 0;
+        _activeEntries = 0;
+        _submitted++;
+        Monitor.PulseAll(_lock);
+        return true;
+    }
+
+    private bool TryGrow(long required)
+    {
+        if (required > MaxBufferSize)
+        {
+            return false;
+        }
+
+        long size = _active.Length;
+
+        while (size < required)
+        {
+            size *= 2;
+        }
+
+        var bigger = new byte[Math.Min(size, MaxBufferSize)];
+        Buffer.BlockCopy(_active, 0, bigger, 0, _activeLength);
+        _active = bigger;
+        return true;
+    }
+
+    private bool Wait(long start)
+    {
+        var elapsed = TimeSpan.FromSeconds((double)(Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency);
+        var remaining = s_flushTimeout - elapsed;
+
+        if (remaining <= TimeSpan.Zero)
+        {
+            return false;
+        }
+
+        Monitor.Wait(_lock, remaining);
+        return true;
+    }
+
+    private void Run()
+    {
+        try
+        {
+            while (true)
+            {
+                byte[] buffer;
+                int length;
+
+                lock (_lock)
+                {
+                    while (_pending == null)
+                    {
+                        if (_activeLength > 0)
+                        {
+                            TrySubmit();
+                            break;
+                        }
+
+                        if (_stopping)
+                        {
+                            return;
+                        }
+
+                        _writerIdle = true;
+                        Monitor.Wait(_lock);
+                        _writerIdle = false;
+                    }
+
+                    buffer = _pending!;
+                    length = _pendingLength;
+                }
+
+                _stream.Write(buffer, 0, length);
+                _stream.Flush();
+
+                lock (_lock)
+                {
+                    _spare = buffer;
+                    _pending = null;
+                    _completed++;
+                    Monitor.PulseAll(_lock);
+                }
+            }
+        }
+        catch (Exception)
+        {
+            lock (_lock)
+            {
+                _failed = true;
+                Monitor.PulseAll(_lock);
+            }
+        }
     }
 }
