@@ -65,6 +65,12 @@ public sealed class LogFileFactory : ILogFileFactory
         );
     }
 
+    private static bool IsForeignName(string fullPath, int latestYear)
+    {
+        var name = Path.GetFileName(fullPath.AsSpan());
+        return name.Length < 4 || !int.TryParse(name.Slice(0, 4), NumberStyles.None, CultureInfo.InvariantCulture, out var year) || year > latestYear;
+    }
+
     private void CleanupOldFiles(string path, string currentFileName)
     {
         var files = _fileSystem.GetFiles(path, "*.log").ToArray();
@@ -74,7 +80,16 @@ public sealed class LogFileFactory : ILogFileFactory
             return;
         }
 
-        Array.Sort(files, static (left, right) => string.CompareOrdinal(left.FullPath, right.FullPath));
+        // Older releases named files in the device culture, so a Thai device has names in the Buddhist calendar
+        // (2569...) that sort after every invariant name. A name whose year is past next year goes first.
+        var latestYear = _timeProvider.GetUtcNow().Year + 1;
+        Array.Sort(files, (left, right) =>
+        {
+            var leftForeign = IsForeignName(left.FullPath, latestYear);
+            var rightForeign = IsForeignName(right.FullPath, latestYear);
+
+            return leftForeign == rightForeign ? string.CompareOrdinal(left.FullPath, right.FullPath) : leftForeign ? -1 : 1;
+        });
         var toDelete = files.Length - _maxFileCount;
 
         for (var i = 0; i < files.Length && toDelete > 0; i++)

@@ -284,6 +284,29 @@ public sealed class LogFileFactoryTests
     }
 
     [Fact]
+    public void CreateFile_BuddhistCalendarNames_DeletesThemFirst()
+    {
+        // Arrange
+        var existingFiles = new[]
+        {
+            new FileInfo("/root/logs/20240114_120000_000.log", new DateTime(2024, 1, 14)),
+            new FileInfo("/root/logs/25671231_120000_000.log", new DateTime(2023, 12, 31)),
+            new FileInfo("/root/logs/25671230_120000_000.log", new DateTime(2023, 12, 30))
+        };
+        var fileSystem = new FakeFileSystem();
+        fileSystem.SetDirectoryExistsResult(true);
+        fileSystem.SetGetFilesResult(existingFiles);
+        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
+        var factory = new LogFileFactory("/root", "logs", 1, 1024, fileSystem, timeProvider);
+
+        // Act
+        using var stream = factory.CreateFile();
+
+        // Assert
+        Assert.Equal(new[] { "/root/logs/25671230_120000_000.log", "/root/logs/25671231_120000_000.log" }, fileSystem.DeletedPaths);
+    }
+
+    [Fact]
     public void CreateFile_ReturnsValidStream()
     {
         // Arrange

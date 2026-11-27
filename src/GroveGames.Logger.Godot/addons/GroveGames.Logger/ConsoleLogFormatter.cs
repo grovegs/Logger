@@ -18,11 +18,6 @@ public sealed class ConsoleLogFormatter : ILogFormatter
         _timeProvider = timeProvider is null ? new SystemTimeProvider() : new TimeProviderAdapter(timeProvider);
     }
 
-    public ConsoleLogFormatter(ITimeProvider timeProvider)
-    {
-        _timeProvider = timeProvider ?? new SystemTimeProvider();
-    }
-
     public int GetBufferSize(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
     {
         var bufferSize = TimeFormat.Length + LeftBracket.Length + tag.Length + RightBracket.Length + message.Length;

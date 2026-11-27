@@ -94,6 +94,8 @@ A processor that throws doesn't stop the log call: the exception is ignored and 
 Implement `ILogFormatter` to create custom formats:
 
 ```csharp
+using System.Globalization;
+
 public sealed class JsonLogFormatter : ILogFormatter
 {
     public int GetBufferSize(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
