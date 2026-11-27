@@ -1,4 +1,6 @@
-﻿namespace GroveGames.Logger.Tests;
+﻿using System.Globalization;
+
+namespace GroveGames.Logger.Tests;
 
 public sealed class LogFileFactoryTests
 {
@@ -387,5 +389,31 @@ public sealed class LogFileFactoryTests
 
         // Assert
         Assert.Equal(["/root/logs/20260201_000000_000.log"], fileSystem.DeletedPaths);
+    }
+
+    [Fact]
+    public void CreateFile_NonGregorianCulture_UsesInvariantFileName()
+    {
+        // Arrange
+        var fileSystem = new FakeFileSystem();
+        fileSystem.SetDirectoryExistsResult(true);
+        fileSystem.SetGetFilesResult(Array.Empty<FileInfo>());
+        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2024, 1, 15, 10, 30, 45, 123, TimeSpan.Zero));
+        var factory = new LogFileFactory("/root", "logs", 10, 1024, fileSystem, timeProvider);
+        var culture = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = new CultureInfo("th-TH");
+
+        try
+        {
+            // Act
+            using var stream = factory.CreateFile();
+
+            // Assert
+            Assert.Equal("/root/logs/20240115_103045_123.log", fileSystem.CreateFileStreamPath);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = culture;
+        }
     }
 }

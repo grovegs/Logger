@@ -33,6 +33,34 @@ namespace GroveGames.Logger.Unity.Tests
         }
 
         [Test]
+        public void DebugLog_BelowMinimumLevel_IsSkipped()
+        {
+            var recorder = new FakeLogProcessor();
+            using var source = new LogSource(new ILogProcessor[] { recorder }, "Unity", LogLevel.Warning);
+
+            Debug.Log("Below the level");
+            Debug.LogWarning("At the level");
+
+            Assert.AreEqual(1, recorder.Messages.Count);
+            Assert.AreEqual("At the level", recorder.Messages[0]);
+        }
+
+        [Test]
+        public void AddLogSource_BuilderMinimumLevel_FiltersUnityLogs()
+        {
+            var recorder = new FakeLogProcessor();
+            var builder = new LoggerBuilder();
+            builder.AddLogProcessor(recorder);
+            builder.AddLogSource();
+            builder.SetMinimumLevel(LogLevel.Error);
+            using var logger = builder.Build();
+
+            Debug.Log("Below the level");
+
+            Assert.AreEqual(0, recorder.Messages.Count);
+        }
+
+        [Test]
         public void LogException_FromUnity_IncludesStackTrace()
         {
             var recorder = new FakeLogProcessor();

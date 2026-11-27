@@ -1,4 +1,6 @@
-﻿namespace GroveGames.Logger;
+﻿using System.Globalization;
+
+namespace GroveGames.Logger;
 
 public sealed class FileLogFormatter : ILogFormatter
 {
@@ -33,7 +35,7 @@ public sealed class FileLogFormatter : ILogFormatter
         Span<char> timeBuffer = stackalloc char[TimeFormat.Length];
         var currentTime = _timeProvider.GetUtcNow().DateTime;
 
-        if (!currentTime.TryFormat(timeBuffer, out var charsWritten, TimeFormat))
+        if (!currentTime.TryFormat(timeBuffer, out var charsWritten, TimeFormat, CultureInfo.InvariantCulture))
         {
             "??:??:?? ".AsSpan().CopyTo(timeBuffer);
         }

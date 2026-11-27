@@ -67,9 +67,16 @@ public sealed class LoggerTests
     }
 
     [Fact]
-    public void Constructor_EmptyProcessors_ThrowsArgumentException()
+    public void Constructor_EmptyProcessors_LogsNothing()
     {
-        Assert.Throws<ArgumentException>(() => new Logger([], [], LogLevel.Information));
+        // Arrange
+        var logger = new Logger([], [], LogLevel.Information);
+
+        // Act
+        logger.Log(LogLevel.Error, "Tag", "Message");
+
+        // Assert
+        Assert.Equal(LogLevel.Information, logger.MinimumLevel);
     }
 
     [Fact]

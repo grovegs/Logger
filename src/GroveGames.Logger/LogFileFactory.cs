@@ -1,4 +1,6 @@
-﻿namespace GroveGames.Logger;
+﻿using System.Globalization;
+
+namespace GroveGames.Logger;
 
 public sealed class LogFileFactory : ILogFileFactory
 {
@@ -39,7 +41,8 @@ public sealed class LogFileFactory : ILogFileFactory
 
     private string GenerateFileName()
     {
-        return $"{_timeProvider.GetUtcNow():yyyyMMdd_HHmmss_fff}.log";
+        // Invariant, so the names sort by time on every device language and rotation deletes the oldest files.
+        return _timeProvider.GetUtcNow().ToString("yyyyMMdd_HHmmss_fff", CultureInfo.InvariantCulture) + ".log";
     }
 
     private void EnsureDirectoryExists(string path)

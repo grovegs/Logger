@@ -18,6 +18,12 @@ namespace GroveGames.Logger.Unity
                 settings = ScriptableObject.CreateInstance<UnityLoggerSettings>();
             }
 
+            if (configure == null)
+            {
+                Debug.LogError("The logger configuration cannot be null, so the logger writes nowhere.");
+                configure = static _ => { };
+            }
+
             return LoggerFactory.CreateLogger(settings, configure);
         }
     }

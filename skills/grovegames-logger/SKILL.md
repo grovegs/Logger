@@ -15,4 +15,5 @@ Rules for game code that logs with this package. They hold in every game. The AP
     - `LogDebug`: only temporarily, while tracking down a bug. Remove these logs before committing. Committed code has no `LogDebug` calls.
 - Expected outcomes stay silent, such as a tap that hits nothing or a purchase the player can't afford.
 - Never log per frame, per projectile or per hit.
-- Use interpolated strings (`$"..."`). The logger skips formatting below its minimum level.
+- Use interpolated strings (`$"..."`). Below the minimum level, no value in the message is evaluated.
+- Log numbers, `bool`, `DateTime`, `TimeSpan`, `Guid` and strings as they are; they format without allocating. An enum or another struct allocates, so log a string constant for it instead.

@@ -9,11 +9,11 @@ namespace GroveGames.Logger.Unity
         private const int StackBufferSize = 1024;
 
         [ThreadStatic]
-        private static bool s_isWriting;
+        private static bool t_isWriting;
 
         private readonly ILogFormatter _logFormatter;
 
-        internal static bool IsWriting => s_isWriting;
+        internal static bool IsWriting => t_isWriting;
 
         public ConsoleLogProcessor(ILogFormatter logFormatter)
         {
@@ -23,7 +23,7 @@ namespace GroveGames.Logger.Unity
         public void ProcessLog(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)
         {
             var log = Format(level, tag, message);
-            s_isWriting = true;
+            t_isWriting = true;
 
             try
             {
@@ -31,7 +31,7 @@ namespace GroveGames.Logger.Unity
             }
             finally
             {
-                s_isWriting = false;
+                t_isWriting = false;
             }
         }
 

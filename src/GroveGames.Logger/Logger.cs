@@ -14,11 +14,6 @@ public sealed class Logger : ILogger, IDisposable
         ArgumentNullException.ThrowIfNull(logProcessors);
         ArgumentNullException.ThrowIfNull(logSources);
 
-        if (logProcessors.Length == 0)
-        {
-            throw new ArgumentException("At least one log processor is required.", nameof(logProcessors));
-        }
-
         foreach (var processor in logProcessors)
         {
             ArgumentNullException.ThrowIfNull(processor, nameof(logProcessors));
