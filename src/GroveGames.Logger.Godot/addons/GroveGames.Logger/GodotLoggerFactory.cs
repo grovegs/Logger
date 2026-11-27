@@ -18,6 +18,12 @@ public sealed class GodotLoggerFactory
             settings = new LoggerSettingsResource();
         }
 
+        if (configure == null)
+        {
+            GD.PushError("The logger configuration cannot be null, so the logger writes nowhere.");
+            configure = static _ => { };
+        }
+
         return LoggerFactory.CreateLogger(settings, configure);
     }
 }

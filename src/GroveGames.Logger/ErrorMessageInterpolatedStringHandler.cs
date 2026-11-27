@@ -14,6 +14,13 @@ public ref struct ErrorMessageInterpolatedStringHandler
         _handler = new MessageInterpolatedStringHandler(literalLength, formattedCount, logger.MinimumLevel <= LogLevel.Error);
     }
 
+    // The compiler prefers this overload and skips every hole, even the first, when the level is disabled.
+    public ErrorMessageInterpolatedStringHandler(int literalLength, int formattedCount, ILogger logger, out bool isEnabled)
+    {
+        isEnabled = logger.MinimumLevel <= LogLevel.Error;
+        _handler = new MessageInterpolatedStringHandler(literalLength, formattedCount, isEnabled);
+    }
+
     public void Dispose()
     {
         _handler.Dispose();
@@ -79,7 +86,132 @@ public ref struct ErrorMessageInterpolatedStringHandler
         return _handler.Append(value, format);
     }
 
+    public bool AppendFormatted(bool value)
+    {
+        return _handler.Append(value);
+    }
+
+    public bool AppendFormatted(uint value)
+    {
+        return _handler.Append(value, null);
+    }
+
+    public bool AppendFormatted(uint value, string? format)
+    {
+        return _handler.Append(value, format);
+    }
+
+    public bool AppendFormatted(ulong value)
+    {
+        return _handler.Append(value, null);
+    }
+
+    public bool AppendFormatted(ulong value, string? format)
+    {
+        return _handler.Append(value, format);
+    }
+
+    public bool AppendFormatted(short value)
+    {
+        return _handler.Append(value, null);
+    }
+
+    public bool AppendFormatted(short value, string? format)
+    {
+        return _handler.Append(value, format);
+    }
+
+    public bool AppendFormatted(ushort value)
+    {
+        return _handler.Append(value, null);
+    }
+
+    public bool AppendFormatted(ushort value, string? format)
+    {
+        return _handler.Append(value, format);
+    }
+
+    public bool AppendFormatted(byte value)
+    {
+        return _handler.Append(value, null);
+    }
+
+    public bool AppendFormatted(byte value, string? format)
+    {
+        return _handler.Append(value, format);
+    }
+
+    public bool AppendFormatted(sbyte value)
+    {
+        return _handler.Append(value, null);
+    }
+
+    public bool AppendFormatted(sbyte value, string? format)
+    {
+        return _handler.Append(value, format);
+    }
+
+    public bool AppendFormatted(decimal value)
+    {
+        return _handler.Append(value, null);
+    }
+
+    public bool AppendFormatted(decimal value, string? format)
+    {
+        return _handler.Append(value, format);
+    }
+
+    public bool AppendFormatted(DateTime value)
+    {
+        return _handler.Append(value, null);
+    }
+
+    public bool AppendFormatted(DateTime value, string? format)
+    {
+        return _handler.Append(value, format);
+    }
+
+    public bool AppendFormatted(DateTimeOffset value)
+    {
+        return _handler.Append(value, null);
+    }
+
+    public bool AppendFormatted(DateTimeOffset value, string? format)
+    {
+        return _handler.Append(value, format);
+    }
+
+    public bool AppendFormatted(TimeSpan value)
+    {
+        return _handler.Append(value, null);
+    }
+
+    public bool AppendFormatted(TimeSpan value, string? format)
+    {
+        return _handler.Append(value, format);
+    }
+
+    public bool AppendFormatted(Guid value)
+    {
+        return _handler.Append(value, null);
+    }
+
+    public bool AppendFormatted(Guid value, string? format)
+    {
+        return _handler.Append(value, format);
+    }
+
 #if NET6_0_OR_GREATER
+    public bool AppendFormatted(object? value)
+    {
+        return _handler.Append(value, null);
+    }
+
+    public bool AppendFormatted(object? value, string? format)
+    {
+        return _handler.Append(value, format);
+    }
+
     public bool AppendFormatted<T>(T value) where T : ISpanFormattable
     {
         return _handler.Append(value, null);

@@ -6,13 +6,17 @@ namespace GroveGames.Logger.Unity
 {
     public sealed class LogSource : ILogSource
     {
-        private readonly ILogProcessor _logProcessor;
+        private readonly SourceLogProcessor _logProcessor;
         private readonly string _tag;
         private volatile int _disposed;
 
-        public LogSource(ILogProcessor[] processors, string tag = "Unity")
+        public LogSource(ILogProcessor[] processors, string tag = "Unity") : this(processors, tag, LogLevel.Debug)
         {
-            _logProcessor = new SourceLogProcessor(processors);
+        }
+
+        public LogSource(ILogProcessor[] processors, string tag, LogLevel minimumLevel)
+        {
+            _logProcessor = new SourceLogProcessor(processors, minimumLevel);
             _tag = tag;
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
         }
@@ -25,6 +29,11 @@ namespace GroveGames.Logger.Unity
             }
 
             var level = ConvertLogType(type);
+
+            if (!_logProcessor.IsEnabled(level))
+            {
+                return;
+            }
 
             if (level == LogLevel.Error && !string.IsNullOrEmpty(stackTrace))
             {

@@ -1,4 +1,6 @@
-﻿namespace GroveGames.Logger.Tests;
+﻿using System.Globalization;
+
+namespace GroveGames.Logger.Tests;
 
 public sealed class FileLogFormatterTests
 {
@@ -235,5 +237,29 @@ public sealed class FileLogFormatterTests
 
         // Assert
         Assert.Equal("12:34:56 [I] [Tag] Message", buffer.ToString());
+    }
+
+    [Fact]
+    public void Format_CultureWithDotTimeSeparator_UsesColons()
+    {
+        // Arrange
+        var formatter = new FileLogFormatter(new FakeTimeProvider());
+        var bufferSize = formatter.GetBufferSize(LogLevel.Information, "Test".AsSpan(), "Message".AsSpan());
+        var buffer = new char[bufferSize];
+        var culture = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = new CultureInfo("fi-FI");
+
+        try
+        {
+            // Act
+            formatter.Format(buffer, LogLevel.Information, "Test".AsSpan(), "Message".AsSpan());
+
+            // Assert
+            Assert.Equal("12:34:56 [I] [Test] Message", new string(buffer));
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = culture;
+        }
     }
 }

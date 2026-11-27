@@ -12,6 +12,8 @@ public sealed class LoggerBuilder : ILoggerBuilder
         _logSourceFactories = [];
     }
 
+    public LogLevel MinimumLevel => _minimumLevel;
+
     public ILoggerBuilder AddLogProcessor(ILogProcessor processor)
     {
         _logProcessors.Add(processor);
