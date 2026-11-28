@@ -497,6 +497,7 @@ public sealed class StreamWriterTests
             while (!stop.IsCancellationRequested)
             {
                 writer.AddEntry("background");
+                Thread.Sleep(1);
             }
         });
         logger.Start();
