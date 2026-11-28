@@ -230,6 +230,18 @@ var logger = UnityLoggerFactory.CreateLogger(settings, builder => { ... });
 With [GroveGames.DependencyInjection](https://github.com/grovegs/DependencyInjection) installed, register the logger in your root installer:
 
 ```csharp
+builder.AddLogger();
+```
+
+`AddLogger()` registers `ILogger` with the minimum level from `UnityLoggerSettings`, console output, file output and the Unity log source. To decide per environment, pass the level and whether to write to the console, for example with GroveGames.Platform's `UnityEnvironment`:
+
+```csharp
+builder.AddLogger(UnityEnvironment.IsEditor ? LogLevel.Debug : LogLevel.Information, isConsoleEnabled: !UnityEnvironment.IsProduction);
+```
+
+For anything else, configure the builder yourself:
+
+```csharp
 builder.AddLogger(ConfigureLogger);
 
 private static void ConfigureLogger(ILoggerBuilder logger)
@@ -240,7 +252,7 @@ private static void ConfigureLogger(ILoggerBuilder logger)
 }
 ```
 
-`AddLogger` registers `ILogger`, built from `UnityLoggerSettings` and then `ConfigureLogger`, so code overrides the settings, for example per environment with scripting defines set in build profiles. Disposing the container disposes the logger.
+Each overload builds the logger from `UnityLoggerSettings` and then the given configuration, so code overrides the settings. Disposing the container disposes the logger.
 
 ### Unity Components
 
