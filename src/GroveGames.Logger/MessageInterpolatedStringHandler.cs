@@ -321,7 +321,6 @@ internal ref struct MessageInterpolatedStringHandler
     }
 #endif
 
-    // The invariant "G" form, written digit by digit because Mono and IL2CPP allocate a string for every "yyyy".
     private static int WriteInvariant(Span<char> text, DateTime value)
     {
         var position = WriteDigits(text, 0, value.Month, 2);

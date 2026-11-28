@@ -24,7 +24,6 @@ public sealed class ConsoleLogFormatter : ILogFormatter
 
         if (level == LogLevel.Warning)
         {
-            // Warnings go through PrintRich, so every '[' of the text is written as "[lb]".
             var escapes = (Count(tag, '[') + Count(message, '[')) * (EscapedBracket.Length - 1);
             bufferSize += WarningTag.Length + WarningEnd.Length + escapes + (EscapedBracket.Length - 1);
         }

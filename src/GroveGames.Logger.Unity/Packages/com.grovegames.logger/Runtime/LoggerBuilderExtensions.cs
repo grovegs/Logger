@@ -49,7 +49,6 @@ namespace GroveGames.Logger.Unity
 
         public static void AddLogSource(this ILoggerBuilder builder, string tag = "Unity")
         {
-            // Read when the logger is built, so engine logs follow the level set before or after this call.
             builder.AddLogSource(processors => new LogSource(processors, tag, builder is LoggerBuilder loggerBuilder ? loggerBuilder.MinimumLevel : LogLevel.Debug));
         }
     }
