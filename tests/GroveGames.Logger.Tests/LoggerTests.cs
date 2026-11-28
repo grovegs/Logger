@@ -61,6 +61,34 @@ public sealed class LoggerTests
     }
 
     [Fact]
+    public void SetMinimumLevel_Raised_DropsLowerMessages()
+    {
+        var processor = new FakeLogProcessor();
+        using var logger = new Logger([processor], [], LogLevel.Debug);
+
+        logger.SetMinimumLevel(LogLevel.Warning);
+        logger.Log(LogLevel.Information, "Tag", "dropped");
+        logger.Log(LogLevel.Warning, "Tag", "kept");
+
+        Assert.Equal(1, processor.ProcessLogCallCount);
+        Assert.Equal("kept", processor.LastMessage);
+        Assert.Equal(LogLevel.Warning, logger.MinimumLevel);
+    }
+
+    [Fact]
+    public void SetMinimumLevel_Lowered_WritesDebugMessages()
+    {
+        var processor = new FakeLogProcessor();
+        using var logger = new Logger([processor], [], LogLevel.Information);
+
+        logger.SetMinimumLevel(LogLevel.Debug);
+        logger.Log(LogLevel.Debug, "Tag", "debug");
+
+        Assert.Equal(1, processor.ProcessLogCallCount);
+        Assert.Equal(LogLevel.Debug, processor.LastLogLevel);
+    }
+
+    [Fact]
     public void Constructor_NullProcessors_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() => new Logger(null!, [], LogLevel.Information));
