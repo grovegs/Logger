@@ -4,7 +4,7 @@ public sealed class Logger : ILogger, IDisposable
 {
     private readonly ILogProcessor[] _logProcessors;
     private readonly ILogSource[] _logSources;
-    private readonly LogLevel _minimumLevel;
+    private volatile LogLevel _minimumLevel;
     private bool _disposed;
 
     public LogLevel MinimumLevel => _minimumLevel;
@@ -27,6 +27,11 @@ public sealed class Logger : ILogger, IDisposable
         _logProcessors = logProcessors;
         _logSources = logSources;
         _minimumLevel = minimumLevel;
+    }
+
+    public void SetMinimumLevel(LogLevel level)
+    {
+        _minimumLevel = level;
     }
 
     public void Log(LogLevel level, ReadOnlySpan<char> tag, ReadOnlySpan<char> message)

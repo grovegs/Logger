@@ -254,6 +254,8 @@ private static void ConfigureLogger(ILoggerBuilder logger)
 
 Each overload builds the logger from `UnityLoggerSettings` and then the given configuration, so code overrides the settings. Disposing the container disposes the logger.
 
+With [GroveGames.DeveloperTools](https://github.com/grovegs/DeveloperTools) installed and `GROVEGAMES_DEVELOPERTOOLS` defined, `AddLogger` also registers the Logger options, a minimum level picker that calls `Logger.SetMinimumLevel`. The level applies to messages logged through `ILogger`; messages Unity logs itself keep the level the logger was built with.
+
 ### Unity Components
 
 - **`UnityLoggerFactory`**: Factory with GetOrCreate() pattern for DI-friendly architecture
