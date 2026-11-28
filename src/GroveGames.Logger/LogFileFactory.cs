@@ -41,7 +41,6 @@ public sealed class LogFileFactory : ILogFileFactory
 
     private string GenerateFileName()
     {
-        // Invariant, so the names sort by time on every device language and rotation deletes the oldest files.
         return _timeProvider.GetUtcNow().ToString("yyyyMMdd_HHmmss_fff", CultureInfo.InvariantCulture) + ".log";
     }
 
@@ -80,8 +79,6 @@ public sealed class LogFileFactory : ILogFileFactory
             return;
         }
 
-        // Older releases named files in the device culture, so a Thai device has names in the Buddhist calendar
-        // (2569...) that sort after every invariant name. A name whose year is past next year goes first.
         var latestYear = _timeProvider.GetUtcNow().Year + 1;
         Array.Sort(files, (left, right) =>
         {

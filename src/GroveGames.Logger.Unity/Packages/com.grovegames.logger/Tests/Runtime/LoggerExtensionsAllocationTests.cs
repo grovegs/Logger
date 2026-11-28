@@ -22,7 +22,6 @@ namespace GroveGames.Logger.Unity.Tests
             var ratio = 1.5f;
             TestDelegate log = () => logger.LogInformation("Tag", $"{count} {time} {time:HH:mm:ss} {offset} {id} {flag} {stage} {ratio} {amount} {duration}");
 
-            // The first calls JIT the delegate and grow the pooled message buffer.
             log();
             log();
 

@@ -14,7 +14,6 @@ public ref struct ErrorMessageInterpolatedStringHandler
         _handler = new MessageInterpolatedStringHandler(literalLength, formattedCount, logger.MinimumLevel <= LogLevel.Error);
     }
 
-    // The compiler prefers this overload and skips every hole, even the first, when the level is disabled.
     public ErrorMessageInterpolatedStringHandler(int literalLength, int formattedCount, ILogger logger, out bool isEnabled)
     {
         isEnabled = logger.MinimumLevel <= LogLevel.Error;
